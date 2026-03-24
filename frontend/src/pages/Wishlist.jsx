@@ -16,8 +16,8 @@ const Wishlist = () => {
     };
 
     return (
-        <div className="font-['Inter',sans-serif]">
-            <div className="bg-white pt-8 pb-6 px-4 md:px-8 lg:px-12">
+        <div className="container font-['Inter',sans-serif]">
+            <div className="bg-white pt-8 pb-6 px-4">
                 <div className="flex flex-col gap-4">
                     <nav className="flex items-center text-sm text-[var(--text-secondary)]">
                         <Link to="/" className="hover:text-[var(--primary)] flex items-center gap-1 transition-colors">
@@ -35,7 +35,7 @@ const Wishlist = () => {
                 </div>
             </div>
 
-            <div className="px-4 md:px-8 lg:px-12 py-8">
+            <div className="px-4 py-8">
                 {wishlistItems.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {wishlistItems.map((item) => (
