@@ -26,8 +26,8 @@ const Cart = () => {
     const total = subtotal + shipping + tax;
 
     return (
-        <div className="font-['Inter',sans-serif] pb-12">
-            <div className="bg-white pt-8 pb-6 px-4 md:px-8 lg:px-12 mb-8">
+        <div className="container font-['Inter',sans-serif] pb-12">
+            <div className="bg-white pt-8 pb-6 px-4 mb-8">
                 <div className="flex flex-col gap-4">
                     <nav className="flex items-center text-sm text-[var(--text-secondary)]">
                         <Link to="/" className="hover:text-[var(--primary)] flex items-center gap-1 transition-colors font-medium">
@@ -50,7 +50,7 @@ const Cart = () => {
                 </div>
             </div>
 
-            <div className="px-4 md:px-8 lg:px-12">
+            <div className="px-4">
                 {cartItems.length > 0 ? (
                     <div className="flex flex-col lg:flex-row gap-8 items-start">
                         <div className="w-full lg:w-2/3 flex flex-col gap-4">
@@ -141,7 +141,7 @@ const Cart = () => {
                         </div>
                     </div>
                 ) : (
-                    <div className="flex flex-col items-center justify-center py-24 px-4 bg-white rounded-3xl border border-[var(--border)] shadow-sm text-center">
+                    <div className="flex flex-col items-center justify-center py-24 px-4 bg-white rounded-md border border-[var(--border)] text-center">
                         <div className="w-28 h-28 bg-[var(--bg-main)] text-gray-300 rounded-full flex items-center justify-center mb-6 shadow-inner border border-[var(--border)]">
                             <ShoppingBag size={56} strokeWidth={1.5} />
                         </div>
@@ -149,7 +149,7 @@ const Cart = () => {
                         <p className="text-[var(--text-secondary)] text-lg max-w-md mx-auto mb-8 leading-relaxed font-medium">
                             Looks like you haven't added any fresh groceries to your cart yet. Let's fix that!
                         </p>
-                        <Link to="/" className="inline-flex items-center justify-center gap-2 px-10 py-4 bg-[var(--primary)] text-white rounded-xl font-bold hover:bg-[var(--primary-hover)] transition-all duration-300 hover:shadow-xl hover:shadow-[var(--primary)]/30 active:scale-95 text-lg">
+                        <Link to="/" className="inline-flex items-center justify-center gap-2 px-10 py-4 bg-[var(--primary)] text-white rounded-md font-bold hover:bg-[var(--primary-hover)] transition-all duration-300 hover:shadow-[var(--primary)]/30 active:scale-95 text-lg">
                             Return to Shop
                         </Link>
                     </div>
