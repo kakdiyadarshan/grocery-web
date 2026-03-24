@@ -68,7 +68,6 @@ const CheckOut = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#fafafa]">
-      <Header />
 
       {/* Breadcrumb / Page Title */}
       <div className="bg-gray-50 py-8 border-b border-gray-100">
@@ -266,7 +265,6 @@ const CheckOut = () => {
         </div>
       </main>
 
-      <Footer />
     </div>
   );
 };
