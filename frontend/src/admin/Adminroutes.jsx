@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux'
 import PrivateRoute from './PrivateRoute'
 import DataTable from './component/DataTable'
 import Product from './pages/Product'
+import PrivacyPolicy from './pages/PrivacyPolicy'
 
 
 const Adminroutes = () => {
@@ -26,13 +27,7 @@ const Adminroutes = () => {
                 <Route element={<Layout />}>
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="products" element={<Product />} />
-                    <Route path="categories" element={<DataTable />} />
-                    <Route path="orders" element={<DataTable />} />
-                    <Route path="customers" element={<DataTable />} />
-                    <Route path="vendors" element={<DataTable />} />
-
-                    <Route path="settings" element={<div className="p-6 h-full flex items-center justify-center text-gray-400 font-medium">Coming Soon</div>} />
-
+                    <Route path="privacy-policy" element={<PrivacyPolicy />} />
                 </Route>
             </Route>
         </Routes>

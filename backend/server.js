@@ -29,9 +29,6 @@ app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
 app.use('/api', indexRouter);
 
-
-
-
 app.listen(PORT, () => {
   connectDB();
   console.log(`Server running on port ${PORT}`);

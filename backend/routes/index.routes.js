@@ -5,6 +5,7 @@ const { createUser, verifyOtp, resendOtp, userLogin, forgotPassword, forgotVerif
 const { getAllUsers, getUserById, updateUser, changePassword } = require('../controllers/user.controller');
 const { createCategory, getAllCategories, getCategoryById, updateCategory, deleteCategory } = require('../controllers/category.controller');
 const { auth, authorizeRoles } = require('../middleware/auth.middleware');
+const { uploadPrivacyImage, saveAllPrivacyPolicies, getAllPrivacyPolicies, getPrivacyPolicyById } = require('../controllers/privacy.controller');
 
 // Auth routes
 indexRoutes.post('/register', createUser);
@@ -30,6 +31,12 @@ indexRoutes.get('/getAllCategories', getAllCategories);
 indexRoutes.get('/getCategoryById/:id', getCategoryById);
 indexRoutes.put('/updateCategory/:id', upload.single('categoryImage'), updateCategory);
 indexRoutes.delete('/deleteCategory/:id', deleteCategory);
+
+// Privacy routes
+indexRoutes.post('/privacy/upload-image', auth, authorizeRoles('admin'), upload.single('image'), uploadPrivacyImage);
+indexRoutes.post('/saveallprivacy', auth, authorizeRoles('admin'), saveAllPrivacyPolicies);
+indexRoutes.get('/getallprivacy', getAllPrivacyPolicies);
+indexRoutes.get('/getprivacy/:id', getPrivacyPolicyById);
 
 
 module.exports = indexRoutes;

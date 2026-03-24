@@ -82,7 +82,7 @@ const Login = () => {
                                 value={formik.values.email}
                                 className={`block w-full pl-10 pr-3 py-3 border rounded-[4px] outline-none transition-all bg-gray-50 focus:bg-white text-color placeholder-gray-400 ${formik.touched.email && formik.errors.email
                                     ? 'border-red-500 focus:ring-red-100'
-                                    : 'border-gray-200 focus:ring-2 focus:ring-pink-100 focus:border-primary'
+                                    : 'border-gray-200 focus:ring-2 focus:ring-primary-100 focus:border-primary'
                                     }`}
                                 placeholder="Email"
                             />
@@ -109,7 +109,7 @@ const Login = () => {
                                 value={formik.values.password}
                                 className={`block w-full pl-10 pr-3 py-3 border rounded-[4px] outline-none transition-all bg-gray-50 focus:bg-white text-color placeholder-gray-400 ${formik.touched.password && formik.errors.password
                                     ? 'border-red-500 focus:ring-red-100'
-                                    : 'border-gray-200 focus:ring-2 focus:ring-pink-100 focus:border-primary'
+                                    : 'border-gray-200 focus:ring-2 focus:ring-green-100 focus:border-primary'
                                     }`}
                                 placeholder="Password"
                             />
