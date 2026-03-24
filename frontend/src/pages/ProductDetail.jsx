@@ -471,34 +471,35 @@ function ProductDetail() {
                 </div>
 
                 {/* Newsletter */}
-                <div className="w-full py-10 mt-14">
+                <div className="w-full py-6 mt-10">
                     <div
-                        className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-[#DDEEE5] bg-no-repeat bg-cover bg-center sm:bg-right min-h-[400px] sm:min-h-[450px] flex items-center"
+                        className="relative overflow-hidden rounded-md bg-[#DDEEE5] bg-no-repeat bg-cover bg-center sm:bg-right min-h-[380px] flex items-center"
                         style={{ backgroundImage: `url(${NewsletterImage})` }}
                     >
-                        <div className="relative z-10 p-6 sm:p-12 lg:p-20 w-full lg:w-[60%]">
+                        <div className="relative z-10 p-6 md:p-10 lg:p-20 w-full lg:w-1/2">
                             {/* LEFT CONTENT */}
-                            <div className="text-left max-w-md sm:max-w-lg lg:max-w-xl">
+                            <div className="text-left">
                                 {/* Title */}
-                                <h2 className="text-[#253D4E] text-2xl xs:text-3xl sm:text-4xl lg:text-5xl font-bold leading-[1.2]">
-                                    Stay Home & Get Your Daily <br className="hidden xs:block" />
+                                <h2 className="text-[#253D4E] text-2xl sm:text-3xl font-medium leading-tight">
+                                    Stay Home & Get Your Daily <br className="hidden sm:block" />
                                     Needs From Our Shop
                                 </h2>
 
                                 {/* Description */}
-                                <p className="text-[#7E7E7E] mt-5 text-sm sm:text-lg opacity-90">
+                                <p className="text-[#7E7E7E] mt-4 text-sm">
                                     Subscribe to our latest newsletter to get news about special discounts.
                                 </p>
 
-                                {/* Input + Button Container */}
-                                <div className="mt-8 flex flex-col items-start w-full gap-2.5 sm:flex-row sm:gap-0 sm:bg-white sm:rounded-full sm:overflow-hidden sm:max-w-md lg:max-w-lg sm:border sm:border-gray-100 transition-all duration-300">
+                                {/* Input + Button */}
+                                <div className="mt-8 flex flex-col sm:flex-row items-center w-full bg-white rounded-md overflow-hidden border border-gray-200">
+
                                     <input
                                         type="email"
                                         placeholder="Email"
-                                        className="w-full sm:flex-1 bg-white sm:bg-transparent px-6 py-4 rounded-xl sm:rounded-none text-sm sm:text-base outline-none text-[#253D4E] shadow-sm sm:shadow-none placeholder:text-[#253D4E]/60"
+                                        className="w-full px-5 py-3 text-sm md:text-base outline-none text-gray-600 bg-transparent"
                                     />
 
-                                    <button className="bg-[#3BB77E] hover:bg-[#2eaa6a] text-white px-10 py-4 rounded-xl sm:rounded-none text-sm sm:text-base font-bold transition-all duration-300 transform active:scale-95 shadow-md sm:shadow-none whitespace-nowrap">
+                                    <button className="w-full sm:w-auto bg-[#3BB77E] text-white px-4 py-3 text-sm md:text-base">
                                         Subscribe
                                     </button>
                                 </div>
@@ -506,7 +507,7 @@ function ProductDetail() {
                         </div>
                     </div>
                 </div>
-
+                
             </div>
         </div>
     );
