@@ -15,6 +15,7 @@ import ShippingPolicy from './pages/ShippingPolicy';
 import About from './pages/About';
 import Blog from './pages/Blog';
 import BlogDetails from './pages/BlogDetails';
+import CheckOut from './pages/CheckOut';
 
 function App() {
   const dispatch = useDispatch();
@@ -36,6 +37,7 @@ function App() {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/shipping-policy" element={<ShippingPolicy />} />
         <Route path="/wishlist" element={<Wishlist />} />
+        <Route path='/checkout' element={<CheckOut />} />
         <Route path="/admin/*" element={<Adminroutes />} />
       </Routes>
     </>

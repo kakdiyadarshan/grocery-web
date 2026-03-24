@@ -1,7 +1,13 @@
 import React from 'react';
 import { X, Minus, Plus, Trash2, ChevronDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Cart = ({ isOpen, onClose }) => {
+    const navigate = useNavigate();
+
+    const handleNavigate = () => {
+        navigate('/checkout');
+    }
     return (
         <>
             {/* Backdrop */}
@@ -104,7 +110,7 @@ const Cart = ({ isOpen, onClose }) => {
                         <button className="flex-1 bg-[var(--primary)] text-white py-3 sm:py-3.5 rounded text-[14px] sm:text-[15px] font-bold hover:bg-[var(--primary-hover)] transition-colors w-full">
                             View Cart
                         </button>
-                        <button className="flex-1 bg-[var(--primary)] text-white py-3 sm:py-3.5 rounded text-[14px] sm:text-[15px] font-bold hover:bg-[var(--primary-hover)] transition-colors w-full">
+                        <button className="flex-1 bg-[var(--primary)] text-white py-3 sm:py-3.5 rounded text-[14px] sm:text-[15px] font-bold hover:bg-[var(--primary-hover)] transition-colors w-full" onClick={handleNavigate}>
                             Check Out
                         </button>
                     </div>
