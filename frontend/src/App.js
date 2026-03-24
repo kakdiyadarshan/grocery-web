@@ -3,6 +3,7 @@ import './App.css';
 import { Toaster } from 'sonner';
 import Home from './pages/Home';
 import Wishlist from './pages/Wishlist';
+import Cart from './pages/Cart';
 import { Route, Routes } from 'react-router-dom';
 import Adminroutes from './admin/Adminroutes';
 import Login from './component/Login';
@@ -33,6 +34,7 @@ function App() {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/shipping-policy" element={<ShippingPolicy />} />
         <Route path="/wishlist" element={<Wishlist />} />
+        <Route path="/cart" element={<Cart />} />
         <Route path="/admin/*" element={<Adminroutes />} />
       </Routes>
     </>
