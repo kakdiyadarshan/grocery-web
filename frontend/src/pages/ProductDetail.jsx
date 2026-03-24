@@ -3,12 +3,13 @@ import { MdKeyboardArrowRight, MdVisibility, MdKeyboardArrowUp, MdKeyboardArrowD
 import { AiOutlineHeart, AiFillStar, AiOutlineStar } from "react-icons/ai";
 import { IoIosGitCompare } from "react-icons/io";
 import { FiMinus, FiPlus, FiShoppingCart } from "react-icons/fi";
-import image1 from '../Images/02_4f606a6b-57e8-4991-8605-fa3ba641c0c0.webp';
-import image2 from '../Images/03_5f4ee6dc-f7e4-4a0a-b988-d9b893ead0a0.webp';
-import image3 from '../Images/04_26183b2f-eb65-48de-b9c1-ac376c5b9e37.webp';
-import image4 from '../Images/05_aa60bf65-3569-4105-8cd6-c4c0274d7dab.webp';
-import image5 from '../Images/06.webp';
-import image6 from '../Images/02_4f606a6b-57e8-4991-8605-fa3ba641c0c0.webp';
+import image1 from '../Image/02_4f606a6b-57e8-4991-8605-fa3ba641c0c0.webp';
+import image2 from '../Image/03_5f4ee6dc-f7e4-4a0a-b988-d9b893ead0a0.webp';
+import image3 from '../Image/04_26183b2f-eb65-48de-b9c1-ac376c5b9e37.webp';
+import image4 from '../Image/05_aa60bf65-3569-4105-8cd6-c4c0274d7dab.webp';
+import image5 from '../Image/06.webp';
+import image6 from '../Image/02_4f606a6b-57e8-4991-8605-fa3ba641c0c0.webp';
+import NewsletterImage from '../Image/newsletter.png';
 
 function ProductDetail() {
     const images = [image1, image2, image3, image4, image5, image6];
@@ -466,6 +467,43 @@ function ProductDetail() {
                                 </div>
                             </div>
                         ))}
+                    </div>
+                </div>
+
+                {/* Newsletter */}
+                <div className="w-full py-10 mt-14">
+                    <div
+                        className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-[#DDEEE5] bg-no-repeat bg-cover bg-center sm:bg-right min-h-[400px] sm:min-h-[450px] flex items-center"
+                        style={{ backgroundImage: `url(${NewsletterImage})` }}
+                    >
+                        <div className="relative z-10 p-6 sm:p-12 lg:p-20 w-full lg:w-[60%]">
+                            {/* LEFT CONTENT */}
+                            <div className="text-left max-w-md sm:max-w-lg lg:max-w-xl">
+                                {/* Title */}
+                                <h2 className="text-[#253D4E] text-2xl xs:text-3xl sm:text-4xl lg:text-5xl font-bold leading-[1.2]">
+                                    Stay Home & Get Your Daily <br className="hidden xs:block" />
+                                    Needs From Our Shop
+                                </h2>
+
+                                {/* Description */}
+                                <p className="text-[#7E7E7E] mt-5 text-sm sm:text-lg opacity-90">
+                                    Subscribe to our latest newsletter to get news about special discounts.
+                                </p>
+
+                                {/* Input + Button Container */}
+                                <div className="mt-8 flex flex-col items-start w-full gap-2.5 sm:flex-row sm:gap-0 sm:bg-white sm:rounded-full sm:overflow-hidden sm:max-w-md lg:max-w-lg sm:border sm:border-gray-100 transition-all duration-300">
+                                    <input
+                                        type="email"
+                                        placeholder="Email"
+                                        className="w-full sm:flex-1 bg-white sm:bg-transparent px-6 py-4 rounded-xl sm:rounded-none text-sm sm:text-base outline-none text-[#253D4E] shadow-sm sm:shadow-none placeholder:text-[#253D4E]/60"
+                                    />
+
+                                    <button className="bg-[#3BB77E] hover:bg-[#2eaa6a] text-white px-10 py-4 rounded-xl sm:rounded-none text-sm sm:text-base font-bold transition-all duration-300 transform active:scale-95 shadow-md sm:shadow-none whitespace-nowrap">
+                                        Subscribe
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
