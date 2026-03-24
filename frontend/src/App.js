@@ -3,6 +3,7 @@ import './App.css';
 import { Toaster } from 'sonner';
 import Home from './pages/Home';
 import Wishlist from './pages/Wishlist';
+import Cart from './pages/Cart';
 import { Route, Routes } from 'react-router-dom';
 import Adminroutes from './admin/Adminroutes';
 import Login from './component/Login';
@@ -43,6 +44,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/cart" element={<Cart />} />
         <Route path="/admin/*" element={<Adminroutes />} />
       </Routes>
     </>

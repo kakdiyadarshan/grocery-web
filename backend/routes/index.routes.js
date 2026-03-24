@@ -4,6 +4,8 @@ const upload = require('../helper/imageUpload');
 const { createUser, verifyOtp, resendOtp, userLogin, forgotPassword, forgotVerifyOtp, resetPassword, logout } = require('../controllers/auth.controller');
 const { getAllUsers, getUserById, updateUser, changePassword } = require('../controllers/user.controller');
 const { createCategory, getAllCategories, getCategoryById, updateCategory, deleteCategory } = require('../controllers/category.controller');
+const { getCart, addToCart, updateCartQuantity, removeFromCart } = require('../controllers/cart.controller');
+const { getWishlist, addToWishlist, removeFromWishlist } = require('../controllers/wishlist.controller');
 const { auth, authorizeRoles } = require('../middleware/auth.middleware');
 
 // Auth routes
@@ -31,5 +33,16 @@ indexRoutes.get('/getCategoryById/:id', getCategoryById);
 indexRoutes.put('/updateCategory/:id', upload.single('categoryImage'), updateCategory);
 indexRoutes.delete('/deleteCategory/:id', deleteCategory);
 
+
+// Cart routes
+indexRoutes.get('/cart', auth, getCart);
+indexRoutes.post('/cart/add', auth, addToCart);
+indexRoutes.put('/cart/update', auth, updateCartQuantity);
+indexRoutes.delete('/cart/remove/:productId', auth, removeFromCart);
+
+// Wishlist routes
+indexRoutes.get('/wishlist', auth, getWishlist);
+indexRoutes.post('/wishlist/add', auth, addToWishlist);
+indexRoutes.delete('/wishlist/remove/:productId', auth, removeFromWishlist);
 
 module.exports = indexRoutes;
