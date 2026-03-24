@@ -1,7 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X, Minus, Plus, Trash2, ChevronDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Cart = ({ isOpen, onClose }) => {
+    const navigate = useNavigate();
+    const [quantity, setQuantity] = useState(1);
+    const [showInstructions, setShowInstructions] = useState(false);
+    const [instructions, setInstructions] = useState('');
+
+    const UNIT_PRICE = 32.00;
+
+    const handleIncrement = () => setQuantity(prev => prev + 1);
+    const handleDecrement = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
+
+    const handleNavigate = () => {
+        navigate('/checkout');
+    }
     return (
         <>
             {/* Backdrop */}
@@ -60,11 +74,11 @@ const Cart = ({ isOpen, onClose }) => {
                                 <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-3 sm:mt-4">
                                     {/* Quantity */}
                                     <div className="flex items-center border border-gray-200 rounded px-2 w-[75px] sm:w-[85px] h-8 sm:h-9 justify-between">
-                                        <button className="text-gray-400 hover:text-[var(--primary)] shrink-0">
+                                        <button onClick={handleDecrement} className="text-gray-400 hover:text-[var(--primary)] shrink-0 transition-colors">
                                             <Minus className="w-3.5 h-3.5" />
                                         </button>
-                                        <span className="text-[14px] sm:text-[15px] font-medium shrink-0">1</span>
-                                        <button className="text-gray-400 hover:text-[var(--primary)] shrink-0">
+                                        <span className="text-[14px] sm:text-[15px] font-medium shrink-0">{quantity}</span>
+                                        <button onClick={handleIncrement} className="text-gray-400 hover:text-[var(--primary)] shrink-0 transition-colors">
                                             <Plus className="w-3.5 h-3.5" />
                                         </button>
                                     </div>
@@ -77,7 +91,7 @@ const Cart = ({ isOpen, onClose }) => {
                             </div>
                         </div>
                         {/* Total Price */}
-                        <span className="font-bold text-[var(--primary)] text-[14px] sm:text-[16px] shrink-0 whitespace-nowrap">$32.00</span>
+                        <span className="font-bold text-[var(--primary)] text-[14px] sm:text-[16px] shrink-0 whitespace-nowrap">${(UNIT_PRICE * quantity).toFixed(2)}</span>
                     </div>
 
                     {/* (No Item 2 implemented in user's most recent code block, but if we wanted another we'd just add another block identical to Item 1) */}
@@ -86,15 +100,31 @@ const Cart = ({ isOpen, onClose }) => {
                 {/* Footer */}
                 <div className="px-4 sm:px-6 py-6 border-t border-gray-100 bg-white">
                     {/* Order Special Instructions */}
-                    <button className="flex items-center justify-between w-full text-[14px] sm:text-[15px] text-[var(--text-gray)] mb-6">
-                        <span className="truncate pr-2">Order special instructions</span>
-                        <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />
-                    </button>
+                    <div className="mb-6 border-b border-gray-100 pb-6">
+                        <button 
+                            onClick={() => setShowInstructions(!showInstructions)}
+                            className="flex items-center justify-between w-full text-[14px] sm:text-[15px] text-[var(--text-gray)] group text-left"
+                        >
+                            <span className="truncate pr-2 font-medium group-hover:text-[var(--primary)] transition-colors">Order special instructions</span>
+                            <ChevronDown className={`w-4 h-4 text-gray-400 shrink-0 transition-transform duration-300 ${showInstructions ? 'rotate-180' : ''}`} />
+                        </button>
+                        {showInstructions && (
+                            <div className="mt-4 animate-in fade-in slide-in-from-top-1">
+                                <textarea
+                                    className="w-full border border-gray-200 rounded p-3 text-[13.5px] text-gray-600 outline-none focus:border-[var(--primary)] transition-colors resize-none shadow-sm"
+                                    rows="3"
+                                    placeholder="Add any special instructions for your order..."
+                                    value={instructions}
+                                    onChange={(e) => setInstructions(e.target.value)}
+                                ></textarea>
+                            </div>
+                        )}
+                    </div>
 
                     {/* Subtotal */}
                     <div className="flex items-center justify-between mb-2">
                         <span className="font-bold text-[var(--text-gray)] text-[15px] sm:text-[17px] tracking-wide shrink-0">Subtotal</span>
-                        <span className="font-bold text-[var(--primary)] text-[15px] sm:text-[17px] tracking-wide shrink-0 whitespace-nowrap">$32.00 USD</span>
+                        <span className="font-bold text-[var(--primary)] text-[15px] sm:text-[17px] tracking-wide shrink-0 whitespace-nowrap">${(UNIT_PRICE * quantity).toFixed(2)} USD</span>
                     </div>
 
                     <p className="text-[12px] sm:text-[13px] text-[var(--text-gray)] mb-6 opacity-80 break-words">Taxes and shipping calculated at checkout</p>
@@ -104,7 +134,7 @@ const Cart = ({ isOpen, onClose }) => {
                         <button className="flex-1 bg-[var(--primary)] text-white py-3 sm:py-3.5 rounded text-[14px] sm:text-[15px] font-bold hover:bg-[var(--primary-hover)] transition-colors w-full">
                             View Cart
                         </button>
-                        <button className="flex-1 bg-[var(--primary)] text-white py-3 sm:py-3.5 rounded text-[14px] sm:text-[15px] font-bold hover:bg-[var(--primary-hover)] transition-colors w-full">
+                        <button className="flex-1 bg-[var(--primary)] text-white py-3 sm:py-3.5 rounded text-[14px] sm:text-[15px] font-bold hover:bg-[var(--primary-hover)] transition-colors w-full" onClick={handleNavigate}>
                             Check Out
                         </button>
                     </div>

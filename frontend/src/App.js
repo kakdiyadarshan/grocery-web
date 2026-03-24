@@ -17,6 +17,8 @@ import About from './pages/About';
 import Blog from './pages/Blog';
 import BlogDetails from './pages/BlogDetails';
 import ProductDetail from './pages/ProductDetail';
+import CheckOut from './pages/CheckOut';
+
 
 import Layout from './component/Layout';
 
@@ -39,6 +41,7 @@ function App() {
           <Route path="/shipping-policy" element={<ShippingPolicy />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/product-details/:id" element={<ProductDetail />} />
+              <Route path='/checkout' element={<CheckOut />} />
         </Route>
 
         <Route path="/login" element={<Login />} />
