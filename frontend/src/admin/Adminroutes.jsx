@@ -6,6 +6,7 @@ import Login from './pages/Login'
 import { useSelector } from 'react-redux'
 import PrivateRoute from './PrivateRoute'
 import DataTable from './component/DataTable'
+import Product from './pages/Product'
 
 
 const Adminroutes = () => {
@@ -24,7 +25,7 @@ const Adminroutes = () => {
             <Route element={<PrivateRoute allowedRoles={['admin']} />}>
                 <Route element={<Layout />}>
                     <Route path="dashboard" element={<Dashboard />} />
-                    <Route path="products" element={<DataTable />} />
+                    <Route path="products" element={<Product />} />
                     <Route path="categories" element={<DataTable />} />
                     <Route path="orders" element={<DataTable />} />
                     <Route path="customers" element={<DataTable />} />

@@ -1,299 +1,367 @@
-import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import {
-    Search,
-    Filter,
-    ChevronLeft,
-    ChevronRight,
-    ArrowUpDown,
-    Plus,
-    Eye,
-    Edit,
-    Trash2
-} from 'lucide-react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import { FiArrowUp, FiArrowDown, FiEye, FiEdit2, FiTrash2, FiSearch, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { BiSortAlt2 } from "react-icons/bi";
+// import CommonViewModal from './CommonViewModal';
+// import DeleteModal from './DeleteModal';
 
-const DataTable = () => {
-    const location = useLocation();
-    const [searchTerm, setSearchTerm] = useState('');
+// Helper for status styles moved outside to avoid recreation
+const getStatusStyles = (status) => {
+    switch (status) {
+        case 'Active':
+        case 'Paid':
+        case 'Delivered':
+        case 'Completed':
+        case 'completed':
+        case 'approved':
+            return 'bg-green-500/10 text-green-500 border border-green-500/20';
 
-    // Determine current module from URL
-    const getModuleConfig = () => {
-        const path = location.pathname;
-        if (path.includes('/products')) return 'products';
-        if (path.includes('/categories')) return 'categories';
-        if (path.includes('/orders')) return 'orders';
-        if (path.includes('/customers')) return 'customers';
-        if (path.includes('/vendors')) return 'vendors';
-        return 'products'; // default
-    };
+        case 'Pending':
+        case 'pending':
+        case 'Unpaid':
+            return 'bg-orange-500/10 text-orange-500 border border-orange-500/20';
 
-    const currentModule = getModuleConfig();
+        case 'Order Confirmed':
+            return 'bg-sky-500/10 text-sky-500 border border-sky-500/20';
 
-    // Reusable status badge generator
-    const getStatusBadge = (status) => {
-        const text = status.toLowerCase();
-        if (text.includes('in stock') || text === 'active' || text === 'delivered') return 'bg-green-100 text-green-700 border-green-200';
-        if (text.includes('low') || text === 'pending') return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-        if (text.includes('out of') || text === 'inactive') return 'bg-red-100 text-red-700 border-red-200';
-        if (text === 'processing') return 'bg-blue-100 text-blue-700 border-blue-200';
-        return 'bg-gray-100 text-gray-700 border-gray-200';
-    };
+        case 'Processing':
+            return 'bg-indigo-500/10 text-indigo-500 border border-indigo-500/20';
 
-    // Module configurations managing all data and columns within this single file
-    const configurations = {
-        products: {
-            title: "Products",
-            subtitle: "Manage your store's product inventory and pricing.",
-            addLabel: "Add Product",
-            searchPlaceholder: "Search products by name or category...",
-            searchableFields: ['name', 'category', 'status'],
-            data: [
-                { id: 1, name: 'Organic Bananas', category: 'Fruits', price: '$2.99', stock: 154, status: 'In Stock', image: '🍌' },
-                { id: 2, name: 'Whole Milk 1 Gallon', category: 'Dairy', price: '$4.49', stock: 43, status: 'Low Stock', image: '🥛' },
-                { id: 3, name: 'Sourdough Bread', category: 'Bakery', price: '$5.99', stock: 0, status: 'Out of Stock', image: '🍞' },
-                { id: 4, name: 'Fresh Salmon Fillet', category: 'Seafood', price: '$12.99', stock: 24, status: 'In Stock', image: '🐟' },
-                { id: 5, name: 'Avocado (Large)', category: 'Vegetables', price: '$1.50', stock: 312, status: 'In Stock', image: '🥑' },
-            ],
-            columns: [
-                {
-                    header: 'Product', accessor: 'name', sortable: true, render: (row) => (
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-md flex items-center justify-center text-xl border border-gray-100 group-hover:bg-white transition-colors">
-                                {row.image}
-                            </div>
-                            <div>
-                                <p className="font-semibold text-gray-900 group-hover:text-green-600 transition-colors">{row.name}</p>
-                                <p className="text-xs text-gray-500">ID: #{row.id.toString().padStart(4, '0')}</p>
-                            </div>
-                        </div>
-                    )
-                },
-                { header: 'Category', accessor: 'category', render: (row) => <span className="text-sm text-gray-600 font-medium">{row.category}</span> },
-                { header: 'Price', accessor: 'price', render: (row) => <span className="text-sm font-semibold text-gray-900">{row.price}</span> },
-                { header: 'Status', accessor: 'status', render: (row) => <span className={`px-3 py-1 text-xs font-semibold rounded-md border ${getStatusBadge(row.status)}`}>{row.status}</span> },
-                {
-                    header: 'Stock', accessor: 'stock', render: (row) => (
-                        <div className="flex items-center gap-2">
-                            <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                                <div className={`h-full rounded-full ${row.stock > 50 ? 'bg-green-500' : row.stock > 0 ? 'bg-yellow-400' : 'bg-red-500'}`} style={{ width: `${Math.min((row.stock / 200) * 100, 100)}%` }}></div>
-                            </div>
-                            <span className="text-sm text-gray-600 font-medium w-8">{row.stock}</span>
-                        </div>
-                    )
-                },
-                {
-                    header: 'Actions', accessor: 'actions', align: 'right', render: (row) => (
-                        <div className="flex justify-end gap-2">
-                            <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"><Eye size={18} /></button>
-                            <button className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors"><Edit size={18} /></button>
-                            <button className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"><Trash2 size={18} /></button>
-                        </div>
-                    )
+        case 'Shipped':
+            return 'bg-violet-500/10 text-violet-500 border border-violet-500/20';
+
+        case 'Out For Delivery':
+            return 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20';
+
+        case 'Disable':
+        case 'Rejected':
+        case 'rejected':
+        case 'Cancelled':
+        case 'Returned':
+            return 'bg-red-500/10 text-red-500 border border-red-500/20';
+
+        case 'Amount':
+            return 'bg-emerald-500/10 text-emerald-500 ';
+
+        default: return 'bg-gray-500/10 text-gray-500 border border-gray-500/20';
+    }
+};
+
+const Table = ({ columns = [], data = [], onEdit, onView, onDelete, itemsPerPage = 10, extraActions,
+    manualPagination = false, manualTotalPages, manualCurrentPage, onManualPageChange,
+    manualRowsPerPage, onManualRowsPerPageChange, manualTotalItems, onSearch
+}) => {
+    const [searchTerm, setSearchTerm] = useState('')
+    const [currentPage, setCurrentPage] = useState(1)
+    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' })
+    const [rowsPerPage, setRowsPerPage] = useState(itemsPerPage)
+    const [viewModalData, setViewModalData] = useState(null);
+    const [deleteModalData, setDeleteModalData] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    // 1. Search Filter - (If manual, we assumesearch handled by parent or disabled, or we just filter the current page)
+    const filteredData = useMemo(() => {
+        if (!searchTerm) return data;
+        return data.filter(item =>
+            columns.some(col => {
+                if (col.searchKey && typeof col.searchKey === 'function') {
+                    const customValue = col.searchKey(item);
+                    return customValue && customValue.toString().toLowerCase().includes(searchTerm.toLowerCase());
                 }
-            ]
-        },
-        categories: {
-            title: "Categories",
-            subtitle: "Manage product categories.",
-            addLabel: "Add Category",
-            searchPlaceholder: "Search categories...",
-            searchableFields: ['name'],
-            data: [
-                { id: 1, name: 'Fruits', count: 12, status: 'Active' },
-                { id: 2, name: 'Vegetables', count: 24, status: 'Active' },
-                { id: 3, name: 'Dairy', count: 8, status: 'Active' },
-            ],
-            columns: [
-                { header: 'ID', accessor: 'id' },
-                { header: 'Category Name', accessor: 'name', sortable: true },
-                { header: 'Product Count', accessor: 'count' },
-                { header: 'Status', accessor: 'status', render: (row) => <span className={`px-3 py-1 text-xs font-semibold rounded-md border ${getStatusBadge(row.status)}`}>{row.status}</span> },
-                {
-                    header: 'Actions', accessor: 'actions', align: 'right', render: (row) => (
-                        <div className="flex justify-end gap-2">
-                            <button className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"><Edit size={18} /></button>
-                            <button className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={18} /></button>
-                        </div>
-                    )
-                }
-            ]
-        },
-        orders: {
-            title: "Orders",
-            subtitle: "Manage customer orders.",
-            addLabel: "Create Order",
-            searchPlaceholder: "Search orders by ID or customer...",
-            searchableFields: ['id', 'customer', 'status'],
-            data: [
-                { id: '#ORD-001', customer: 'John Doe', total: '$45.00', status: 'Delivered', date: '2023-10-01' },
-                { id: '#ORD-002', customer: 'Jane Smith', total: '$120.50', status: 'Processing', date: '2023-10-02' },
-                { id: '#ORD-003', customer: 'Alice Johnson', total: '$15.20', status: 'Pending', date: '2023-10-02' },
-            ],
-            columns: [
-                { header: 'Order ID', accessor: 'id' },
-                { header: 'Customer', accessor: 'customer', sortable: true },
-                { header: 'Date', accessor: 'date' },
-                { header: 'Total', accessor: 'total' },
-                { header: 'Status', accessor: 'status', render: (row) => <span className={`px-3 py-1 text-xs font-semibold rounded-md border ${getStatusBadge(row.status)}`}>{row.status}</span> },
-                {
-                    header: 'Actions', accessor: 'actions', align: 'right', render: (row) => (
-                        <div className="flex justify-end gap-2">
-                            <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Eye size={18} /></button>
-                        </div>
-                    )
-                }
-            ]
-        },
-        customers: {
-            title: "Customers",
-            subtitle: "Manage your customers list.",
-            addLabel: "Add Customer",
-            searchPlaceholder: "Search customers by name or email...",
-            searchableFields: ['name', 'email'],
-            data: [
-                { id: 1, name: 'John Doe', email: 'john@example.com', orders: 5, spent: '$250.00', status: 'Active' },
-                { id: 2, name: 'Jane Smith', email: 'jane@example.com', orders: 2, spent: '$45.00', status: 'Inactive' },
-            ],
-            columns: [
-                { header: 'ID', accessor: 'id' },
-                { header: 'Name', accessor: 'name', sortable: true },
-                { header: 'Email', accessor: 'email' },
-                { header: 'Orders', accessor: 'orders' },
-                { header: 'Total Spent', accessor: 'spent' },
-                { header: 'Status', accessor: 'status', render: (row) => <span className={`px-3 py-1 text-xs font-semibold rounded-md border ${getStatusBadge(row.status)}`}>{row.status}</span> },
-                {
-                    header: 'Actions', accessor: 'actions', align: 'right', render: (row) => (
-                        <div className="flex justify-end gap-2">
-                            <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Eye size={18} /></button>
-                            <button className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"><Edit size={18} /></button>
-                        </div>
-                    )
-                }
-            ]
-        },
-        vendors: {
-            title: "Vendors",
-            subtitle: "Manage your suppliers and vendors.",
-            addLabel: "Add Vendor",
-            searchPlaceholder: "Search vendors...",
-            searchableFields: ['name', 'contact'],
-            data: [
-                { id: 1, name: 'Fresh Farms Inc.', contact: 'fresh@farms.com', products: 15, status: 'Active' },
-                { id: 2, name: 'Global Dairy', contact: 'contact@globaldairy.com', products: 8, status: 'Active' },
-            ],
-            columns: [
-                { header: 'ID', accessor: 'id' },
-                { header: 'Vendor Name', accessor: 'name', sortable: true },
-                { header: 'Contact', accessor: 'contact' },
-                { header: 'Supplied Products', accessor: 'products' },
-                { header: 'Status', accessor: 'status', render: (row) => <span className={`px-3 py-1 text-xs font-semibold rounded-md border ${getStatusBadge(row.status)}`}>{row.status}</span> },
-                {
-                    header: 'Actions', accessor: 'actions', align: 'right', render: (row) => (
-                        <div className="flex justify-end gap-2">
-                            <button className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"><Edit size={18} /></button>
-                        </div>
-                    )
-                }
-            ]
-        }
-    };
-
-    const config = configurations[currentModule];
-
-    // Filter data based on search term
-    const filteredData = config.data.filter(item => {
-        if (!searchTerm) return true;
-        if (config.searchableFields.length > 0) {
-            return config.searchableFields.some(field => {
-                const value = item[field];
-                return value && String(value).toLowerCase().includes(searchTerm.toLowerCase());
-            });
-        }
-        return Object.values(item).some(val =>
-            String(val).toLowerCase().includes(searchTerm.toLowerCase())
+                const itemValue = item[col.accessor];
+                return itemValue && itemValue.toString().toLowerCase().includes(searchTerm.toLowerCase());
+            })
         );
-    });
+    }, [data, searchTerm, columns]);
+
+    // Derived State for Pagination
+    const isManual = manualPagination;
+    const effectivePage = isManual ? manualCurrentPage : currentPage;
+    const effectiveRowsPerPage = isManual ? manualRowsPerPage : rowsPerPage;
+    const effectiveTotalItems = isManual ? manualTotalItems : filteredData.length;
+
+    // 2. Sorting
+    const sortedData = useMemo(() => {
+        if (!sortConfig.key) return filteredData;
+
+        return [...filteredData].sort((a, b) => {
+            const aValue = a[sortConfig.key];
+            const bValue = b[sortConfig.key];
+
+            if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+            if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }, [filteredData, sortConfig]);
+
+    // 3. Pagination
+    const totalPages = isManual ? manualTotalPages : Math.ceil(sortedData.length / rowsPerPage);
+
+    const paginatedData = useMemo(() => {
+        if (isManual) return sortedData; // Expecting data to be the current page's data
+        const start = (currentPage - 1) * rowsPerPage;
+        return sortedData.slice(start, start + rowsPerPage);
+    }, [sortedData, currentPage, rowsPerPage, isManual]);
+
+    const handleSort = useCallback((accessor) => {
+        setSortConfig(prevConfig => {
+            let direction = 'asc';
+            if (prevConfig.key === accessor && prevConfig.direction === 'asc') {
+                direction = 'desc';
+            }
+            return { key: accessor, direction };
+        });
+    }, []);
+
+    const handlePageChange = useCallback((page) => {
+        if (page >= 1 && page <= totalPages) {
+            if (isManual && onManualPageChange) {
+                onManualPageChange(page);
+            } else {
+                setCurrentPage(page);
+            }
+        }
+    }, [totalPages, isManual, onManualPageChange]);
+
+    const handleRowsPerPageChange = useCallback((val) => {
+        if (isManual && onManualRowsPerPageChange) {
+            onManualRowsPerPageChange(val);
+        } else {
+            setRowsPerPage(val);
+        }
+    }, [isManual, onManualRowsPerPageChange]);
+
+    // Reset page when filtering/sorting (Only for client side)
+    useEffect(() => {
+        if (!isManual) setCurrentPage(1);
+    }, [searchTerm, rowsPerPage, isManual]);
+
+    const handleViewAction = useCallback((item) => {
+        if (typeof onView === 'function') {
+            onView(item);
+        } else {
+            setViewModalData(item);
+        }
+    }, [onView]);
+
+    const handleDeleteAction = useCallback((item) => {
+        setDeleteModalData(item);
+    }, []);
+
+    const handleConfirmDelete = useCallback(async () => {
+        if (deleteModalData && onDelete) {
+            setIsDeleting(true);
+            try {
+                await onDelete(deleteModalData);
+            } catch (error) {
+                console.error("Delete error:", error);
+            } finally {
+                setIsDeleting(false);
+                setDeleteModalData(null);
+            }
+        }
+    }, [deleteModalData, onDelete]);
+
 
     return (
-        <div className="space-y-6 bg-white">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">{config.title}</h1>
-                    <p className="text-sm text-gray-500 mt-1">{config.subtitle}</p>
-                </div>
-                <button className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium">
-                    <Plus size={20} />
-                    <span>{config.addLabel}</span>
-                </button>
-            </div>
-
-            <div className="rounded-md border border-gray-100 overflow-hidden">
-                <div className="p-4 sm:p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <div className="relative w-full sm:max-w-xs">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                        <input type="text" placeholder={config.searchPlaceholder} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all bg-white"/>
+        <>
+            <div className="w-full bg-white rounded-[4px] mt-5 shadow-sm border border-gray-100 overflow-hidden transition-colors duration-300 font-jost">
+                {/* Top Controls */}
+                <div className="p-3 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div className="relative w-full md:w-72">
+                        <input
+                            type="text"
+                            placeholder="Search..."
+                            value={searchTerm}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                setSearchTerm(val);
+                                if (onSearch) onSearch(val);
+                                if (isManual && onManualPageChange) onManualPageChange(1);
+                            }}
+                            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-[4px] text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#228B22]/20 focus:border-[#228B22] transition-all text-sm placeholder-gray-400"
+                        />
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <FiSearch className="text-gray-400" size={16} />
+                        </div>
                     </div>
-                    <button className="flex items-center justify-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors w-full sm:w-auto font-medium text-sm">
-                        <Filter size={18} />
-                        <span>Filters</span>
-                    </button>
                 </div>
 
+                {/* Table */}
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left whitespace-nowrap">
+                    <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="border-b border-gray-100 text-gray-500 text-xs uppercase tracking-wider">
-                                {config.columns.map((col, index) => (
-                                    <th key={index} className={`px-6 py-4 font-semibold ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'}`}>
-                                        <div className={`flex items-center gap-2 ${col.sortable ? 'cursor-pointer hover:text-gray-700' : ''} ${col.align === 'right' ? 'justify-end' : col.align === 'center' ? 'justify-center' : 'justify-start'}`}>
-                                            {col.header}
-                                            {col.sortable && <ArrowUpDown size={14} />}
-                                        </div>
+                            <tr className="bg-gray-50/50 border-y border-gray-100">
+                                {columns.filter(col => !col.hideInTable).map((col, index) => {
+                                    const isAsc = sortConfig.key === col.accessor && sortConfig.direction === 'asc';
+                                    const isDesc = sortConfig.key === col.accessor && sortConfig.direction === 'desc';
+                                    return (
+                                        <th
+                                            key={index}
+                                            onClick={() => handleSort(col.accessor)}
+                                            className="px-6 py-4 text-xs font-semibold text-gray-500 capitalize tracking-wider cursor-pointer select-none whitespace-nowrap group hover:text-primary-color transition-colors"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                {col.header}
+                                                {isAsc ? (
+                                                    <FiArrowUp className="text-primary-color" />
+                                                ) : isDesc ? (
+                                                    <FiArrowDown className="text-primary-color" />
+                                                ) : (
+                                                    <BiSortAlt2 className="text-gray-400 group-hover:text-primary-color/50 transition-colors" size={14} />
+                                                )}
+                                            </div>
+                                        </th>
+                                    );
+                                })}
+                                {/* Action Column Header */}
+                                {!columns.some(col => col.accessor === 'actions' || col.accessor === 'action') && (onEdit || onDelete || onView) && (
+                                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 capitalize tracking-wider">
+                                        Action
                                     </th>
-                                ))}
+                                )}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100/70">
-                            {filteredData.length > 0 ? (
-                                filteredData.map((row, rowIndex) => (
-                                    <tr key={rowIndex} className="hover:bg-gray-50/80 transition-colors group">
-                                        {config.columns.map((col, colIndex) => (
-                                            <td key={colIndex} className={`px-6 py-4 ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'}`}>
-                                                {col.render ? col.render(row) : (
-                                                    <span className="text-sm font-medium text-gray-900">{row[col.accessor]}</span>
+                        <tbody className="divide-y divide-gray-50">
+                            {paginatedData.length > 0 ? (
+                                paginatedData.map((item, rowIndex) => (
+                                    <tr
+                                        key={item._id || rowIndex}
+                                        className={`transition-colors group hover:bg-gray-50 ${(onView && !columns.some(col => col.accessor === 'actions')) ? 'cursor-pointer' : ''}`}
+                                        onClick={() => (!columns.some(col => col.accessor === 'actions') && onView) && handleViewAction(item)}
+                                    >
+                                        {columns.filter(col => !col.hideInTable).map((col, colIndex) => (
+                                            <td key={colIndex} className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
+                                                {col.render ? (
+                                                    col.render(item)
+                                                ) : ['status', 'paymentStatus', 'orderStatus', 'amount'].includes(col.accessor) ? (
+                                                    <span className={`px-2.5 py-1 rounded-[4px] text-xs font-semibold border ${getStatusStyles(item[col.accessor])}`}>
+                                                        {item[col.accessor]}
+                                                    </span>
+                                                ) : (
+                                                    item[col.accessor]
                                                 )}
                                             </td>
                                         ))}
+
+                                        {/* Action Buttons */}
+                                        {!columns.some(col => col.accessor === 'actions' || col.accessor === 'action') && (onEdit || onDelete || onView || extraActions) && (
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                <div className="flex items-center gap-2">
+                                                    {onView && (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleViewAction(item);
+                                                            }}
+                                                            className="p-1.5 text-blue-500 bg-blue-50 rounded-[4px] hover:bg-blue-100 transition-colors"
+                                                            title="View"
+                                                        >
+                                                            <FiEye size={15} />
+                                                        </button>
+                                                    )}
+                                                    {onEdit && (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                onEdit(item);
+                                                            }}
+                                                            className="p-1.5 text-green-500 bg-green-50 rounded-[4px] hover:bg-green-100 transition-colors"
+                                                            title="Edit"
+                                                        >
+                                                            <FiEdit2 size={15} />
+                                                        </button>
+                                                    )}
+                                                    {onDelete && (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDeleteAction(item);
+                                                            }}
+                                                            className="p-1.5 text-red-500 bg-red-50 rounded-[4px] hover:bg-red-100 transition-colors"
+                                                            title="Delete"
+                                                        >
+                                                            <FiTrash2 size={15} />
+                                                        </button>
+                                                    )}
+                                                    {extraActions && extraActions(item)}
+                                                </div>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={config.columns.length} className="px-6 py-8 text-center text-gray-500 text-sm">No data found.</td>
+                                    <td
+                                        colSpan={columns.length + (!columns.some(col => col.accessor === 'actions' || col.accessor === 'action') && (onEdit || onDelete || onView || extraActions) ? 1 : 0)}
+                                        className="px-6 py-12 text-center text-gray-500 text-sm"
+                                    >
+                                        <div className="flex flex-col items-center justify-center gap-2">
+                                            <FiSearch size={24} className="opacity-50" />
+                                            <p>No results found for "{searchTerm}"</p>
+                                        </div>
+                                    </td>
                                 </tr>
                             )}
                         </tbody>
                     </table>
                 </div>
 
-                <div className="px-6 py-4 border-t border-gray-100 flex flex-col justify-between items-center sm:flex-row gap-4">
-                    <p className="text-sm text-gray-500 font-medium">
-                        Showing <span className="font-semibold text-gray-900">{filteredData.length > 0 ? 1 : 0}</span> to <span className="font-semibold text-gray-900">{filteredData.length}</span> of <span className="font-semibold text-gray-900">{config.data.length}</span> results
-                    </p>
-                    <div className="flex items-center gap-2">
-                        <button className="p-2 border border-gray-200 rounded-lg bg-white text-gray-400 hover:text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                            <ChevronLeft size={18} />
-                        </button>
-                        <div className="flex gap-1">
-                            <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-green-50 text-green-700 font-semibold border border-green-200">1</button>
+                {/* Pagination Footer */}
+                <div className="p-3 border-t border-gray-100 bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
+                    <div className='flex items-center gap-3'>
+                        <span className="text-gray-500 font-medium">Rows per page:</span>
+                        <select
+                            value={effectiveRowsPerPage}
+                            onChange={(e) => handleRowsPerPageChange(Number(e.target.value))}
+                            className="bg-white border border-gray-200 text-gray-700 text-sm rounded-[4px] px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 cursor-pointer transition-all"
+                        >
+                            <option value={5}>5</option>
+                            <option value={10}>10</option>
+                            <option value={12}>12</option>
+                            <option value={20}>20</option>
+                            <option value={50}>50</option>
+                        </select>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <div className="text-gray-500">
+                            Showing <span className="font-semibold text-gray-800">{Math.min((effectivePage - 1) * effectiveRowsPerPage + 1, effectiveTotalItems)}</span> - <span className="font-semibold text-gray-800">{Math.min(effectivePage * effectiveRowsPerPage, effectiveTotalItems)}</span> of <span className="font-semibold text-gray-800">{effectiveTotalItems}</span>
                         </div>
-                        <button className="p-2 border border-gray-200 rounded-lg bg-white text-gray-600 hover:bg-gray-50 transition-colors">
-                            <ChevronRight size={18} />
-                        </button>
+
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => handlePageChange(effectivePage - 1)}
+                                disabled={effectivePage === 1}
+                                className="p-1 px-2 border border-gray-200 rounded-[4px] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-gray-600 transition-colors"
+                            >
+                                <FiChevronLeft size={16} />
+                            </button>
+                            <button
+                                onClick={() => handlePageChange(effectivePage + 1)}
+                                disabled={effectivePage === totalPages || totalPages === 0}
+                                className="p-1 px-2 border border-gray-200 rounded-[4px] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 text-gray-600 transition-colors"
+                            >
+                                <FiChevronRight size={16} />
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    );
-};
 
-export default DataTable;
+            {/* <CommonViewModal
+                isOpen={!!viewModalData}
+                onClose={() => setViewModalData(null)}
+                data={viewModalData}
+                columns={columns}
+            />
+            <DeleteModal
+                isOpen={!!deleteModalData}
+                onClose={() => setDeleteModalData(null)}
+                onConfirm={handleConfirmDelete}
+                isLoading={isDeleting}
+            /> */}
+        </>
+    )
+}
+
+export default Table
