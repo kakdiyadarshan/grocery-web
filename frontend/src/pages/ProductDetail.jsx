@@ -21,7 +21,7 @@ function ProductDetail() {
     const decrementQuantity = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
 
     return (
-        <div className="bg-white min-h-screen pb-12">
+        <div className="bg-white min-h-screen">
             {/* ===== Breadcrumbs ===== */}
             <div className="bg-[#f0f5f3] shadow-sm">
                 <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-4 py-4 sm:py-6 md:py-8 flex items-center flex-wrap gap-1 text-xs sm:text-sm md:text-base text-gray-600 font-medium">
@@ -365,7 +365,7 @@ function ProductDetail() {
                 </div>
 
                 {/* Related products */}
-                <div className='mt-12 border-t border-gray-200 pt-8 pb-16'>
+                <div className='mt-12 border-t border-gray-200 pt-8'>
                     <h2 className="text-3xl font-semibold text-[#31353C] mb-8">Related products</h2>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-7">
@@ -470,7 +470,7 @@ function ProductDetail() {
                 </div>
 
             </div>
-        </div >
+        </div>
     );
 }
 

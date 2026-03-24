@@ -1,14 +1,9 @@
-import React from 'react'
-import Header from '../component/Header'
-import Footer from '../component/Footer'
-
 const Home = () => {
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <main className="flex-grow">
+    <div className="">
+      <main className="">
+        {/* Fill with Home content if any, or just as is for now */}
       </main>
-      <Footer />
     </div>
   )
 }
