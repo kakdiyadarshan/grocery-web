@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux'
 import PrivateRoute from './PrivateRoute'
 import DataTable from './component/DataTable'
 import Product from './pages/Product'
+import Category from './pages/Category'
 
 
 const Adminroutes = () => {
@@ -26,7 +27,7 @@ const Adminroutes = () => {
                 <Route element={<Layout />}>
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="products" element={<Product />} />
-                    <Route path="categories" element={<DataTable />} />
+                    <Route path="categories" element={<Category/>} />
                     <Route path="orders" element={<DataTable />} />
                     <Route path="customers" element={<DataTable />} />
                     <Route path="vendors" element={<DataTable />} />

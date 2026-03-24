@@ -144,8 +144,10 @@ const Table = ({ columns = [], data = [], onEdit, onView, onDelete, itemsPerPage
     }, [onView]);
 
     const handleDeleteAction = useCallback((item) => {
-        setDeleteModalData(item);
-    }, []);
+        if (onDelete) {
+            onDelete(item);
+        }
+    }, [onDelete]);
 
     const handleConfirmDelete = useCallback(async () => {
         if (deleteModalData && onDelete) {
