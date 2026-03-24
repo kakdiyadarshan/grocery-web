@@ -28,7 +28,8 @@ const Sidebar = ({ isOpen, onClose }) => {
     };
     const menuItems = [
         { name: 'Dashboard', icon: <FiHome />, path: '/admin/dashboard' },
-        { name: 'Products', icon: <FiPackage />, path: '/admin/products' }
+        { name: 'Products', icon: <FiPackage />, path: '/admin/products' },
+        { name: 'Category', icon: <MdCategory />, path: '/admin/categories' }
     ];
 
     return (

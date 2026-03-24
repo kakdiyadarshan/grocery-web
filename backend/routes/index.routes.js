@@ -6,6 +6,7 @@ const { getAllUsers, getUserById, updateUser, changePassword } = require('../con
 const { createCategory, getAllCategories, getCategoryById, updateCategory, deleteCategory } = require('../controllers/category.controller');
 const { getCart, addToCart, updateCartQuantity, removeFromCart } = require('../controllers/cart.controller');
 const { getWishlist, addToWishlist, removeFromWishlist } = require('../controllers/wishlist.controller');
+const { createProduct, getAllProducts, getProductById, updateProduct, deleteProduct } = require('../controllers/product.controller');
 const { auth, authorizeRoles } = require('../middleware/auth.middleware');
 
 // Auth routes
@@ -27,12 +28,18 @@ indexRoutes.put('/users/:id', auth, upload.single('image'), updateUser);
 indexRoutes.put('/change-password', auth, changePassword);
 
 // Category routes
-indexRoutes.post('/createCategory', upload.single('categoryImage'), createCategory);
+indexRoutes.post('/createCategory', auth, authorizeRoles('admin'), upload.single('categoryImage'), createCategory);
 indexRoutes.get('/getAllCategories', getAllCategories);
 indexRoutes.get('/getCategoryById/:id', getCategoryById);
-indexRoutes.put('/updateCategory/:id', upload.single('categoryImage'), updateCategory);
-indexRoutes.delete('/deleteCategory/:id', deleteCategory);
+indexRoutes.put('/updateCategory/:id', auth, authorizeRoles('admin'), upload.single('categoryImage'), updateCategory);
+indexRoutes.delete('/deleteCategory/:id', auth, authorizeRoles('admin'), deleteCategory);
 
+// Product routes
+indexRoutes.post('/createProduct', auth, authorizeRoles('admin'), upload.array('images', 10), createProduct);
+indexRoutes.get('/getAllProducts', getAllProducts);
+indexRoutes.get('/getProductById/:id', getProductById);
+indexRoutes.put('/updateProduct/:id', auth, authorizeRoles('admin'), upload.array('images', 10), updateProduct);
+indexRoutes.delete('/deleteProduct/:id', auth, authorizeRoles('admin'), deleteProduct);
 
 // Cart routes
 indexRoutes.get('/cart', auth, getCart);
