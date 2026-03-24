@@ -5,17 +5,22 @@ body {
 }
 
 :root {
-  --bg-main: #f8fafc;
-  --bg-card: #ffffff;
-  --text-primary: #111827;
-  --text-secondary: #6b7280;
-  --primary: #228B22;
-  --primary-hover: #1e7a1e;
-  --primary-light: #dcfce7;
+  --bg-main: #f8fafc;      
+  --bg-card: #ffffff;      
+  --text-primary: #111827;  
+  --text-secondary: #6b7280; 
+  --text-gray:#374151;
+  --primary: #89C74A;        
+  --primary-hover: #6FAE38;
+  --primary-light: #dcfce7; 
   --border: #e5e7eb;
   --input-bg: #ffffff;
   --btn-text: #ffffff;
-  --shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  --shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+.container {
+  max-width: 1440px;
+  margin: 0 auto;
 }
 
 .no-scrollbar::-webkit-scrollbar {
