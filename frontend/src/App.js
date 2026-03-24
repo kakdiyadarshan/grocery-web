@@ -8,12 +8,13 @@ import Adminroutes from './admin/Adminroutes';
 import Login from './component/Login';
 import Register from './component/Register';
 import ForgotPassword from './component/ForgotPassword';
-
 import ContactUs from './pages/ContactUs';
 import FAQs from './pages/FAQs';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import ShippingPolicy from './pages/ShippingPolicy';
 import About from './pages/About';
+import Blog from './pages/Blog';
+import BlogDetails from './pages/BlogDetails';
 
 function App() {
   const dispatch = useDispatch();
@@ -29,6 +30,8 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/about" element={<About />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:id" element={<BlogDetails />} />
         <Route path="/faqs" element={<FAQs />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/shipping-policy" element={<ShippingPolicy />} />
