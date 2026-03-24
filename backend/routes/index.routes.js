@@ -8,6 +8,7 @@ const { getCart, addToCart, updateCartQuantity, removeFromCart } = require('../c
 const { getWishlist, addToWishlist, removeFromWishlist } = require('../controllers/wishlist.controller');
 const { createProduct, getAllProducts, getProductById, updateProduct, deleteProduct } = require('../controllers/product.controller');
 const { auth, authorizeRoles } = require('../middleware/auth.middleware');
+const { uploadPrivacyImage, saveAllPrivacyPolicies, getAllPrivacyPolicies, getPrivacyPolicyById } = require('../controllers/privacy.controller');
 
 // Auth routes
 indexRoutes.post('/register', createUser);
@@ -51,5 +52,12 @@ indexRoutes.delete('/cart/remove/:productId', auth, removeFromCart);
 indexRoutes.get('/wishlist', auth, getWishlist);
 indexRoutes.post('/wishlist/add', auth, addToWishlist);
 indexRoutes.delete('/wishlist/remove/:productId', auth, removeFromWishlist);
+
+// Privacy routes
+indexRoutes.post('/privacy/upload-image', auth, authorizeRoles('admin'), upload.single('image'), uploadPrivacyImage);
+indexRoutes.post('/saveallprivacy', auth, authorizeRoles('admin'), saveAllPrivacyPolicies);
+indexRoutes.get('/getallprivacy', getAllPrivacyPolicies);
+indexRoutes.get('/getprivacy/:id', getPrivacyPolicyById);
+
 
 module.exports = indexRoutes;

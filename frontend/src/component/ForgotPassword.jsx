@@ -148,7 +148,7 @@ const ForgotPassword = () => {
                                     value={emailFormik.values.email}
                                     className={`block w-full px-3 py-3 border rounded-[4px] outline-none transition-all bg-gray-50 focus:bg-white text-textPrimary placeholder-gray-400 ${emailFormik.touched.email && emailFormik.errors.email
                                         ? 'border-red-500 focus:ring-red-100'
-                                        : 'border-gray-200 focus:ring-2 focus:ring-pink-100 focus:border-primary'
+                                        : 'border-gray-200 focus:ring-2 focus:ring-green-100 focus:border-primary'
                                         }`}
                                     placeholder="Enter your email"
                                 />
@@ -273,7 +273,7 @@ const ForgotPassword = () => {
                                         value={resetFormik.values.newPassword}
                                         className={`block w-full px-3 py-3 border rounded-[4px] outline-none transition-all bg-gray-50 focus:bg-white text-textPrimary placeholder-gray-400 ${resetFormik.touched.newPassword && resetFormik.errors.newPassword
                                             ? 'border-red-500 focus:ring-red-100'
-                                            : 'border-gray-200 focus:ring-2 focus:ring-pink-100 focus:border-primary'
+                                            : 'border-gray-200 focus:ring-2 focus:ring-green-100 focus:border-primary'
                                             }`}
                                         placeholder="Your new password"
                                     />
@@ -304,7 +304,7 @@ const ForgotPassword = () => {
                                         value={resetFormik.values.confirmPassword}
                                         className={`block w-full px-3 py-3 border rounded-[4px] outline-none transition-all bg-gray-50 focus:bg-white text-textPrimary placeholder-gray-400 ${resetFormik.touched.confirmPassword && resetFormik.errors.confirmPassword
                                             ? 'border-red-500 focus:ring-red-100'
-                                            : 'border-gray-200 focus:ring-2 focus:ring-pink-100 focus:border-primary'
+                                            : 'border-gray-200 focus:ring-2 focus:ring-green-100 focus:border-primary'
                                             }`}
                                         placeholder="Confirm your password"
                                     />

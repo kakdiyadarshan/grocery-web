@@ -131,7 +131,7 @@ const Register = () => {
                                         value={formik.values.firstname}
                                         className={`block w-full px-3 py-3 border rounded-[4px] outline-none transition-all bg-gray-50 focus:bg-white text-textPrimary placeholder-gray-400 ${formik.touched.firstname && formik.errors.firstname
                                             ? 'border-red-500 focus:ring-red-100'
-                                            : 'border-gray-200 focus:ring-2 focus:ring-pink-100 focus:border-primary'
+                                            : 'border-gray-200 focus:ring-2 focus:ring-green-100 focus:border-primary'
                                             }`}
                                         placeholder="First name"
                                     />
@@ -153,7 +153,7 @@ const Register = () => {
                                         value={formik.values.lastname}
                                         className={`block w-full px-3 py-3 border rounded-[4px] outline-none transition-all bg-gray-50 focus:bg-white text-textPrimary placeholder-gray-400 ${formik.touched.lastname && formik.errors.lastname
                                             ? 'border-red-500 focus:ring-red-100'
-                                            : 'border-gray-200 focus:ring-2 focus:ring-pink-100 focus:border-primary'
+                                            : 'border-gray-200 focus:ring-2 focus:ring-green-100 focus:border-primary'
                                             }`}
                                         placeholder="Last name"
                                     />
@@ -173,7 +173,7 @@ const Register = () => {
                                     value={formik.values.email}
                                     className={`block w-full px-3 py-3 border rounded-[4px] outline-none transition-all bg-gray-50 focus:bg-white text-textPrimary placeholder-gray-400 ${formik.touched.email && formik.errors.email
                                         ? 'border-red-500 focus:ring-red-100'
-                                        : 'border-gray-200 focus:ring-2 focus:ring-pink-100 focus:border-primary'
+                                        : 'border-gray-200 focus:ring-2 focus:ring-green-100 focus:border-primary'
                                         }`}
                                     placeholder="Enter your email"
                                 />
@@ -195,7 +195,7 @@ const Register = () => {
                                         value={formik.values.password}
                                         className={`block w-full px-3 py-3 border rounded-[4px] outline-none transition-all bg-gray-50 focus:bg-white text-textPrimary placeholder-gray-400 ${formik.touched.password && formik.errors.password
                                             ? 'border-red-500 focus:ring-red-100'
-                                            : 'border-gray-200 focus:ring-2 focus:ring-pink-100 focus:border-primary'
+                                            : 'border-gray-200 focus:ring-2 focus:ring-green-100 focus:border-primary'
                                             }`}
                                         placeholder="Your password"
                                     />
