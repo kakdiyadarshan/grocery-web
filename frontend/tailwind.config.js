@@ -19,7 +19,11 @@ module.exports = {
       },
       boxShadow: {
         custom: "var(--shadow)",
-      }
+      },
+      screens: {
+        xs: "425px",
+        // mb: "512px",
+      },
     },
   },
   plugins: [],
