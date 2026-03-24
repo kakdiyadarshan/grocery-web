@@ -15,6 +15,8 @@ import ShippingPolicy from './pages/ShippingPolicy';
 import About from './pages/About';
 import Blog from './pages/Blog';
 import BlogDetails from './pages/BlogDetails';
+import ProductDetail from './pages/ProductDetail';
+
 
 function App() {
   const dispatch = useDispatch();
@@ -36,6 +38,7 @@ function App() {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/shipping-policy" element={<ShippingPolicy />} />
         <Route path="/wishlist" element={<Wishlist />} />
+        <Route path="/product-details/:id" element={<ProductDetail />} />
         <Route path="/admin/*" element={<Adminroutes />} />
       </Routes>
     </>
