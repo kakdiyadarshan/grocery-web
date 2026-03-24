@@ -5,9 +5,9 @@ const sendEmail = require('../utils/sendEmail');
 
 exports.createUser = async (req, res) => {
     try {
-        let { username, email, password, role, mobileno } = req.body;
+        let { firstname,lastname, email, password, role, mobileno } = req.body;
 
-        if (!username || !email || !password) {
+        if (!firstname || !lastname || !email || !password) {
             return res.status(400).json({ status: 400, message: 'Name, email and password are required.' });
         }
 
@@ -21,10 +21,11 @@ exports.createUser = async (req, res) => {
 
         // Generate 6 digit OTP
         const otp = Math.floor(100000 + Math.random() * 900000);
-        const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
+        const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes expiry
 
         const user = await User.create({
-            username,
+            firstname,
+            lastname,
             email,
             password: hashPassword,
             mobileno,
@@ -39,19 +40,19 @@ exports.createUser = async (req, res) => {
             try {
                 await sendEmail({
                     email: user.email,
-                    subject: 'OrnaCare Account Verification - OTP',
+                    subject: 'GroceryHub Account Verification - OTP',
                     html: `
                         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                            <h2 style="color: #333; text-align: center;">Welcome to OrnaCare</h2>
-                            <p>Hi ${username},</p>
-                            <p>Thank you for registering with OrnaCare. Please use the following One-Time Password (OTP) to verify your account:</p>
+                            <h2 style="color: #333; text-align: center;">Welcome to GroceryHub</h2>
+                            <p>Hi ${firstname} ${lastname},</p>
+                            <p>Thank you for registering with GroceryHub. Please use the following One-Time Password (OTP) to verify your account:</p>
                             <div style="background: #f4f4f4; padding: 15px; text-align: center; border-radius: 5px; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #007bff;">
                                 ${otp}
                             </div>
                             <p>This OTP is valid for 10 minutes.</p>
                             <p>If you didn't request this, please ignore this email.</p>
                             <br>
-                            <p>Best regards,<br>The OrnaCare Team</p>
+                            <p>Best regards,<br>The GroceryHub Team</p>
                         </div>
                     `
                 });
@@ -73,7 +74,6 @@ exports.createUser = async (req, res) => {
         return res.status(500).json({ status: 500, message: error.message });
     }
 };
-
 
 exports.verifyOtp = async (req, res) => {
     try {
@@ -132,23 +132,23 @@ exports.resendOtp = async (req, res) => {
         // Generate new OTP
         const otp = Math.floor(100000 + Math.random() * 900000);
         user.otp = otp;
-        user.otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+        user.otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
         await user.save();
 
         await sendEmail({
             email: user.email,
-            subject: 'OrnaCare OTP Verification - New OTP',
+            subject: 'GroceryHub OTP Verification - New OTP',
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                    <h2 style="color: #333; text-align: center;">OrnaCare Verification</h2>
-                    <p>Hi ${user.username},</p>
+                    <h2 style="color: #333; text-align: center;">GroceryHub Verification</h2>
+                    <p>Hi ${user.firstname} ${user.lastname},</p>
                     <p>Your new One-Time Password (OTP) for otp verification is:</p>
                     <div style="background: #f4f4f4; padding: 15px; text-align: center; border-radius: 5px; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #007bff;">
                         ${otp}
                     </div>
                     <p>This OTP is valid for 10 minutes.</p>
                     <br>
-                    <p>Best regards,<br>The OrnaCare Team</p>
+                    <p>Best regards,<br>The GroceryHub Team</p>
                 </div>
             `
         });
@@ -165,7 +165,7 @@ exports.resendOtp = async (req, res) => {
 
 exports.userLogin = async (req, res) => {
     try {
-        let { email, password, rememberMe } = req.body;
+        let { email, password } = req.body;
 
         let checkEmailIsExist = await User.findOne({ email });
 
@@ -190,21 +190,21 @@ exports.userLogin = async (req, res) => {
             { expiresIn: '1d' }
         );
 
-        let refreshToken;
-        if (rememberMe) {
-            refreshToken = jwt.sign(
-                { _id: checkEmailIsExist._id },
-                process.env.REFRESH_SECRET_KEY,
-                { expiresIn: '7d' }
-            );
+        // let refreshToken;
+        // if (rememberMe) {
+        //     refreshToken = jwt.sign(
+        //         { _id: checkEmailIsExist._id },
+        //         process.env.REFRESH_SECRET_KEY,
+        //         { expiresIn: '7d' }
+        //     );
 
-            checkEmailIsExist.refreshToken = refreshToken;
-            await checkEmailIsExist.save();
-        }
+        //     checkEmailIsExist.refreshToken = refreshToken;
+        //     await checkEmailIsExist.save();
+        // }
 
         return res.status(200)
-            .cookie("accessToken", accessToken, { httpOnly: true, secure: false, sameSite: "Lax", maxAge: 24 * 60 * 60 * 1000 })
-            .cookie("refreshToken", refreshToken, { httpOnly: true, secure: false, sameSite: "Lax", maxAge: 7 * 24 * 60 * 60 * 1000 })
+            // .cookie("accessToken", accessToken, { httpOnly: true, secure: false, sameSite: "Lax", maxAge: 24 * 60 * 60 * 1000 })
+            // .cookie("refreshToken", refreshToken, { httpOnly: true, secure: false, sameSite: "Lax", maxAge: 7 * 24 * 60 * 60 * 1000 })
             .json({
                 status: 200,
                 message: "Login Successfully...",
@@ -218,47 +218,45 @@ exports.userLogin = async (req, res) => {
     }
 };
 
-exports.refreshAccessToken = async (req, res) => {
-    try {
-        const { refreshToken } = req.cookies;
+// exports.refreshAccessToken = async (req, res) => {
+//     try {
+//         const { refreshToken } = req.cookies;
 
-        if (!refreshToken) return res.status(404).json({ message: 'No Refresh Token' });
+//         if (!refreshToken) return res.status(404).json({ message: 'No Refresh Token' });
 
-        const decoded = jwt.verify(refreshToken, process.env.REFRESH_SECRET_KEY);
-        const existingUser = await User.findById(decoded._id);
+//         const decoded = jwt.verify(refreshToken, process.env.REFRESH_SECRET_KEY);
+//         const existingUser = await User.findById(decoded._id);
 
-        if (!existingUser) return res.status(404).json({ message: 'User not found' });
+//         if (!existingUser) return res.status(404).json({ message: 'User not found' });
 
-        const accessToken = await jwt.sign(
-            { _id: existingUser._id },
-            process.env.SECRET_KEY,
-            { expiresIn: '1d' }
-        );
+//         const accessToken = await jwt.sign(
+//             { _id: existingUser._id },
+//             process.env.SECRET_KEY,
+//             { expiresIn: '1d' }
+//         );
 
-        const refreshToken1 = await jwt.sign(
-            { _id: existingUser._id },
-            process.env.REFRESH_SECRET_KEY,
-            { expiresIn: '7d' }
-        );
+//         const refreshToken1 = await jwt.sign(
+//             { _id: existingUser._id },
+//             process.env.REFRESH_SECRET_KEY,
+//             { expiresIn: '7d' }
+//         );
 
-        existingUser.refreshToken = refreshToken1;
-        await existingUser.save({ validateBeforeSave: false });
+//         existingUser.refreshToken = refreshToken1;
+//         await existingUser.save({ validateBeforeSave: false });
 
-        return res.status(200)
-            .cookie("accessToken", accessToken, { httpOnly: true, secure: false, sameSite: "Lax", maxAge: 24 * 60 * 60 * 1000 })
-            .cookie("refreshToken", refreshToken1, { httpOnly: true, secure: false, sameSite: "Lax", maxAge: 7 * 24 * 60 * 60 * 1000 })
-            .json({
-                status: 200,
-                message: "Token refreshed successfully",
-                data: existingUser,
-                token: accessToken
-            });
-    } catch (err) {
-        return res.status(403).json({ message: 'Refresh Failed', error: err.message });
-    }
-};
-
-
+//         return res.status(200)
+//             .cookie("accessToken", accessToken, { httpOnly: true, secure: false, sameSite: "Lax", maxAge: 24 * 60 * 60 * 1000 })
+//             .cookie("refreshToken", refreshToken1, { httpOnly: true, secure: false, sameSite: "Lax", maxAge: 7 * 24 * 60 * 60 * 1000 })
+//             .json({
+//                 status: 200,
+//                 message: "Token refreshed successfully",
+//                 data: existingUser,
+//                 token: accessToken
+//             });
+//     } catch (err) {
+//         return res.status(403).json({ message: 'Refresh Failed', error: err.message });
+//     }
+// };
 
 exports.forgotPassword = async (req, res) => {
     try {
@@ -280,16 +278,16 @@ exports.forgotPassword = async (req, res) => {
 
         let otp = Math.floor(100000 + Math.random() * 900000);
         checkUser.otp = otp;
-        checkUser.otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+        checkUser.otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
         await checkUser.save();
 
         await sendEmail({
             email: checkUser.email,
-            subject: "OrnaCare - Forgot Password OTP",
+            subject: "GroceryHub - Forgot Password OTP",
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                    <h2 style="color: #333; text-align: center;">OrnaCare Password Reset</h2>
-                    <p>Hi ${checkUser.username},</p>
+                    <h2 style="color: #333; text-align: center;">GroceryHub Password Reset</h2>
+                    <p>Hi ${checkUser.firstname} ${checkUser.lastname},</p>
                     <p>You requested a password reset. Your One-Time Password (OTP) is:</p>
                     <div style="background: #f4f4f4; padding: 15px; text-align: center; border-radius: 5px; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #007bff;">
                         ${otp}
@@ -297,7 +295,7 @@ exports.forgotPassword = async (req, res) => {
                     <p>This OTP is valid for 10 minutes.</p>
                     <p>If you didn't request this, please ignore this email.</p>
                     <br>
-                    <p>Best regards,<br>The OrnaCare Team</p>
+                    <p>Best regards,<br>The GroceryHub Team</p>
                 </div>
             `
         });

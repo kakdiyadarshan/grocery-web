@@ -1,11 +1,10 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-    username: {
+    firstname: {
         type: String,
-        required: true
     },
-    name: {
+    lastname: {
         type: String,
     },
     email: {
@@ -42,9 +41,9 @@ const userSchema = new mongoose.Schema({
         url: { type: String },
         public_id: { type: String }
     },
-    refreshToken: {
-        type: String
-    }
+    // refreshToken: {
+    //     type: String
+    // }
 }, {
     timestamps: true,
     toJSON: {
