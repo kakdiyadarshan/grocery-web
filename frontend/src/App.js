@@ -4,6 +4,7 @@ import { Toaster } from 'sonner';
 import Home from './pages/Home';
 import { Route, Routes } from 'react-router-dom';
 import Adminroutes from './admin/Adminroutes';
+import ProductDetail from './pages/ProductDetail';
 
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
       <Toaster richColors position="top-center" />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/product-details/:id" element={<ProductDetail />} />
         <Route path="/admin/*" element={<Adminroutes />} />
       </Routes>
     </>
