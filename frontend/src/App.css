@@ -28,7 +28,7 @@ body {
   display: none;
 }
 
-.no-   {
+.no- {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
@@ -40,9 +40,11 @@ body {
 .ql-container.ql-snow {
   border: none !important;
 }
-.ql-snow.ql-toolbar button:hover{
+
+.ql-snow.ql-toolbar button:hover {
   color: #228B22 !important;
 }
+
 #common-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -99,4 +101,48 @@ body {
   /* IE and Edge */
   scrollbar-width: none;
   /* Firefox */
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromBottom {
+  from {
+    transform: translateY(1rem);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-in {
+  animation-duration: 0.8s;
+  animation-fill-mode: both;
+}
+
+.fade-in {
+  animation-name: fadeIn;
+}
+
+.slide-in-from-bottom-4 {
+  animation-name: slideInFromBottom;
+}
+
+.duration-700 {
+  animation-duration: 700ms;
+}
+
+.duration-1000 {
+  animation-duration: 1000ms;
 }
