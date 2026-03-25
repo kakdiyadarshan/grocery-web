@@ -43,7 +43,13 @@ exports.createProduct = async (req, res) => {
             images
         });
 
-        await product.populate("category", "categoryName");
+        await product.populate([
+            { path: "category", select: "categoryName" },
+            {
+                path: "reviews",
+                populate: { path: "userId", select: "name photo" }
+            }
+        ]);
 
         res.status(201).json({
             success: true,
@@ -84,6 +90,9 @@ exports.getAllProducts = async (req, res) => {
             }
         ]);
 
+        // const products = await Product.find()
+        //     .populate("category")
+        //     .populate("reviews");
         res.status(200).json({ success: true, products });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -122,7 +131,14 @@ exports.getProductById = async (req, res) => {
             }
         ]);
 
-        if (!product.length) {
+        // if (!product.length) {
+        // const product = await Product.findById(req.params.id)
+        //     .populate("category", "categoryName")
+        //     .populate({
+        //         path: "reviews",
+        //         populate: { path: "userId", select: "name photo" }
+        //     });
+        if (!product) {
             return res.status(404).json({ success: false, message: "Product not found" });
         }
 
@@ -183,7 +199,13 @@ exports.updateProduct = async (req, res) => {
 
         await product.save();
 
-        await product.populate("category", "categoryName");
+        await product.populate([
+            { path: "category", select: "categoryName" },
+            {
+                path: "reviews",
+                populate: { path: "userId", select: "name photo" }
+            }
+        ]);
 
         res.status(200).json({
             success: true,

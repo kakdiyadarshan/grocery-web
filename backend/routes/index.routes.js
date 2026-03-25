@@ -17,6 +17,7 @@ const { addSubscriber, getAllSubscribers, deleteSubscriber } = require('../contr
 const { getTermConditionById, getAllTermConditions, saveAllTermConditions, uploadTermImage } = require('../controllers/termscondition.controller');
 const { createOffer, getAllOffers, getOfferById, updateOffer, deleteOffer } = require('../controllers/offerController');
 const { createFAQ, getAllFAQs, getFAQById, updateFAQ, deleteFAQ } = require('../controllers/faq.controller');
+const { createReview, getReviewById, getAllReviews, deleteReview } = require('../controllers/review.controller');
 
 // Auth routes
 indexRoutes.post('/register', createUser);
@@ -111,6 +112,11 @@ indexRoutes.delete("/delete/blog/:blogId", deleteBlogController);
 indexRoutes.post('/subscribe', addSubscriber);
 indexRoutes.get('/all-subscribers', auth, authorizeRoles('admin'), getAllSubscribers);
 indexRoutes.delete('/delete-subscriber/:id', auth, authorizeRoles('admin'), deleteSubscriber);
+// Review routes (Rate and Review)
+indexRoutes.post('/addReview', auth, upload.array('images', 5), createReview);
+indexRoutes.get('/getReview/:id', getReviewById);
+indexRoutes.get('/getAllReviews', getAllReviews); // Can take productId as query param
+indexRoutes.delete('/deleteReview/:id', auth, deleteReview);
 
 indexRoutes.get("/listBucket", async (req, res) => {
     try {
