@@ -21,6 +21,7 @@ import CheckOut from './pages/CheckOut';
 
 
 import Layout from './component/Layout';
+import Termscondition from './pages/Termscondition';
 
 function App() {
   const dispatch = useDispatch();
@@ -38,6 +39,7 @@ function App() {
           <Route path="/blog/:id" element={<BlogDetails />} />
           <Route path="/faqs" element={<FAQs />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-condition" element={<Termscondition />} />
           <Route path="/shipping-policy" element={<ShippingPolicy />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/product-details/:id" element={<ProductDetail />} />

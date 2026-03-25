@@ -28,7 +28,7 @@ body {
   display: none;
 }
 
-.no-   {
+.no- {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
@@ -40,9 +40,11 @@ body {
 .ql-container.ql-snow {
   border: none !important;
 }
-.ql-snow.ql-toolbar button:hover{
+
+.ql-snow.ql-toolbar button:hover {
   color: #228B22 !important;
 }
+
 #common-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -99,4 +101,10 @@ body {
   /* IE and Edge */
   scrollbar-width: none;
   /* Firefox */
+}
+
+.faq_answer {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
 }

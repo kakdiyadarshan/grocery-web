@@ -40,14 +40,6 @@ const productSchema = new mongoose.Schema({
     },
 }, {
     timestamps: true,
-    toJSON: {
-        virtuals: true,
-        transform: function (doc, ret) {
-            delete ret.password;
-            return ret;
-        },
-    },
-    toObject: { virtuals: true }
 });
 
 module.exports = mongoose.model("Product", productSchema);
