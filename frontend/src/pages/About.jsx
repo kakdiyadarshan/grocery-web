@@ -1,19 +1,25 @@
 import React from 'react';
 import { FaLeaf, FaHandHoldingUsd, FaRecycle, FaHandHoldingWater, FaShoppingBasket, FaPiggyBank } from 'react-icons/fa';
 import Subscribe from './Subscribe';
+import { Link } from 'react-router-dom';
+import { ChevronRight } from 'lucide-react';
 
 export default function About() {
   return (
-    <div className="min-h-screen max-w-[1440px] mx-auto   py-12 px-4 sm:px-6 lg:px-8">
-      {/* Hero Section */}
-      <div className="w-full text-center mb-16">
-        <h1 className="text-4xl font-extrabold text-green-700 sm:text-5xl">
-          About Us
-        </h1>
-        <p className="mt-4 text-xl text-gray-600 max-w-2xl mx-auto">
-          Delivering the freshest groceries directly to your doorstep. We are committed to quality, sustainability, and your satisfaction.
-        </p>
+    <div className="min-h-screen bg-[var(--bg-main)] px-4 sm:px-6 lg:px-8">
+      {/* Breadcrumb / Page Title */}
+      <div className="bg-gray-50 py-8 border-b border-gray-100">
+        <div className="container mx-auto">
+          <h1 className="text-[28px] sm:text-[32px] font-bold text-[#1e5066] mb-3">About Us</h1>
+          <div className="flex items-center gap-2 text-[14px] text-gray-500 font-medium">
+            <Link  to="/" className="hover:text-[var(--primary)] transition-colors">Home</Link>
+            <ChevronRight className="w-4 h-4 text-gray-400" />
+            <span className="text-[var(--primary)] font-bold">About Us</span>
+          </div>
+        </div>
       </div>
+      <main  className="container mx-auto py-12">
+      
 
       {/* Our Story Section */}
       <div className="w-full mb-16 ">
@@ -153,6 +159,7 @@ export default function About() {
 
       {/* Subscribe Section */}
       <Subscribe />
+      </main>
 
     </div>
   );

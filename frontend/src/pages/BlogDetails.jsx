@@ -1,16 +1,33 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { blogPosts } from './Blog';
+import { useDispatch, useSelector } from 'react-redux';
+import { getBlogById } from '../redux/slice/blog.slice';
+import Subscribe from './Subscribe';
 
 function BlogDetails() {
     const { id } = useParams();
-    const post = blogPosts.find(p => p.id === parseInt(id));
+    const dispatch = useDispatch();
+    const { currentBlog: post, loading } = useSelector((state) => state.blog);
+
+    useEffect(() => {
+        if (id) {
+            dispatch(getBlogById(id));
+        }
+    }, [id, dispatch]);
+
+    if (loading) {
+        return (
+            <div className="w-full min-h-[60vh] flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
 
     if (!post) {
         return (
-            <div className="w-full min-h-[50vh] flex flex-col items-center justify-center p-4">
-                <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-4">Blog Post Not Found</h2>
-                <Link to="/blog" className="text-[var(--primary)] hover:underline font-medium">
+            <div className="w-full min-h-[50vh] flex flex-col items-center justify-center p-4 font-jost">
+                <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Blog Post Not Found</h2>
+                <Link to="/blog" className="px-6 py-2.5 bg-primary text-white rounded-full hover:bg-primaryHover transition-colors font-semibold shadow-lg shadow-primary/30">
                     &larr; Back to Blogs
                 </Link>
             </div>
@@ -18,62 +35,91 @@ function BlogDetails() {
     }
 
     return (
-        <div className="w-full max-w-[1000px] mx-auto p-4 sm:p-6 lg:p-8 mt-10 mb-20 animate-fade-in">
-            <Link to="/blog" className="text-[var(--primary)] hover:underline mb-8 inline-block font-medium">
-                &larr; Back to Blogs
+        <div className="w-full container mx-auto p-4 sm:p-6 lg:p-8 mt-10 mb-20 animate-fade-in font-jost">
+            <Link to="/blog" className="text-primary hover:underline mb-8 inline-block font-medium flex items-center gap-2 group decoration-2 underline-offset-4">
+                <span className="group-hover:-translate-x-1 transition-transform">&larr;</span> Back to Blogs
             </Link>
 
-            <div className="bg-white rounded-xl shadow-sm border border-[var(--border)] overflow-hidden">
-                <div className="w-full h-[300px] sm:h-[400px] md:h-[450px] relative">
+            <div className="">
+                <div className="w-full h-[300px] sm:h-[400px] md:h-[500px] relative">
                     <img
-                        src={post.image}
-                        alt={post.title}
+                        src={post.heroImage}
+                        alt={post.blogTitle}
                         className="w-full h-full object-cover"
                     />
                 </div>
 
-                <div className="p-6 sm:p-8 md:p-12">
-                    <div className="flex items-center gap-4 mb-6">
-                        <span className="bg-[#e4fce7] text-[var(--primary)] px-4 py-1.5 rounded-full font-medium text-sm">
-                            Nutrition
+                <div className="py-6 sm:py-8 md:py-12">
+                    <div className="flex flex-wrap items-center gap-4 mb-6">
+                        <span className="bg-primary/10 text-primary px-4 py-1.5 rounded-full font-bold text-xs uppercase tracking-wider">
+                            {post.blogCategoryId?.blogCategoryName || 'General'}
                         </span>
-                        <span className="text-[var(--text-secondary)] font-medium text-sm">
-                            {post.date}
+                        <span className="text-gray-400 font-medium text-sm">
+                            {new Date(post.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                         </span>
                     </div>
 
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--text-primary)] mb-8 leading-tight">
-                        {post.title}
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#1e5066] mb-8 leading-tight">
+                        {post.blogTitle}
                     </h1>
 
-                    <div className="prose prose-lg max-w-none text-[var(--text-secondary)]">
-                        <p className="text-lg sm:text-xl font-medium leading-relaxed mb-6">
-                            {post.description}
+                    <div className="max-w-none text-gray-600">
+                        <p className="text-lg sm:text-xl font-medium leading-relaxed mb-10 text-gray-700 italic border-l-4 border-primary pl-6 py-2 bg-gray-50 rounded-r-lg">
+                            {post.blogDesc}
                         </p>
 
-                        <p className="mb-6 leading-relaxed">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam in erat at turpis ullamcorper pulvinar. Proin non risus nisl. Nullam congue purus sit amet libero luctus, id lacinia lectus laoreet. Nam mattis justo ac mauris semper, non gravida turpis volutpat. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-                        </p>
+                        {/* Render Sections */}
+                        {post.section?.map((sec, index) => (
+                            <div key={index} className="mb-12 last:mb-0">
+                                {sec.sectionTitle && (
+                                    <h2 className="text-2xl sm:text-3xl font-bold text-[#1e5066] mb-4 mt-8">
+                                        {sec.sectionTitle}
+                                    </h2>
+                                )}
 
-                        <h3 className="text-2xl font-bold text-[var(--text-primary)] mt-10 mb-4">The Benefits of Healthy Choices</h3>
+                                {sec.sectionDesc?.map((p, i) => (
+                                    <p key={i} className="mb-4 leading-relaxed text-gray-600">
+                                        {p}
+                                    </p>
+                                ))}
 
-                        <p className="mb-6 leading-relaxed">
-                            Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Maecenas tincidunt facilisis libero non consectetur. Donec congue iaculis tellus non scelerisque. Curabitur convallis, lacus et fringilla tincidunt, purus magna hendrerit est, et feugiat sem dui et augue.
-                        </p>
+                                {sec.sectionPoints?.length > 0 && (
+                                    <ul className="list-disc pl-6 mb-6 space-y-3 mt-4 text-gray-600">
+                                        {sec.sectionPoints.map((point, i) => (
+                                            <li key={i} className="pl-2">{point}</li>
+                                        ))}
+                                    </ul>
+                                )}
 
-                        <ul className="list-disc pl-6 mb-6 space-y-2">
-                            <li>Rich in essential vitamins and minerals</li>
-                            <li>Boosts immune system naturally</li>
-                            <li>Supports healthy digestion</li>
-                            <li>Improves overall energy levels</li>
-                        </ul>
+                                {sec.sectionImg?.length > 0 && (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
+                                        {sec.sectionImg.map((img, i) => (
+                                            <img
+                                                key={i}
+                                                src={img}
+                                                alt=""
+                                                className="w-full h-full object-contain rounded-lg shadow-sm border border-gray-100 transition-transform hover:scale-[1.02] cursor-zoom-in"
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
 
-                        <p className="mb-6 leading-relaxed">
-                            Suspendisse potenti. Mauris eget orci et quam aliquam semper. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Morbi fermentum tristique commodo. Sed vel vehicula sapien. Aenean non mi ut est vestibulum hendrerit eu a libero.
-                        </p>
+                        {/* Conclusion */}
+                        {post.conclusion && (
+                            <div className="mt-16 p-8 bg-gray-50 rounded-xl border border-gray-200">
+                                <h4 className="text-xl font-bold text-[#1e5066] mb-3">Conclusion</h4>
+                                <p className="text-gray-700 italic leading-relaxed">
+                                    {post.conclusion}
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
+
+            <Subscribe/>
         </div>
     );
 }

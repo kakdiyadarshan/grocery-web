@@ -1,21 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { BASE_URL } from '../../utils/baseUrl';
 import Table from '../component/DataTable';
 import { FiPlus, FiTrash2, FiImage, FiArrowLeft, FiRefreshCw } from 'react-icons/fi';
 import Breadcrumb from '../component/Breadcrumb';
-import { useDispatch } from 'react-redux';
-import { setAlert } from '../../redux/slice/alert.slice';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+    getAllBlogs,
+    createBlog,
+    updateBlog,
+    deleteBlog
+} from '../../redux/slice/blog.slice';
+import { getAllBlogCategory } from '../../redux/slice/blogCategory.slice';
 
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 
 const BlogAdmin = () => {
     const dispatch = useDispatch();
-    const [blogs, setBlogs] = useState([]);
-    const [categories, setCategories] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [submitLoading, setSubmitLoading] = useState(false);
+
+    // Select state from Redux
+    const { blogs, loading, submitLoading } = useSelector(state => state.blog);
+    const { blogCategory: categories } = useSelector(state => state.blogCategory);
 
     // View state: 'list' | 'form' | 'view'
     const [view, setView] = useState('list');
@@ -25,7 +29,6 @@ const BlogAdmin = () => {
 
     // Delete Modal state
     const [deleteItem, setDeleteItem] = useState(null);
-    const [isDeleting, setIsDeleting] = useState(false);
 
     // Form data
     const [formData, setFormData] = useState({
@@ -40,34 +43,12 @@ const BlogAdmin = () => {
 
     // ─── API CALLS ──────────────────────────────────────────────────────────────
 
-    const getAuthHeader = () => ({
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-    });
-
-    const fetchBlogs = async () => {
-        try {
-            setLoading(true);
-            const res = await axios.get(`${BASE_URL}/all/blogs`, { headers: getAuthHeader() });
-            if (res.data.success) setBlogs(res.data.blogs || []);
-        } catch (error) {
-            if (error.response?.status === 404) {
-                setBlogs([]);
-            } else {
-                dispatch(setAlert({ text: 'Failed to load blogs', type: 'error' }));
-            }
-        } finally {
-            setLoading(false);
-        }
+    const fetchBlogs = () => {
+        dispatch(getAllBlogs());
     };
 
-    const fetchCategories = async () => {
-        try {
-            // Route: GET /all/category (blog categories)
-            const res = await axios.get(`${BASE_URL}/all/category`, { headers: getAuthHeader() });
-            if (res.data.success) setCategories(res.data.result?.blogsCategory || res.data.result || []);
-        } catch (error) {
-            console.error('Failed to load categories:', error);
-        }
+    const fetchCategories = () => {
+        dispatch(getAllBlogCategory());
     };
 
     useEffect(() => {
@@ -154,54 +135,37 @@ const BlogAdmin = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        try {
-            setSubmitLoading(true);
-            const data = new FormData();
+        const data = new FormData();
+        data.append('blogTitle', formData.blogTitle);
+        data.append('blogCategoryId', formData.blogCategoryId);
+        data.append('blogDesc', formData.blogDesc);
+        data.append('conclusion', formData.conclusion);
 
-            data.append('blogTitle', formData.blogTitle);
-            data.append('blogCategoryId', formData.blogCategoryId);
-            data.append('blogDesc', formData.blogDesc);
-            data.append('conclusion', formData.conclusion);
+        if (heroImage) data.append('heroImage', heroImage);
 
-            if (heroImage) data.append('heroImage', heroImage);
+        const sectionJson = sections.map(sec => ({
+            sectionTitle: sec.sectionTitle,
+            sectionDesc: textToArray(sec.sectionDesc),
+            sectionPoints: textToArray(sec.sectionPoints),
+            sectionOtherInfo: textToArray(sec.sectionOtherInfo),
+        }));
+        data.append('section', JSON.stringify(sectionJson));
 
-            const sectionJson = sections.map(sec => ({
-                sectionTitle: sec.sectionTitle,
-                sectionDesc: textToArray(sec.sectionDesc),
-                sectionPoints: textToArray(sec.sectionPoints),
-                sectionOtherInfo: textToArray(sec.sectionOtherInfo),
-            }));
-            data.append('section', JSON.stringify(sectionJson));
-
-            sections.forEach((sec, i) => {
-                if (sec.files && sec.files.length > 0) {
-                    Array.from(sec.files).forEach(file => {
-                        data.append(`sectionImg_${i}`, file);
-                    });
-                }
-            });
-
-            const headers = {
-                ...getAuthHeader(),
-                'Content-Type': 'multipart/form-data'
-            };
-
-            if (isEditing) {
-                // PATCH /update/blog/:blogId
-                await axios.patch(`${BASE_URL}/update/blog/${currentId}`, data, { headers });
-                dispatch(setAlert({ text: 'Blog updated successfully!', type: 'success' }));
-            } else {
-                // POST /new/blog
-                await axios.post(`${BASE_URL}/new/blog`, data, { headers });
-                dispatch(setAlert({ text: 'Blog published successfully!', type: 'success' }));
+        sections.forEach((sec, i) => {
+            if (sec.files && sec.files.length > 0) {
+                Array.from(sec.files).forEach(file => {
+                    data.append(`sectionImg_${i}`, file);
+                });
             }
+        });
 
+        const action = isEditing
+            ? await dispatch(updateBlog({ id: currentId, formData: data }))
+            : await dispatch(createBlog(data));
+
+        if (action.type.endsWith('/fulfilled')) {
             closeForm();
             fetchBlogs();
-        } catch (error) {
-            dispatch(setAlert({ text: error.response?.data?.message || 'Something went wrong', type: 'error' }));
-        } finally {
-            setSubmitLoading(false);
         }
     };
 
@@ -248,16 +212,9 @@ const BlogAdmin = () => {
 
     const confirmDelete = async () => {
         if (!deleteItem) return;
-        try {
-            setIsDeleting(true);
-            await axios.delete(`${BASE_URL}/delete/blog/${deleteItem._id}`, { headers: getAuthHeader() });
-            dispatch(setAlert({ text: 'Blog deleted successfully', type: 'success' }));
+        const action = await dispatch(deleteBlog(deleteItem._id));
+        if (action.type.endsWith('/fulfilled')) {
             setDeleteItem(null);
-            fetchBlogs();
-        } catch (error) {
-            dispatch(setAlert({ text: error.response?.data?.message || 'Delete failed', type: 'error' }));
-        } finally {
-            setIsDeleting(false);
         }
     };
 
@@ -626,7 +583,7 @@ const BlogAdmin = () => {
                             <button
                                 type="button"
                                 onClick={() => setDeleteItem(null)}
-                                disabled={isDeleting}
+                                disabled={submitLoading}
                                 className="px-5 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-[4px] hover:bg-gray-200 transition-colors disabled:opacity-70"
                             >
                                 Cancel
@@ -634,10 +591,10 @@ const BlogAdmin = () => {
                             <button
                                 type="button"
                                 onClick={confirmDelete}
-                                disabled={isDeleting}
+                                disabled={submitLoading}
                                 className="px-5 py-2.5 text-sm font-semibold text-white bg-red-500 rounded-[4px] hover:bg-red-600 shadow-lg shadow-red-500/30 transition-all flex items-center gap-2 disabled:opacity-70"
                             >
-                                {isDeleting && (
+                                {submitLoading && (
                                     <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />

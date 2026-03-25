@@ -13,6 +13,7 @@ import ContactUs from './pages/ContactUs'
 
 import BlogAdmin from './pages/BlogAdmin'
 import BlogCategoryAdmin from './pages/BlogCategoryAdmin'
+import Subscribe from './pages/Subscribe'
 const Adminroutes = () => {
     const { isAuthenticated, user } = useSelector((state) => state.auth);
 
@@ -37,6 +38,7 @@ const Adminroutes = () => {
                     <Route path="customers" element={<DataTable />} />
                     <Route path="vendors" element={<DataTable />} />
                     <Route path="blogs" element={<BlogAdmin />} />
+                    <Route path="subscribe" element={<Subscribe />} />
                     <Route path="blog-categories" element={<BlogCategoryAdmin />} />
 
                     <Route path="settings" element={<div className="p-6 h-full flex items-center justify-center text-gray-400 font-medium">Coming Soon</div>} />

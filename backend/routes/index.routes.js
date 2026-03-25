@@ -13,6 +13,7 @@ const { uploadPrivacyImage, saveAllPrivacyPolicies, getAllPrivacyPolicies, getPr
 const { addNewBlogCategoryController, getAllBlogCategoryController, getBlogCategoryByIdController, updateBlogCategoryController, deleteBlogCategoryController } = require('../controllers/blog.category.controller');
 const { getBlogWithCategoryController, getLatestBlogController, addNewBlogController, getAllBlogsController, getBlogByIdController, updateBlogController, deleteBlogController } = require('../controllers/blog.controller');
 const { createContact, getAllContacts, deleteContact } = require('../controllers/contact.controller');
+const { addSubscriber, getAllSubscribers, deleteSubscriber } = require('../controllers/subscribe.controller');
 
 // Auth routes
 indexRoutes.post('/register', createUser);
@@ -82,6 +83,11 @@ indexRoutes.get("/all/blogs", getAllBlogsController);
 indexRoutes.get("/blog/:blogId", getBlogByIdController);
 indexRoutes.patch("/update/blog/:blogId", upload.any(), updateBlogController);
 indexRoutes.delete("/delete/blog/:blogId", deleteBlogController);
+
+// Subscription routes
+indexRoutes.post('/subscribe', addSubscriber);
+indexRoutes.get('/all-subscribers', auth, authorizeRoles('admin'), getAllSubscribers);
+indexRoutes.delete('/delete-subscriber/:id', auth, authorizeRoles('admin'), deleteSubscriber);
 
 indexRoutes.get("/listBucket", async (req, res) => {
     try {
