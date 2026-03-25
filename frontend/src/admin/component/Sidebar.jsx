@@ -25,7 +25,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     const menuItems = [
         { name: 'Dashboard', icon: <FiHome />, path: '/admin/dashboard' },
         { name: 'Products', icon: <FiPackage />, path: '/admin/products' },
-        { name: 'Category', icon: <MdCategory />, path: '/admin/categories' },
+        // { name: 'Category', icon: <MdCategory />, path: '/admin/categories' },
         { name: 'Privacy Policy', icon: <FiFileText />, path: '/admin/privacy-policy' },
         { name: 'Blogs', icon: <FiFileText />, path: '/admin/blogs' },
         { name: 'Blog Categories', icon: <FiGrid />, path: '/admin/blog-categories' }

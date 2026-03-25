@@ -18,9 +18,13 @@ import Blog from './pages/Blog';
 import BlogDetails from './pages/BlogDetails';
 import ProductDetail from './pages/ProductDetail';
 import CheckOut from './pages/CheckOut';
+import MyOrder from './pages/MyOrder';
+import InvoicePage from './pages/InvoicePage';
 
 
 import Layout from './component/Layout';
+import OrderCompleted from './pages/OrderCompleted';
+import OrderTracking from './pages/OrderTracking';
 
 function App() {
   const dispatch = useDispatch();
@@ -43,6 +47,10 @@ function App() {
           <Route path="/product-details/:id" element={<ProductDetail />} />
           <Route path='/checkout' element={<CheckOut />} />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/my-order" element={<MyOrder />} />
+          <Route path='/order-tracking' element={<OrderTracking />} />
+          <Route path='/order-completed' element={<OrderCompleted />} />
+          <Route path='/invoice' element={<InvoicePage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -51,7 +59,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/  " element={<ForgotPassword />} />
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/aboutus" element={<About />} />
         <Route path="/blog" element={<Blog />} />
