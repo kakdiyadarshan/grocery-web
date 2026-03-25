@@ -97,17 +97,17 @@ const ContactUs = () => {
                     onClick={() => setIsViewModalOpen(false)}
                 >
                     <div
-                        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-300 border border-gray-100"
+                        className="bg-white rounded-md shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-300 border border-gray-100"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
-                        <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gray-50/50">
+                        <div className="flex items-center justify-between p-6 border-b border-gray-100">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
                                     <FiMail className="text-green-600" size={18} />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-bold text-gray-900">Contact Details</h3>
+                                    <h3 className="text-lg font-[600] text-gray-900">Contact Details</h3>
                                     <p className="text-xs text-gray-400">{formatDate(selectedContact.createdAt)}</p>
                                 </div>
                             </div>
@@ -122,14 +122,14 @@ const ContactUs = () => {
                         {/* Body */}
                         <div className="p-6 space-y-5">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-md border border-gray-100">
                                     <FiUser className="text-green-500 mt-0.5 shrink-0" size={16} />
                                     <div>
                                         <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-0.5">Name</p>
                                         <p className="text-sm font-semibold text-gray-800">{selectedContact.name}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-md border border-gray-100">
                                     <FiPhone className="text-green-500 mt-0.5 shrink-0" size={16} />
                                     <div>
                                         <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-0.5">Phone</p>
@@ -138,7 +138,7 @@ const ContactUs = () => {
                                 </div>
                             </div>
 
-                            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-md border border-gray-100">
                                 <FiMail className="text-green-500 mt-0.5 shrink-0" size={16} />
                                 <div>
                                     <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-0.5">Email</p>
@@ -146,7 +146,7 @@ const ContactUs = () => {
                                 </div>
                             </div>
 
-                            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-md border border-gray-100">
                                 <FiMessageSquare className="text-green-500 mt-0.5 shrink-0" size={16} />
                                 <div>
                                     <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-0.5">Message</p>
@@ -154,7 +154,7 @@ const ContactUs = () => {
                                 </div>
                             </div>
 
-                            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-md border border-gray-100">
                                 <FiCalendar className="text-green-500 mt-0.5 shrink-0" size={16} />
                                 <div>
                                     <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-0.5">Received At</p>
@@ -170,13 +170,13 @@ const ContactUs = () => {
                                     setIsViewModalOpen(false);
                                     handleDelete(selectedContact);
                                 }}
-                                className="px-5 py-2.5 text-xs font-bold uppercase tracking-wider border-2 border-red-100 text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                                className="px-5 py-2.5 text-xs font-[600] uppercase tracking-wider border border-red-100 text-red-500 hover:bg-red-50 rounded-md transition-all"
                             >
                                 Delete
                             </button>
                             <button
                                 onClick={() => setIsViewModalOpen(false)}
-                                className="px-8 py-2.5 bg-primary text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-primaryHover transition-all shadow-lg shadow-primary/20"
+                                className="px-8 py-2.5 bg-primary text-white text-xs font-[600] uppercase tracking-wider rounded-md hover:bg-primaryHover transition-all"
                             >
                                 Close
                             </button>
