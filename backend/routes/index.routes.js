@@ -14,6 +14,9 @@ const { addNewBlogCategoryController, getAllBlogCategoryController, getBlogCateg
 const { getBlogWithCategoryController, getLatestBlogController, addNewBlogController, getAllBlogsController, getBlogByIdController, updateBlogController, deleteBlogController } = require('../controllers/blog.controller');
 const { createContact, getAllContacts, deleteContact } = require('../controllers/contact.controller');
 const { addSubscriber, getAllSubscribers, deleteSubscriber } = require('../controllers/subscribe.controller');
+const { getTermConditionById, getAllTermConditions, saveAllTermConditions, uploadTermImage } = require('../controllers/termscondition.controller');
+const { createOffer, getAllOffers, getOfferById, updateOffer, deleteOffer } = require('../controllers/offerController');
+const { createFAQ, getAllFAQs, getFAQById, updateFAQ, deleteFAQ } = require('../controllers/faq.controller');
 
 // Auth routes
 indexRoutes.post('/register', createUser);
@@ -63,6 +66,26 @@ indexRoutes.post('/privacy/upload-image', auth, authorizeRoles('admin'), upload.
 indexRoutes.post('/saveallprivacy', auth, authorizeRoles('admin'), saveAllPrivacyPolicies);
 indexRoutes.get('/getallprivacy', getAllPrivacyPolicies);
 indexRoutes.get('/getprivacy/:id', getPrivacyPolicyById);
+
+// Terms & Condition Routes
+indexRoutes.post('/terms/upload-image', auth, authorizeRoles("admin"), upload.single('image'), uploadTermImage);
+indexRoutes.post('/saveallterms', auth, authorizeRoles("admin"), saveAllTermConditions);
+indexRoutes.get('/getallterms', getAllTermConditions);
+indexRoutes.get('/getterms/:id', getTermConditionById);
+
+// Offer routes
+indexRoutes.post('/addoffer', auth, authorizeRoles('admin'), createOffer);
+indexRoutes.get('/getoffers', auth, authorizeRoles('admin'), getAllOffers);
+indexRoutes.get('/getoffer/:id', auth, authorizeRoles('admin'), getOfferById);
+indexRoutes.put('/updateoffer/:id', auth, authorizeRoles('admin'), updateOffer);
+indexRoutes.delete('/deleteoffer/:id', auth, authorizeRoles('admin'), deleteOffer);
+
+// FAQ routes
+indexRoutes.post('/createFaq', auth, authorizeRoles("admin"), createFAQ);
+indexRoutes.get('/getAllFaq', getAllFAQs);
+indexRoutes.get('/getFaqById/:id', getFAQById);
+indexRoutes.put('/updateFaq/:id', auth, authorizeRoles("admin"), updateFAQ);
+indexRoutes.delete('/deleteFaq/:id', auth, authorizeRoles("admin"), deleteFAQ);
 
 //blog section api's
 // blog.category.routes.js

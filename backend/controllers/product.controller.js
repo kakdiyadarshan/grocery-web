@@ -59,21 +59,74 @@ exports.createProduct = async (req, res) => {
 // Get All Products (with populated category)
 exports.getAllProducts = async (req, res) => {
     try {
-        const products = await Product.find().populate("category", "categoryName");
+        const products = await Product.aggregate([
+            {
+                $lookup: {
+                    from: 'offers',
+                    localField: '_id',
+                    foreignField: 'product_id',
+                    as: 'offer'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'categories',
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$category',
+                    preserveNullAndEmptyArrays: true
+                }
+            }
+        ]);
+
         res.status(200).json({ success: true, products });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 };
 
-// Get Product By ID
 exports.getProductById = async (req, res) => {
     try {
-        const product = await Product.findById(req.params.id).populate("category", "categoryName");
-        if (!product) {
+        const product = await Product.aggregate([
+            {
+                $match: {
+                    _id: new mongoose.Types.ObjectId(req.params.id)
+                }
+            },
+            {
+                $lookup: {
+                    from: 'offers',
+                    localField: '_id',
+                    foreignField: 'product_id',
+                    as: 'offer'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'categories',
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$category',
+                    preserveNullAndEmptyArrays: true
+                }
+            }
+        ]);
+
+        if (!product.length) {
             return res.status(404).json({ success: false, message: "Product not found" });
         }
-        res.status(200).json({ success: true, product });
+
+        res.status(200).json({ success: true, product: product[0] });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

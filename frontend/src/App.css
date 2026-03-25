@@ -146,3 +146,8 @@ body {
 .duration-1000 {
   animation-duration: 1000ms;
 }
+.faq_answer {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}

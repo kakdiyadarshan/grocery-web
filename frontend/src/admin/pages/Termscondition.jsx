@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { getAllPrivacy, saveAllPrivacy, uploadPrivacyImage } from '../../redux/slice/privacy.slice';
 import { useDispatch, useSelector } from 'react-redux';
+import { getAllTerms, saveAllTerms, uploadTermImage } from '../../redux/slice/terms.slice';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { HexColorPicker } from 'react-colorful';
@@ -299,9 +299,9 @@ const AdvancedColorPicker = ({ onSelect, onClose, initialColor = '#000000' }) =>
     );
 };
 
-const PrivacyPolicy = () => {
+const Termscondition = () => {
     const dispatch = useDispatch();
-    const { loading, privacy } = useSelector((state) => state.privacy);
+    const { loading, terms } = useSelector((state) => state.terms);
 
     const [focusedEditor, setFocusedEditor] = useState(null);
     const [showColorPicker, setShowColorPicker] = useState(false);
@@ -588,26 +588,26 @@ const PrivacyPolicy = () => {
     }, [focusedEditor]);
 
     useEffect(() => {
-        dispatch(getAllPrivacy())
+        dispatch(getAllTerms())
     }, [dispatch]);
 
     useEffect(() => {
-        if (privacy && privacy.length > 0) {
-            const privacyAsSections = privacy.map((policy) => ({
+        if (terms && terms.length > 0) {
+            const termsAsSections = terms.map((policy) => ({
                 id: policy._id || policy.id,
                 type: policy.type || 'text',
                 content: policy.description || '',
             }));
-            setSections(privacyAsSections);
+            setSections(termsAsSections);
         }
-    }, [privacy]);
+    }, [terms]);
 
     const handleSaveAll = useCallback(() => {
-        const privacyData = sections.map(section => ({
+        const termsData = sections.map(section => ({
             description: section.content,
             type: section.type
         }));
-        dispatch(saveAllPrivacy(privacyData));
+        dispatch(saveAllTerms(termsData));
     }, [sections, dispatch]);
 
     useEffect(() => {
@@ -642,7 +642,7 @@ const PrivacyPolicy = () => {
         <>
             <div className="flex justify-between items-center md:my-6 my-4 px-2 sm:px-0">
                 <div>
-                    <h2 className="text-2xl sm:text-3xl font-bold text-textPrimary">Privacy Policy</h2>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-textPrimary">Terms & Condition</h2>
                 </div>
                 <button
                     onClick={handleSaveAll}
@@ -933,7 +933,7 @@ const PrivacyPolicy = () => {
                     <div className="max-w-full mx-auto space-y-6 pb-20">
                         {(!sections || sections.length === 0) ? (
                             <div className="text-center py-16 text-gray-400 bg-white rounded-[4px] border border-dashed border-gray-200 shadow-sm transition-all hover:bg-gray-50 flex flex-col items-center">
-                                <p className="text-base font-medium">No privacy policy sections found.</p>
+                                <p className="text-base font-medium">No Terms & Condition policy sections found.</p>
                                 <p className="text-sm mt-1 mb-6 text-gray-400">Add sections using the block tools above.</p>
                                 <button onClick={() => handleAddSection('text')} className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary/10 text-primary hover:bg-primary/20 rounded-[4px] font-semibold text-sm transition-colors">
                                     <TbTextSize /> Start with Text Block
@@ -972,7 +972,7 @@ const PrivacyPolicy = () => {
 
                                                 {section.content ? (
                                                     <div className="mb-4 max-w-full overflow-hidden rounded-[4px] shadow-sm relative border border-gray-100">
-                                                        <img src={section.content} alt="Privacy" className="max-w-full" />
+                                                        <img src={section.content} alt="Terms & Condition" className="max-w-full" />
                                                     </div>
                                                 ) : (
                                                     <div className="mb-6 flex flex-col items-center justify-center text-gray-400">
@@ -992,7 +992,7 @@ const PrivacyPolicy = () => {
                                                             const file = e.target.files?.[0];
                                                             if (file) {
                                                                 setUploadingSections(prev => ({ ...prev, [section.id]: true }));
-                                                                dispatch(uploadPrivacyImage(file)).then((action) => {
+                                                                dispatch(uploadTermImage(file)).then((action) => {
                                                                     if (action.payload) {
                                                                         handleSectionChange(section.id, action.payload);
                                                                     }
@@ -1101,4 +1101,4 @@ const PrivacyPolicy = () => {
     );
 };
 
-export default PrivacyPolicy;
+export default Termscondition;

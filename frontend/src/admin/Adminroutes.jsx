@@ -10,10 +10,14 @@ import Product from './pages/Product'
 import Category from './pages/Category'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import ContactUs from './pages/ContactUs'
-
 import BlogAdmin from './pages/BlogAdmin'
 import BlogCategoryAdmin from './pages/BlogCategoryAdmin'
 import Subscribe from './pages/Subscribe'
+import Termscondition from './pages/Termscondition'
+import Offers from './pages/Offer'
+import Faqs from './pages/Faqs'
+import Profile from './pages/Profile'
+
 const Adminroutes = () => {
     const { isAuthenticated, user } = useSelector((state) => state.auth);
 
@@ -33,6 +37,7 @@ const Adminroutes = () => {
                     <Route path="categories" element={<Category />} />
                     <Route path="products" element={<Product />} />
                     <Route path="privacy-policy" element={<PrivacyPolicy />} />
+                    <Route path="terms-condition" element={<Termscondition />} />
                     <Route path="categories" element={<DataTable />} />
                     <Route path="orders" element={<DataTable />} />
                     <Route path="customers" element={<DataTable />} />
@@ -40,6 +45,9 @@ const Adminroutes = () => {
                     <Route path="blogs" element={<BlogAdmin />} />
                     <Route path="subscribe" element={<Subscribe />} />
                     <Route path="blog-categories" element={<BlogCategoryAdmin />} />
+                    <Route path="offers" element={<Offers />} />
+                    <Route path="faqs" element={<Faqs />} />
+                    <Route path="profile" element={<Profile />} />
 
                     <Route path="settings" element={<div className="p-6 h-full flex items-center justify-center text-gray-400 font-medium">Coming Soon</div>} />
 

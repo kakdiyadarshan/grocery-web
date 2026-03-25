@@ -1,8 +1,18 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Menu, Bell, Search, ChevronDown, MessageSquare, Maximize } from 'lucide-react';
 import { FiBell, FiUser } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
+import { fetchUserProfile } from '../../redux/slice/auth.slice';
+import { useDispatch, useSelector } from 'react-redux';
+import { IMAGE_URL } from '../../utils/baseUrl';
 
 const Header = ({ onToggleSidebar }) => {
+
+  const dispatch = useDispatch();
+  const { user, loading } = useSelector((state) => state.auth);
+
+  console.log("___0",user)
+
   const [isFullScreen, setIsFullScreen] = useState(false);
 
   const toggleFullScreen = () => {
@@ -16,6 +26,10 @@ const Header = ({ onToggleSidebar }) => {
       }
     }
   };
+
+  useEffect(() => {
+    dispatch(fetchUserProfile());
+  }, [dispatch]);
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between h-20 px-4 backdrop-blur-xl bg-white border-b border-gray-100/50 shadow-[0_4px_30px_rgba(0,0,0,0.02)] sm:px-6 lg:px-8 transition-all duration-300">
@@ -53,22 +67,26 @@ const Header = ({ onToggleSidebar }) => {
           </button>
         </div>
 
-        <button className="flex items-center gap-3 pl-1 md:pl-2 pr-1 rounded-full hover:bg-gray-100 transition-all">
+        <Link to={'/admin/profile'} className="flex items-center gap-3 pl-1 md:pl-2 pr-1 rounded-full hover:bg-gray-100 transition-all">
           <div className="text-right hidden lg:block">
             <p className="text-sm font-bold text-textPrimary leading-tight">
-              Admin
+              {user?.firstname} {user?.lastname}
             </p>
             <p className="text-[10px] uppercase tracking-wider text-primary font-bold">
-              Admin
+              {user?.role}
             </p>
           </div>
 
-          <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-tr from-primary to-primary p-0.5">
+          <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-tr from-primary to-primaryLight p-0.5">
             <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
-              <FiUser className="text-primary" />
+              {user?.photo ? (
+                <img src={`${IMAGE_URL}/${user?.photo?.public_id}`} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <FiUser className="text-primary" size={20} />
+              )}
             </div>
           </div>
-        </button>
+        </Link>
       </div>
     </header>
   )

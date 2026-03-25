@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { logout } from '../../redux/slice/auth.slice';
-// import LogoutModal from './LogoutModal';
+import LogoutModal from './LogoutModal';
 import { FiHome, FiUsers, FiShoppingBag, FiPackage, FiMail, FiSliders, FiDollarSign, FiLogOut, FiX, FiGrid, FiHelpCircle, FiShield, FiFileText, FiCalendar, FiTag, FiStar, FiLayers, FiImage } from 'react-icons/fi';
 import { MdCategory } from 'react-icons/md';
 import { LuNotebookPen ,LuNotebookTabs } from "react-icons/lu";
@@ -32,7 +32,10 @@ const Sidebar = ({ isOpen, onClose }) => {
         { name: 'Privacy Policy', icon: <FiFileText />, path: '/admin/privacy-policy' },
         { name: 'Blogs', icon: <LuNotebookPen />, path: '/admin/blogs' },
         { name: 'Blog Categories', icon: <LuNotebookTabs  />, path: '/admin/blog-categories' },
-        { name: 'Subscribe', icon: <FaRegBell />, path: '/admin/subscribe' }
+        { name: 'Subscribe', icon: <FaRegBell />, path: '/admin/subscribe' },
+        { name: 'Terms & Conditions', icon: <FiFileText />, path: '/admin/terms-condition' },
+        { name: 'Offers', icon: <FiGrid />, path: '/admin/offers' },
+        { name: 'FAQs', icon: <FiGrid />, path: '/admin/faqs' }
     ];
 
     return (
@@ -99,12 +102,12 @@ const Sidebar = ({ isOpen, onClose }) => {
                     </button>
                 </div>
             </aside>
-            {/* <LogoutModal
+            <LogoutModal
                 isOpen={isLogoutModalOpen}
                 onClose={() => setIsLogoutModalOpen(false)}
                 onConfirm={handleLogoutConfirm}
                 isLoading={isLoading}
-            /> */}
+            />
         </>
     );
 };

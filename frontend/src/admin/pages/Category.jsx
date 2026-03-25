@@ -151,7 +151,7 @@ const Category = () => {
                 <div className='flex items-center justify-end gap-2 ms-auto'>
                     <button
                         onClick={() => handleOpenModal()}
-                        className=" gap-2 flex items-center justify-center w-full sm:w-auto px-5 py-2.5 bg-primary text-white rounded-[4px] hover:bg-primaryHover transition-all shadow-md active:scale-95 font-medium text-xs uppercase tracking-wider whitespace-nowrap"
+                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-[4px] hover:bg-primaryHover transition-colors font-medium text-sm"
                     >
                         <FiPlus size={18} />
                         <span>Add Category</span>
