@@ -43,6 +43,8 @@ exports.createProduct = async (req, res) => {
             images
         });
 
+        await product.populate("category", "categoryName");
+
         res.status(201).json({
             success: true,
             message: "Product created successfully",
@@ -89,7 +91,7 @@ exports.updateProduct = async (req, res) => {
 
         let currentImages = product.images;
 
-            if (req.files && req.files.length > 0) {
+        if (req.files && req.files.length > 0) {
             const newImages = [];
             for (const file of req.files) {
                 const result = await uploadToS3(file, "products");
@@ -127,6 +129,8 @@ exports.updateProduct = async (req, res) => {
         product.images = currentImages;
 
         await product.save();
+
+        await product.populate("category", "categoryName");
 
         res.status(200).json({
             success: true,
