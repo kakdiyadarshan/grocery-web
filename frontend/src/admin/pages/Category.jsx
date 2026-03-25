@@ -10,7 +10,8 @@ import {
 } from '../../redux/slice/category.slice';
 import Table from '../component/DataTable';
 import Breadcrumb from '../component/Breadcrumb';
-import { FiPlus, FiX, FiUpload, FiLoader } from 'react-icons/fi';
+import { FiPlus, FiX, FiUpload, FiLoader, FiAlertTriangle } from 'react-icons/fi';
+import DeleteModal from '../component/DeleteModal';
 
 const Category = () => {
     const dispatch = useDispatch();
@@ -23,6 +24,8 @@ const Category = () => {
     const fileInputRef = useRef(null);
 
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState(null);
 
     useEffect(() => {
         dispatch(getAllCategories());
@@ -117,9 +120,16 @@ const Category = () => {
         }
     };
 
-    const handleDelete = async (category) => {
-        if (window.confirm(`Are you sure you want to delete the category "${category.categoryName}"? This action cannot be undone.`)) {
-            await dispatch(deleteCategory(category._id));
+    const handleDelete = (category) => {
+        setItemToDelete(category);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (itemToDelete) {
+            await dispatch(deleteCategory(itemToDelete._id));
+            setIsDeleteModalOpen(false);
+            setItemToDelete(null);
         }
     };
 
@@ -375,6 +385,15 @@ const Category = () => {
                     </div>
                 </div>
             )}
+            {/* Delete Confirmation Modal */}
+            <DeleteModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={confirmDelete}
+                title="Delete Category"
+                message={`Are you sure you want to delete the category "${itemToDelete?.categoryName}"? This will affect all associated products.`}
+                isLoading={loading}
+            />
         </>
     );
 };

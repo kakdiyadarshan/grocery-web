@@ -4,6 +4,7 @@ import { useDispatch } from 'react-redux';
 import { logout } from '../../redux/slice/auth.slice';
 // import LogoutModal from './LogoutModal';
 import { FiHome, FiUsers, FiShoppingBag, FiPackage, FiMail, FiSliders, FiDollarSign, FiLogOut, FiX, FiGrid, FiHelpCircle, FiShield, FiFileText, FiCalendar, FiTag, FiStar, FiLayers, FiImage } from 'react-icons/fi';
+import { MdCategory } from "react-icons/md";
 
 const Sidebar = ({ isOpen, onClose }) => {
     const dispatch = useDispatch();

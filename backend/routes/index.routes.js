@@ -12,6 +12,7 @@ const { auth, authorizeRoles } = require('../middleware/auth.middleware');
 const { uploadPrivacyImage, saveAllPrivacyPolicies, getAllPrivacyPolicies, getPrivacyPolicyById } = require('../controllers/privacy.controller');
 const { addNewBlogCategoryController, getAllBlogCategoryController, getBlogCategoryByIdController, updateBlogCategoryController, deleteBlogCategoryController } = require('../controllers/blog.category.controller');
 const { getBlogWithCategoryController, getLatestBlogController, addNewBlogController, getAllBlogsController, getBlogByIdController, updateBlogController, deleteBlogController } = require('../controllers/blog.controller');
+const { createReview, getReviewById, getAllReviews, deleteReview } = require('../controllers/review.controller');
 
 // Auth routes
 indexRoutes.post('/register', createUser);
@@ -81,6 +82,12 @@ indexRoutes.get("/all/blogs", getAllBlogsController);
 indexRoutes.get("/blog/:blogId", getBlogByIdController);
 indexRoutes.patch("/update/blog/:blogId", upload.any(), updateBlogController);
 indexRoutes.delete("/delete/blog/:blogId", deleteBlogController);
+
+// Review routes (Rate and Review)
+indexRoutes.post('/addReview', auth, upload.array('images', 5), createReview);
+indexRoutes.get('/getReview/:id', getReviewById);
+indexRoutes.get('/getAllReviews', getAllReviews); // Can take productId as query param
+indexRoutes.delete('/deleteReview/:id', auth, deleteReview);
 
 indexRoutes.get("/listBucket", async (req, res) => {
     try {

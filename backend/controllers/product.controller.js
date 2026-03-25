@@ -43,7 +43,13 @@ exports.createProduct = async (req, res) => {
             images
         });
 
-        await product.populate("category", "categoryName");
+        await product.populate([
+            { path: "category", select: "categoryName" },
+            {
+                path: "reviews",
+                populate: { path: "userId", select: "name photo" }
+            }
+        ]);
 
         res.status(201).json({
             success: true,
@@ -59,7 +65,9 @@ exports.createProduct = async (req, res) => {
 // Get All Products (with populated category)
 exports.getAllProducts = async (req, res) => {
     try {
-        const products = await Product.find().populate("category", "categoryName");
+        const products = await Product.find()
+            .populate("category")
+            .populate("reviews");
         res.status(200).json({ success: true, products });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -69,7 +77,12 @@ exports.getAllProducts = async (req, res) => {
 // Get Product By ID
 exports.getProductById = async (req, res) => {
     try {
-        const product = await Product.findById(req.params.id).populate("category", "categoryName");
+        const product = await Product.findById(req.params.id)
+            .populate("category", "categoryName")
+            .populate({
+                path: "reviews",
+                populate: { path: "userId", select: "name photo" }
+            });
         if (!product) {
             return res.status(404).json({ success: false, message: "Product not found" });
         }
@@ -130,7 +143,13 @@ exports.updateProduct = async (req, res) => {
 
         await product.save();
 
-        await product.populate("category", "categoryName");
+        await product.populate([
+            { path: "category", select: "categoryName" },
+            {
+                path: "reviews",
+                populate: { path: "userId", select: "name photo" }
+            }
+        ]);
 
         res.status(200).json({
             success: true,
