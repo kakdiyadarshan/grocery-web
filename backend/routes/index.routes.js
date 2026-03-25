@@ -9,6 +9,7 @@ const { getWishlist, addToWishlist, removeFromWishlist } = require('../controlle
 const { createProduct, getAllProducts, getProductById, updateProduct, deleteProduct } = require('../controllers/product.controller');
 const { auth, authorizeRoles } = require('../middleware/auth.middleware');
 const { uploadPrivacyImage, saveAllPrivacyPolicies, getAllPrivacyPolicies, getPrivacyPolicyById } = require('../controllers/privacy.controller');
+const { createContact, getAllContacts, deleteContact } = require('../controllers/contact.controller');
 
 // Auth routes
 indexRoutes.post('/register', createUser);
@@ -59,5 +60,9 @@ indexRoutes.post('/saveallprivacy', auth, authorizeRoles('admin'), saveAllPrivac
 indexRoutes.get('/getallprivacy', getAllPrivacyPolicies);
 indexRoutes.get('/getprivacy/:id', getPrivacyPolicyById);
 
+// Contact routes
+indexRoutes.post('/contact', createContact);
+indexRoutes.get('/contacts', auth, authorizeRoles('admin'), getAllContacts);
+indexRoutes.delete('/contacts/:id', auth, authorizeRoles('admin'), deleteContact);
 
 module.exports = indexRoutes;

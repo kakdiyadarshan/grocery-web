@@ -30,7 +30,8 @@ const Sidebar = ({ isOpen, onClose }) => {
         { name: 'Dashboard', icon: <FiHome />, path: '/admin/dashboard' },
         { name: 'Products', icon: <FiPackage />, path: '/admin/products' },
         { name: 'Category', icon: <MdCategory />, path: '/admin/categories' },
-        { name: 'Privacy Policy', icon: <FiFileText />, path: '/admin/privacy-policy' }
+        { name: 'Privacy Policy', icon: <FiFileText />, path: '/admin/privacy-policy' },
+        { name: 'Contact Us', icon: <FiMail />, path: '/admin/contact-us' },
     ];
 
     return (

@@ -9,7 +9,7 @@ import DataTable from './component/DataTable'
 import Product from './pages/Product'
 import Category from './pages/Category'
 import PrivacyPolicy from './pages/PrivacyPolicy'
-
+import ContactUs from './pages/ContactUs'
 
 const Adminroutes = () => {
     const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -27,9 +27,10 @@ const Adminroutes = () => {
             <Route element={<PrivateRoute allowedRoles={['admin']} />}>
                 <Route element={<Layout />}>
                     <Route path="dashboard" element={<Dashboard />} />
-                    <Route path="categories" element={<Category/>} />
+                    <Route path="categories" element={<Category />} />
                     <Route path="products" element={<Product />} />
                     <Route path="privacy-policy" element={<PrivacyPolicy />} />
+                    <Route path="contact-us" element={<ContactUs />} />
                 </Route>
             </Route>
         </Routes>
