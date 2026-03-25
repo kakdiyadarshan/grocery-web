@@ -1,16 +1,27 @@
 import { useState, useRef, useEffect } from 'react';
 import { User, Heart, ShoppingBag, Menu, ChevronDown, ChevronUp, AlignLeft, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import logo from '../Image/logo.png';
 import Cart from './Cart';
+import { getCart } from '../redux/slice/cart.slice';
+import { getWishlist } from '../redux/slice/wishlist.slice';
 
 const Header = () => {
+  const dispatch = useDispatch();
+  const { cart } = useSelector((state) => state.cart);
+  const { wishlist } = useSelector((state) => state.wishlist);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
   const categoryMenuRef = useRef(null);
+
+  useEffect(() => {
+    dispatch(getCart());
+    dispatch(getWishlist());
+  }, [dispatch]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -25,6 +36,9 @@ const Header = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const cartCount = cart?.items?.length || 0;
+  const wishlistCount = wishlist?.items?.length || 0;
+
   return (
     <header className="bg-white">
       {/* Main Header */}
@@ -35,11 +49,13 @@ const Header = () => {
 
             {/* Logo */}
             <div className="flex-shrink-0">
-              <img
-                src={logo}
-                alt="Gromend"
-                className="h-10 sm:h-12 w-auto object-contain"
-              />
+              <Link to="/">
+                <img
+                  src={logo}
+                  alt="Gromend"
+                  className="h-10 sm:h-12 w-auto object-contain"
+                />
+              </Link>
             </div>
 
             {/* Search Bar - Desktop */}
@@ -96,24 +112,24 @@ const Header = () => {
                 <div className="relative">
                   <Heart className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.5]" />
                   <span className="absolute -top-1.5 -right-2 sm:-top-2 sm:-right-2 bg-[var(--primary)] text-white text-[10px] sm:text-xs font-bold rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center border border-white">
-                    0
+                    {wishlistCount}
                   </span>
                 </div>
               </Link>
 
               {/* Cart Icon */}
-            <button 
-              onClick={() => setIsCartOpen(true)}
+              <button
+                onClick={() => setIsCartOpen(true)}
                 className="relative flex items-center gap-2 text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors"
               >
                 <div className="relative">
                   <ShoppingBag className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.5]" />
                   <span className="absolute -top-1.5 -right-2 sm:-top-2 sm:-right-2 bg-[var(--primary)] text-white text-[10px] sm:text-xs font-bold rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center border border-white">
-                    0
+                    {cartCount}
                   </span>
                 </div>
                 <span className="hidden md:block font-medium text-[var(--text-gray)] ml-1">My Cart</span>
-            </button>
+              </button>
             </div>
           </div>
 

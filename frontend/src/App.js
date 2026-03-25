@@ -20,6 +20,7 @@ import ProductDetail from './pages/ProductDetail';
 import CheckOut from './pages/CheckOut';
 import MyOrder from './pages/MyOrder';
 import InvoicePage from './pages/InvoicePage';
+import Shop from './pages/Shop';
 
 
 import Layout from './component/Layout';
@@ -55,20 +56,15 @@ function App() {
           <Route path='/invoice' element={<InvoicePage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/category" element={<Shop />} />
+          {/* <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} /> */}
           <Route path="/forgot-password" element={<ForgotPassword />} />
         </Route>
 
-        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/  " element={<ForgotPassword />} />
-        <Route path="/contact" element={<ContactUs />} />
-        <Route path="/aboutus" element={<About />} />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/blog/:id" element={<BlogDetails />} />
-        <Route path="/faqs" element={<FAQs />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/shipping-policy" element={<ShippingPolicy />} />
         <Route path="/admin/*" element={<Adminroutes />} />
       </Routes>
     </>
@@ -76,3 +72,4 @@ function App() {
 }
 
 export default App;
+

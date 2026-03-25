@@ -11,6 +11,8 @@ import subscribeSlice from "./slice/subscribe.slice";
 import termsSlice from "./slice/terms.slice";
 import offerSlice from "./slice/offer.slice";
 import faqSlice from "./slice/faq.slice";
+import cartSlice from "./slice/cart.slice";
+import wishlistSlice from "./slice/wishlist.slice";
 
 export const rootReducer = combineReducers({
     alert: alertSlice,
@@ -25,5 +27,7 @@ export const rootReducer = combineReducers({
     terms: termsSlice,
     offer: offerSlice,
     faq: faqSlice,
+    cart: cartSlice,
+    wishlist: wishlistSlice,
 });
 
