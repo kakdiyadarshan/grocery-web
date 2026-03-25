@@ -12,6 +12,7 @@ const { auth, authorizeRoles } = require('../middleware/auth.middleware');
 const { uploadPrivacyImage, saveAllPrivacyPolicies, getAllPrivacyPolicies, getPrivacyPolicyById } = require('../controllers/privacy.controller');
 const { addNewBlogCategoryController, getAllBlogCategoryController, getBlogCategoryByIdController, updateBlogCategoryController, deleteBlogCategoryController } = require('../controllers/blog.category.controller');
 const { getBlogWithCategoryController, getLatestBlogController, addNewBlogController, getAllBlogsController, getBlogByIdController, updateBlogController, deleteBlogController } = require('../controllers/blog.controller');
+const { createContact, getAllContacts, deleteContact } = require('../controllers/contact.controller');
 
 // Auth routes
 indexRoutes.post('/register', createUser);
@@ -92,5 +93,9 @@ indexRoutes.get("/listBucket", async (req, res) => {
     }
 });
 
+// Contact routes
+indexRoutes.post('/contact', createContact);
+indexRoutes.get('/contacts', auth, authorizeRoles('admin'), getAllContacts);
+indexRoutes.delete('/contacts/:id', auth, authorizeRoles('admin'), deleteContact);
 
 module.exports = indexRoutes;

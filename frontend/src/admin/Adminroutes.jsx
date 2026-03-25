@@ -9,7 +9,7 @@ import DataTable from './component/DataTable'
 import Product from './pages/Product'
 import Category from './pages/Category'
 import PrivacyPolicy from './pages/PrivacyPolicy'
-
+import ContactUs from './pages/ContactUs'
 
 import BlogAdmin from './pages/BlogAdmin'
 import BlogCategoryAdmin from './pages/BlogCategoryAdmin'
@@ -29,7 +29,7 @@ const Adminroutes = () => {
             <Route element={<PrivateRoute allowedRoles={['admin']} />}>
                 <Route element={<Layout />}>
                     <Route path="dashboard" element={<Dashboard />} />
-                    <Route path="categories" element={<Category/>} />
+                    <Route path="categories" element={<Category />} />
                     <Route path="products" element={<Product />} />
                     <Route path="privacy-policy" element={<PrivacyPolicy />} />
                     <Route path="categories" element={<DataTable />} />
@@ -41,6 +41,7 @@ const Adminroutes = () => {
 
                     <Route path="settings" element={<div className="p-6 h-full flex items-center justify-center text-gray-400 font-medium">Coming Soon</div>} />
 
+                    <Route path="contact-us" element={<ContactUs />} />
                 </Route>
             </Route>
         </Routes>

@@ -1,9 +1,40 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Home, Phone, Mail, Info } from 'lucide-react';
 import Subscribe from './Subscribe';
-
+import axios from 'axios';
+import { BASE_URL } from '../utils/baseUrl';
 
 function ContactUs() {
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        phone: '',
+        comment: ''
+    });
+    const [loading, setLoading] = useState(false);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            const response = await axios.post(`${BASE_URL}/contact`, formData);
+            if (response.data.success) {
+                alert('Your message has been sent successfully!');
+                setFormData({ name: '', email: '', phone: '', comment: '' });
+            }
+        } catch (error) {
+            alert(error.response?.data?.message || 'Failed to send message. Please try again later.');
+            console.error('Contact error:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="w-full max-w-[1440px]  space-y-8  mx-auto p-4 sm:p-6 lg:p-8 mt-10 mb-20">
 
@@ -13,20 +44,27 @@ function ContactUs() {
                 <div className="flex-1 w-full lg:w-2/3 border border-[var(--border)] rounded-lg p-6 sm:p-8 shadow-sm bg-[var(--bg-card)]">
                     <h2 className="text-2xl font-bold text-[var(--text-primary)]">Do You Have Any Questions?</h2>
                     <hr className="border-[var(--border)] my-6" />
-                    <form className="space-y-6">
+                    <form className="space-y-6" onSubmit={handleSubmit}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <input
                                     type="text"
-                                    placeholder="Name"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    required
+                                    placeholder="Name *"
                                     className="w-full px-4 py-3 rounded-md border border-gray-200 focus:outline-none focus:ring-1 focus:ring-[var(--primary)] text-[var(--text-secondary)] bg-[var(--input-bg)]"
                                 />
                             </div>
                             <div>
                                 <input
                                     type="email"
-                                    placeholder="Email *"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
                                     required
+                                    placeholder="Email *"
                                     className="w-full px-4 py-3 rounded-md border border-gray-200 focus:outline-none focus:ring-1 focus:ring-[var(--primary)] text-[var(--text-secondary)] bg-[var(--input-bg)]"
                                 />
                             </div>
@@ -35,6 +73,9 @@ function ContactUs() {
                         <div>
                             <input
                                 type="tel"
+                                name="phone"
+                                value={formData.phone}
+                                onChange={handleChange}
                                 placeholder="Phone number"
                                 className="w-full px-4 py-3 rounded-md border border-gray-200 focus:outline-none focus:ring-1 focus:ring-[var(--primary)] text-[var(--text-secondary)] bg-[var(--input-bg)]"
                             />
@@ -42,7 +83,11 @@ function ContactUs() {
 
                         <div>
                             <textarea
-                                placeholder="Comment"
+                                name="comment"
+                                value={formData.comment}
+                                onChange={handleChange}
+                                required
+                                placeholder="Comment *"
                                 rows="4"
                                 className="w-full px-4 py-3 rounded-md border border-gray-200 focus:outline-none focus:ring-1 focus:ring-[var(--primary)] text-[var(--text-secondary)] bg-[var(--input-bg)] resize-none"
                             ></textarea>
@@ -50,10 +95,11 @@ function ContactUs() {
 
                         <div>
                             <button
-                                type="button"
-                                className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors text-[var(--btn-text)] font-medium py-3 px-9 rounded-md shadow-[var(--shadow)]"
+                                type="submit"
+                                disabled={loading}
+                                className={`bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors text-[var(--btn-text)] font-medium py-3 px-9 rounded-md shadow-[var(--shadow)] ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
                             >
-                                Send
+                                {loading ? 'Sending...' : 'Send'}
                             </button>
                         </div>
                     </form>

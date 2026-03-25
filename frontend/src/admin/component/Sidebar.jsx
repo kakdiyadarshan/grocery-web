@@ -4,6 +4,7 @@ import { useDispatch } from 'react-redux';
 import { logout } from '../../redux/slice/auth.slice';
 // import LogoutModal from './LogoutModal';
 import { FiHome, FiUsers, FiShoppingBag, FiPackage, FiMail, FiSliders, FiDollarSign, FiLogOut, FiX, FiGrid, FiHelpCircle, FiShield, FiFileText, FiCalendar, FiTag, FiStar, FiLayers, FiImage } from 'react-icons/fi';
+import { MdCategory } from 'react-icons/md';
 
 const Sidebar = ({ isOpen, onClose }) => {
     const dispatch = useDispatch();
@@ -25,10 +26,11 @@ const Sidebar = ({ isOpen, onClose }) => {
     const menuItems = [
         { name: 'Dashboard', icon: <FiHome />, path: '/admin/dashboard' },
         { name: 'Products', icon: <FiPackage />, path: '/admin/products' },
-        { name: 'Category', icon: <MdCategory />, path: '/admin/categories' },
+        { name: 'Category', icon: <MdCategory  />, path: '/admin/categories' },
         { name: 'Privacy Policy', icon: <FiFileText />, path: '/admin/privacy-policy' },
         { name: 'Blogs', icon: <FiFileText />, path: '/admin/blogs' },
-        { name: 'Blog Categories', icon: <FiGrid />, path: '/admin/blog-categories' }
+        { name: 'Blog Categories', icon: <FiGrid />, path: '/admin/blog-categories' },
+        { name: 'Contact Us', icon: <FiMail />, path: '/admin/contact-us' },
     ];
 
     return (
