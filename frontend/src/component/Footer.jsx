@@ -82,7 +82,7 @@ const Footer = () => {
                         <ul className="flex flex-col gap-3">
                             <li><Link to="/aboutus" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">About Us</Link></li>
                             <li><Link to="/contact" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">Contact</Link></li>
-                            <li><Link to="/shipping" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">Shipping</Link></li>
+                            <li><Link to="/shipping-policy" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">Shipping Policy</Link></li>
                             <li><Link to="/privacy-policy" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">Privacy Policy</Link></li>
                             <li><Link to="/sitemap" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">Sitemap</Link></li>
                         </ul>

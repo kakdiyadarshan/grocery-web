@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { BASE_URL } from '../../utils/baseUrl';
 import Table from '../component/DataTable';
 import { FiPlus, FiX, FiRefreshCw, FiTrash2 } from 'react-icons/fi';
 import Breadcrumb from '../component/Breadcrumb';
-import { useDispatch } from 'react-redux';
-import { setAlert } from '../../redux/slice/alert.slice';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+    getAllBlogCategory,
+    createBlogCategory,
+    updateBlogCategory,
+    deleteBlogCategory
+} from '../../redux/slice/blogCategory.slice';
 
 const BlogCategoryAdmin = () => {
     const dispatch = useDispatch();
-    const [data, setData] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [submitLoading, setSubmitLoading] = useState(false);
+    const { blogCategory: data, loading, submitLoading } = useSelector((state) => state.blogCategory);
 
     // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -21,30 +22,10 @@ const BlogCategoryAdmin = () => {
 
     // Delete Modal state
     const [deleteItem, setDeleteItem] = useState(null);
-    const [isDeleting, setIsDeleting] = useState(false);
-
-    const getAuthHeader = () => ({
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-    });
 
     // ─── GET ALL ─────────────────────────────────────────────────────────────────
-    const fetchCategories = async () => {
-        try {
-            setLoading(true);
-            // Route: GET /all/category
-            const res = await axios.get(`${BASE_URL}/all/category`, { headers: getAuthHeader() });
-            if (res.data.success) {
-                setData(res.data.result?.blogsCategory || res.data.result || []);
-            }
-        } catch (error) {
-            if (error.response?.status === 404) {
-                setData([]); // Backend returns 404 on empty array instead of 200 with []
-            } else {
-                dispatch(setAlert({ text: 'Failed to load blog categories', type: 'error' }));
-            }
-        } finally {
-            setLoading(false);
-        }
+    const fetchCategories = () => {
+        dispatch(getAllBlogCategory());
     };
 
     useEffect(() => {
@@ -68,23 +49,13 @@ const BlogCategoryAdmin = () => {
     // ─── CREATE / UPDATE ─────────────────────────────────────────────────────────
     const handleSubmit = async (e) => {
         e.preventDefault();
-        try {
-            setSubmitLoading(true);
-            if (isEditing) {
-                // Route: PATCH /update/blogCategory/:categoryId
-                await axios.patch(`${BASE_URL}/update/blogCategory/${currentId}`, formData, { headers: getAuthHeader() });
-                dispatch(setAlert({ text: 'Category updated successfully', type: 'success' }));
-            } else {
-                // Route: POST /new/blogCategory
-                await axios.post(`${BASE_URL}/new/blogCategory`, formData, { headers: getAuthHeader() });
-                dispatch(setAlert({ text: 'Category added successfully', type: 'success' }));
-            }
+        const action = isEditing
+            ? await dispatch(updateBlogCategory({ id: currentId, formData }))
+            : await dispatch(createBlogCategory(formData));
+
+        if (action.type.endsWith('/fulfilled')) {
             closeModal();
             fetchCategories();
-        } catch (error) {
-            dispatch(setAlert({ text: error.response?.data?.message || 'Something went wrong', type: 'error' }));
-        } finally {
-            setSubmitLoading(false);
         }
     };
 
@@ -103,17 +74,9 @@ const BlogCategoryAdmin = () => {
 
     const confirmDelete = async () => {
         if (!deleteItem) return;
-        try {
-            setIsDeleting(true);
-            await axios.delete(`${BASE_URL}/delete/blogCategory/${deleteItem._id}`, { headers: getAuthHeader() });
-            dispatch(setAlert({ text: 'Category deleted successfully', type: 'success' }));
+        const action = await dispatch(deleteBlogCategory(deleteItem._id));
+        if (action.type.endsWith('/fulfilled')) {
             setDeleteItem(null);
-            fetchCategories();
-        } catch (error) {
-            console.error('Delete error:', error.response?.data);
-            dispatch(setAlert({ text: error.response?.data?.message || 'Delete failed', type: 'error' }));
-        } finally {
-            setIsDeleting(false);
         }
     };
 
@@ -242,7 +205,7 @@ const BlogCategoryAdmin = () => {
                             <button
                                 type="button"
                                 onClick={() => setDeleteItem(null)}
-                                disabled={isDeleting}
+                                disabled={submitLoading}
                                 className="px-5 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-[4px] hover:bg-gray-200 transition-colors disabled:opacity-70"
                             >
                                 Cancel
@@ -250,10 +213,10 @@ const BlogCategoryAdmin = () => {
                             <button
                                 type="button"
                                 onClick={confirmDelete}
-                                disabled={isDeleting}
+                                disabled={submitLoading}
                                 className="px-5 py-2.5 text-sm font-semibold text-white bg-red-500 rounded-[4px] hover:bg-red-600 shadow-lg shadow-red-500/30 transition-all flex items-center gap-2 disabled:opacity-70"
                             >
-                                {isDeleting && (
+                                {submitLoading && (
                                     <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />

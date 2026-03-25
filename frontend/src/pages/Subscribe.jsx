@@ -1,10 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 import subscribeimg from "../assets/image/subscribeimg.png"
+import { useDispatch, useSelector } from 'react-redux';
+import { subscribeNewsletter } from '../redux/slice/subscribe.slice';
 
 export default function Subscribe() {
+    const [email, setEmail] = useState('');
+    const dispatch = useDispatch();
+    const { submitLoading } = useSelector(state => state.subscribe);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const result = await dispatch(subscribeNewsletter(email));
+        if (result.type.endsWith('/fulfilled')) {
+            setEmail('');
+        }
+    };
+
     return (
         <div className="bg-[#e4fce7] relative overflow-hidden my-20 py-12 px-6 sm:px-12  lg:px-24 xl:px-32 flex flex-col md:flex-row items-center justify-between min-h-[400px] rounded-sm ">
-            
+
             {/* Content Section */}
             <div className="relative z-10 w-full  flex flex-col gap-5 text-center md:text-left mb-8 md:mb-0">
                 <h2 className="text-3xl sm:text-4xl md:text-4xl lg:text-5xl font-bold text-[var(--text-primary)] leading-tight">
@@ -15,31 +29,36 @@ export default function Subscribe() {
                 </p>
 
                 {/* Input Form */}
-                <form className="flex flex-col sm:flex-row gap-2 sm:gap-0 w-full max-w-md mx-auto md:mx-0 " onSubmit={(e) => e.preventDefault()}>
+                <form className="flex flex-col sm:flex-row gap-2 sm:gap-0 w-full max-w-md mx-auto md:mx-0 " onSubmit={handleSubmit}>
                     <input
                         type="email"
-                        placeholder="Email"
-                        className="flex-grow px-5 py-3 sm:py-4 rounded-md sm:rounded-none sm:rounded-l-md focus:outline-none text-[var(--text-secondary)] w-full border-none"
+                        placeholder="Your email address"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="flex-grow px-5 py-3 sm:py-4 rounded-md sm:rounded-none sm:rounded-l-md focus:outline-none text-[var(--text-secondary)] w-full border-none shadow-sm"
                         required
                     />
                     <button
                         type="submit"
-                        className=" cursor-pointer  bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition duration-300 text-[var(--btn-text)] font-semibold px-6 sm:px-8 py-3 sm:py-4 rounded-md sm:rounded-none sm:rounded-r-md whitespace-nowrap"
+                        disabled={submitLoading}
+                        className=" cursor-pointer bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition duration-300 text-[var(--btn-text)] font-semibold px-6 sm:px-8 py-3 sm:py-4 rounded-md sm:rounded-none sm:rounded-r-md whitespace-nowrap disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center min-w-[140px]"
                     >
-                        Subscribe
+                        {submitLoading ? (
+                            <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                        ) : (
+                            'Subscribe'
+                        )}
                     </button>
                 </form>
             </div>
 
             {/* Image Section */}
-           
-                <img
-                    src={subscribeimg}
-                    alt="Delivery Person"
-                    className=" absolute xl:right-[0] lg:right-[-5%] md:right-[-10%] sm:right-[-30%] right-[-60%]    min-w-[450px] bottom-0   "
-                />
-            
+            <img
+                src={subscribeimg}
+                alt="Delivery Person"
+                className=" absolute xl:right-[0] lg:right-[-5%] md:right-[-10%] sm:right-[-30%] right-[-60%] min-w-[450px] bottom-0   "
+            />
+
         </div>
     );
 }
-

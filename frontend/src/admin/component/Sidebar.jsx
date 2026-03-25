@@ -4,6 +4,9 @@ import { useDispatch } from 'react-redux';
 import { logout } from '../../redux/slice/auth.slice';
 // import LogoutModal from './LogoutModal';
 import { FiHome, FiUsers, FiShoppingBag, FiPackage, FiMail, FiSliders, FiDollarSign, FiLogOut, FiX, FiGrid, FiHelpCircle, FiShield, FiFileText, FiCalendar, FiTag, FiStar, FiLayers, FiImage } from 'react-icons/fi';
+import { MdCategory } from 'react-icons/md';
+import { LuNotebookPen ,LuNotebookTabs } from "react-icons/lu";
+import { FaRegBell } from "react-icons/fa";
 
 const Sidebar = ({ isOpen, onClose }) => {
     const dispatch = useDispatch();
@@ -27,8 +30,9 @@ const Sidebar = ({ isOpen, onClose }) => {
         { name: 'Products', icon: <FiPackage />, path: '/admin/products' },
         { name: 'Category', icon: <MdCategory />, path: '/admin/categories' },
         { name: 'Privacy Policy', icon: <FiFileText />, path: '/admin/privacy-policy' },
-        { name: 'Blogs', icon: <FiFileText />, path: '/admin/blogs' },
-        { name: 'Blog Categories', icon: <FiGrid />, path: '/admin/blog-categories' }
+        { name: 'Blogs', icon: <LuNotebookPen />, path: '/admin/blogs' },
+        { name: 'Blog Categories', icon: <LuNotebookTabs  />, path: '/admin/blog-categories' },
+        { name: 'Subscribe', icon: <FaRegBell />, path: '/admin/subscribe' }
     ];
 
     return (
