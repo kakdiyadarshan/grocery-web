@@ -28,7 +28,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/contact" element={<ContactUs />} />
-        <Route path="/about" element={<About />} />
+        <Route path="/aboutus" element={<About />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:id" element={<BlogDetails />} />
         <Route path="/faqs" element={<FAQs />} />

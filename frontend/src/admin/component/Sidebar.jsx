@@ -4,10 +4,6 @@ import { useDispatch } from 'react-redux';
 import { logout } from '../../redux/slice/auth.slice';
 // import LogoutModal from './LogoutModal';
 import { FiHome, FiUsers, FiShoppingBag, FiPackage, FiMail, FiSliders, FiDollarSign, FiLogOut, FiX, FiGrid, FiHelpCircle, FiShield, FiFileText, FiCalendar, FiTag, FiStar, FiLayers, FiImage } from 'react-icons/fi';
-import { FaInstagram } from "react-icons/fa";
-import { MdCategory } from "react-icons/md";
-import { BsBoxes } from "react-icons/bs";
-
 
 const Sidebar = ({ isOpen, onClose }) => {
     const dispatch = useDispatch();
@@ -28,7 +24,9 @@ const Sidebar = ({ isOpen, onClose }) => {
     };
     const menuItems = [
         { name: 'Dashboard', icon: <FiHome />, path: '/admin/dashboard' },
-        { name: 'Products', icon: <FiPackage />, path: '/admin/products' }
+        { name: 'Products', icon: <FiPackage />, path: '/admin/products' },
+        { name: 'Blogs', icon: <FiFileText />, path: '/admin/blogs' },
+        { name: 'Blog Categories', icon: <FiGrid />, path: '/admin/blog-categories' }
     ];
 
     return (

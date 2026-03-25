@@ -12,7 +12,7 @@ const handleErrors = (error, dispatch, rejectWithValue) => {
 
 const initialState = {
     user: null,
-    users: [], 
+    users: [],
     isAuthenticated: false,
     loading: false,
     error: null,
