@@ -287,7 +287,7 @@ const AdvancedColorPicker = ({ onSelect, onClose, initialColor = '#000000' }) =>
                             placeholder="#000000"
                         />
                         <button
-                            className="bg-primary text-white rounded-md p-1.5 cursor-pointer transition-colors duration-200 hover:bg-primaryHover"
+                            className="bg-primary text-primary rounded-md p-1.5 cursor-pointer transition-colors duration-200 hover:bg-primaryHover"
                             onClick={() => onSelect(color)}
                         >
                             <FaCheck size={12} />
@@ -640,53 +640,64 @@ const PrivacyPolicy = () => {
 
     return (
         <>
-            <div className="flex justify-between items-center md:my-6 my-4">
+            <div className="flex justify-between items-center md:my-6 my-4 px-2 sm:px-0">
                 <div>
-                    <h2 className="text-2xl font-bold text-textPrimary font-jost">Privacy Policy</h2>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-textPrimary">Privacy Policy</h2>
                 </div>
                 <button
                     onClick={handleSaveAll}
-                    className="flex items-center justify-center gap-2 text-white bg-primary hover:bg-primaryHover px-6 py-2.5 rounded-[4px] transition-all font-medium text-sm shadow-md active:scale-95"
+                    className="flex items-center justify-center gap-2 text-white bg-primary hover:bg-primaryHover p-2.5 sm:px-6 sm:py-2.5 aspect-square sm:aspect-auto rounded-[4px] transition-all font-medium text-sm shadow-md active:scale-95"
                 >
-                    <FaRegCheckCircle className="text-lg" />
+                    <FaRegCheckCircle className="text-xl sm:text-lg" />
                     <span className="hidden sm:inline">Save Changes</span>
                 </button>
             </div>
 
-            <div className="bg-white rounded-[4px] shadow-sm border border-gray-100 flex flex-col min-h-[700px]">
+            <div className="bg-white rounded-[4px] shadow-sm border border-gray-100 flex flex-col h-[calc(100vh-150px)] md:h-[calc(100vh-180px)] overflow-hidden">
                 {/* Unified Sticky Header Area */}
-                <div className="sticky top-0 z-30 bg-white border-b border-gray-100 rounded-t-[4px] shadow-sm shrink-0">
-                    
+                <div className="relative z-30 bg-white border-b border-gray-100 rounded-t-[4px] shadow-sm shrink-0">
+
                     {/* Elementor Insert Bar */}
-                    <div className="flex flex-wrap items-center gap-2 px-6 py-3 border-b border-gray-50 bg-gray-50/80">
-                        <span className="text-[11px] font-bold text-textSecondary uppercase tracking-widest mr-2">Insert Blocks:</span>
-                        
-                        {[
-                            { type: 'title', icon: TbTextSize, label: 'Title' },
-                            { type: 'text', icon: TbTextSize, label: 'Text' },
-                            { type: 'points', icon: AiOutlineBars, label: 'Points' },
-                            { type: 'image', icon: FaRegImage, label: 'Image' },
-                        ].map(({ type, icon: Icon, label }) => (
+                    <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-3 sm:gap-2 px-3 sm:px-6 py-4 sm:py-3 border-b border-gray-50 bg-gray-50/80">
+                        <div className="flex items-center gap-3 w-full sm:w-auto">
+                            <span className="text-[12px] font-bold text-textSecondary uppercase tracking-widest">Insert Blocks:</span>
+
                             <button
-                                key={type}
-                                onClick={() => handleAddSection(type)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] bg-white border border-gray-200 text-textSecondary hover:text-primary hover:border-primary/30 hover:bg-primary/5 transition-all text-sm font-medium shadow-sm active:scale-95"
+                                onClick={() => handleAddSection('title')}
+                                className="flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-[4px] bg-white border border-gray-200 text-textSecondary hover:text-primary hover:border-primary/30 hover:bg-primary/5 transition-all text-sm font-medium shadow-sm active:scale-95"
                             >
-                                <Icon className="text-sm" />
-                                {label}
+                                <TbTextSize className="text-sm" />
+                                Title
                             </button>
-                        ))}
+                        </div>
 
-                        <div className="w-px h-5 bg-gray-300 mx-2 hidden sm:block"></div>
+                        <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex sm:flex-wrap sm:items-center">
+                            {[
+                                { type: 'text', icon: TbTextSize, label: 'Text' },
+                                { type: 'points', icon: AiOutlineBars, label: 'Points' },
+                                { type: 'image', icon: FaRegImage, label: 'Image' },
+                            ].map(({ type, icon: Icon, label }) => (
+                                <button
+                                    key={type}
+                                    onClick={() => handleAddSection(type)}
+                                    className="flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-[4px] bg-white border border-gray-200 text-textSecondary hover:text-primary hover:border-primary/30 hover:bg-primary/5 transition-all text-sm font-medium shadow-sm active:scale-95 w-full sm:w-auto"
+                                >
+                                    <Icon className="text-sm" />
+                                    {label}
+                                </button>
+                            ))}
 
-                        <button
-                            onMouseDown={saveSelection}
-                            onClick={handleOpenLinkModal}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] bg-white border border-gray-200 text-textSecondary hover:text-primary hover:border-primary/30 hover:bg-primary/5 transition-all text-sm font-medium shadow-sm active:scale-95"
-                        >
-                            <IoIosLink className="text-sm" />
-                            Add Link
-                        </button>
+                            <div className="w-px h-5 bg-gray-300 mx-2 hidden sm:block"></div>
+
+                            <button
+                                onMouseDown={saveSelection}
+                                onClick={handleOpenLinkModal}
+                                className="flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-[4px] bg-white border border-gray-200 text-textSecondary hover:text-primary hover:border-primary/30 hover:bg-primary/5 transition-all text-sm font-medium shadow-sm active:scale-95 w-full sm:w-auto"
+                            >
+                                <IoIosLink className="text-sm" />
+                                Add Link
+                            </button>
+                        </div>
                     </div>
 
                     {/* Quill Toolbar */}
@@ -918,7 +929,7 @@ const PrivacyPolicy = () => {
                 </div>
 
                 {/* Editor Area (Scrollable Sections) */}
-                <div className="flex-1 overflow-y-auto bg-gray-100 p-4 sm:p-6 md:p-10 no-scrollbar h-[calc(100vh-280px)]">
+                <div className="flex-1 overflow-y-auto bg-gray-100 p-4 sm:p-6 md:p-10 no-scrollbar">
                     <div className="max-w-full mx-auto space-y-6 pb-20">
                         {(!sections || sections.length === 0) ? (
                             <div className="text-center py-16 text-gray-400 bg-white rounded-[4px] border border-dashed border-gray-200 shadow-sm transition-all hover:bg-gray-50 flex flex-col items-center">
@@ -934,21 +945,21 @@ const PrivacyPolicy = () => {
                                     {/* Action Buttons */}
                                     <div className="absolute -right-3 -top-3 hidden group-hover:flex items-center gap-1.5 z-10 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100">
                                         <button onClick={() => handleCopySection(section.id)} className="p-2 bg-white rounded-[4px] shadow-lg border border-gray-100 text-textSecondary hover:text-primary hover:bg-gray-50 transition-colors" title="Duplicate">
-                                            <MdOutlineContentCopy size={16}/>
+                                            <MdOutlineContentCopy size={16} />
                                         </button>
                                         <button onClick={() => handleDeleteSection(section.id)} className="p-2 bg-white rounded-[4px] shadow-lg border border-gray-100 text-red-400 hover:text-red-500 hover:bg-red-50 transition-colors" title="Delete">
-                                            <LuTrash2 size={16}/>
+                                            <LuTrash2 size={16} />
                                         </button>
                                     </div>
-                                    
+
                                     {/* Content Block */}
                                     <div className="p-4 md:p-6 pb-2 md:pb-3 relative">
                                         {/* Tag Label */}
                                         <div className="absolute -left-3 top-4 hidden md:flex items-center justify-center p-1.5 bg-gray-100 text-textSecondary rounded-[4px] shadow-sm opacity-50 group-hover:opacity-100 transition-opacity" title={section.type}>
-                                            {section.type === 'title' && <TbTextSize size={14}/>}
-                                            {section.type === 'text' && <TbTextSize size={14}/>}
-                                            {section.type === 'points' && <AiOutlineBars size={14}/>}
-                                            {section.type === 'image' && <FaRegImage size={14}/>}
+                                            {section.type === 'title' && <TbTextSize size={14} />}
+                                            {section.type === 'text' && <TbTextSize size={14} />}
+                                            {section.type === 'points' && <AiOutlineBars size={14} />}
+                                            {section.type === 'image' && <FaRegImage size={14} />}
                                         </div>
 
                                         {section.type === 'image' ? (

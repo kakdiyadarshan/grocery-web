@@ -58,7 +58,7 @@ const Breadcrumb = () => {
     };
 
     return (
-        <nav className="flex justify-end mt-1" aria-label="Breadcrumb">
+        <nav className="flex justify-start mt-1" aria-label="Breadcrumb">
             <ol className="inline-flex items-center space-x-1 md:space-x-3">
                 {pathnames.map((value, index) => {
 
@@ -78,7 +78,7 @@ const Breadcrumb = () => {
                                     className="inline-flex items-center text-sm font-medium text-textPrimary hover:text-primaryHover transition-colors"
                                 >
                                     <FiHome className="mr-2" size={16} />
-                                    <span className="hidden sm:inline">Home</span>
+                                    <span className="hidden sm:inline">Dashboard</span>
                                 </Link>
                             </li>
                         );

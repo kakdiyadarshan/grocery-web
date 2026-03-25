@@ -12,6 +12,11 @@ const { auth, authorizeRoles } = require('../middleware/auth.middleware');
 const { uploadPrivacyImage, saveAllPrivacyPolicies, getAllPrivacyPolicies, getPrivacyPolicyById } = require('../controllers/privacy.controller');
 const { addNewBlogCategoryController, getAllBlogCategoryController, getBlogCategoryByIdController, updateBlogCategoryController, deleteBlogCategoryController } = require('../controllers/blog.category.controller');
 const { getBlogWithCategoryController, getLatestBlogController, addNewBlogController, getAllBlogsController, getBlogByIdController, updateBlogController, deleteBlogController } = require('../controllers/blog.controller');
+const { createContact, getAllContacts, deleteContact } = require('../controllers/contact.controller');
+const { addSubscriber, getAllSubscribers, deleteSubscriber } = require('../controllers/subscribe.controller');
+const { getTermConditionById, getAllTermConditions, saveAllTermConditions, uploadTermImage } = require('../controllers/termscondition.controller');
+const { createOffer, getAllOffers, getOfferById, updateOffer, deleteOffer } = require('../controllers/offerController');
+const { createFAQ, getAllFAQs, getFAQById, updateFAQ, deleteFAQ } = require('../controllers/faq.controller');
 
 // Auth routes
 indexRoutes.post('/register', createUser);
@@ -62,6 +67,26 @@ indexRoutes.post('/saveallprivacy', auth, authorizeRoles('admin'), saveAllPrivac
 indexRoutes.get('/getallprivacy', getAllPrivacyPolicies);
 indexRoutes.get('/getprivacy/:id', getPrivacyPolicyById);
 
+// Terms & Condition Routes
+indexRoutes.post('/terms/upload-image', auth, authorizeRoles("admin"), upload.single('image'), uploadTermImage);
+indexRoutes.post('/saveallterms', auth, authorizeRoles("admin"), saveAllTermConditions);
+indexRoutes.get('/getallterms', getAllTermConditions);
+indexRoutes.get('/getterms/:id', getTermConditionById);
+
+// Offer routes
+indexRoutes.post('/addoffer', auth, authorizeRoles('admin'), createOffer);
+indexRoutes.get('/getoffers', auth, authorizeRoles('admin'), getAllOffers);
+indexRoutes.get('/getoffer/:id', auth, authorizeRoles('admin'), getOfferById);
+indexRoutes.put('/updateoffer/:id', auth, authorizeRoles('admin'), updateOffer);
+indexRoutes.delete('/deleteoffer/:id', auth, authorizeRoles('admin'), deleteOffer);
+
+// FAQ routes
+indexRoutes.post('/createFaq', auth, authorizeRoles("admin"), createFAQ);
+indexRoutes.get('/getAllFaq', getAllFAQs);
+indexRoutes.get('/getFaqById/:id', getFAQById);
+indexRoutes.put('/updateFaq/:id', auth, authorizeRoles("admin"), updateFAQ);
+indexRoutes.delete('/deleteFaq/:id', auth, authorizeRoles("admin"), deleteFAQ);
+
 //blog section api's
 // blog.category.routes.js
 indexRoutes.post("/new/blogCategory", auth, addNewBlogCategoryController);
@@ -82,6 +107,11 @@ indexRoutes.get("/blog/:blogId", getBlogByIdController);
 indexRoutes.patch("/update/blog/:blogId", upload.any(), updateBlogController);
 indexRoutes.delete("/delete/blog/:blogId", deleteBlogController);
 
+// Subscription routes
+indexRoutes.post('/subscribe', addSubscriber);
+indexRoutes.get('/all-subscribers', auth, authorizeRoles('admin'), getAllSubscribers);
+indexRoutes.delete('/delete-subscriber/:id', auth, authorizeRoles('admin'), deleteSubscriber);
+
 indexRoutes.get("/listBucket", async (req, res) => {
     try {
         const files = await s3Service.listBucketObjects();
@@ -92,5 +122,9 @@ indexRoutes.get("/listBucket", async (req, res) => {
     }
 });
 
+// Contact routes
+indexRoutes.post('/contact', createContact);
+indexRoutes.get('/contacts', auth, authorizeRoles('admin'), getAllContacts);
+indexRoutes.delete('/contacts/:id', auth, authorizeRoles('admin'), deleteContact);
 
 module.exports = indexRoutes;

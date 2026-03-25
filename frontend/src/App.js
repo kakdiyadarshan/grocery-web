@@ -25,6 +25,7 @@ import InvoicePage from './pages/InvoicePage';
 import Layout from './component/Layout';
 import OrderCompleted from './pages/OrderCompleted';
 import OrderTracking from './pages/OrderTracking';
+import Termscondition from './pages/Termscondition';
 
 function App() {
   const dispatch = useDispatch();
@@ -37,11 +38,12 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
           <Route path="/contact" element={<ContactUs />} />
-          <Route path="/about" element={<About />} />
+          <Route path="/aboutus" element={<About />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:id" element={<BlogDetails />} />
           <Route path="/faqs" element={<FAQs />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-condition" element={<Termscondition />} />
           <Route path="/shipping-policy" element={<ShippingPolicy />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/product-details/:id" element={<ProductDetail />} />

@@ -1,145 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { getAllFAQs } from '../redux/slice/faq.slice';
 import Subscribe from './Subscribe';
+import { Plus, Minus, Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-const ChevronDown = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-gray-500">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-  </svg>
-);
-
-const ChevronUp = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-gray-500">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
-  </svg>
-);
-
-const faqCategories = [
-  {
-    category: "General",
-    faqs: [
-      {
-        question: "What is Blinkit and why was the name changed?",
-        answer: [
-          { type: "paragraph", content: "Blinkit is leading the charge in transforming India's vast, unorganised grocery landscape through cutting-edge technology and innovation. Blinkit is India's largest and most convenient hyper-local delivery company, which enables you to order grocery, fruits & vegetables, and other daily essential products, directly via your mobile or web browser." },
-          { type: "paragraph", content: "To know the reason why we changed our brand name from Grofers to Blinkit, read this blog post." }
-        ]
-      },
-      {
-        question: "What kind of products does Blinkit sell?",
-        answer: [
-          { type: "paragraph", content: "Blinkit provides You with a variety of products across multiple categories including fresh fruits and vegetables, groceries, snacks, beverages, home and household essentials, beauty and hygiene, and baby care. We are continuously adding to our inventory to serve you better." }
-        ]
-      },
-      {
-        question: "What cities and locations does Blinkit operate in?",
-        answer: [
-          { type: "paragraph", content: "We currently operate in multiple major cities across India. You can enter your delivery location on our app or website to check if we service your area." }
-        ]
-      }
-    ]
-  },
-  {
-    category: "Miscellaneous",
-    faqs: [
-      {
-        question: "How do I place an order?",
-        answer: [
-          { type: "paragraph", content: "Simply browse through our catalog, add the items you need to your cart, set your delivery address, and proceed to checkout using your preferred payment method." }
-        ]
-      },
-      {
-        question: "How can I get support for an item which isn't working correctly?",
-        answer: [
-          { type: "paragraph", content: "You can reach out to our customer support team directly from the app via the 'Help & Support' section, and our associates will assist you." }
-        ]
-      }
-    ]
-  },
-  {
-    category: "Delivery",
-    faqs: [
-      {
-        question: "How much time does delivery take?",
-        answer: [
-          { type: "paragraph", content: "We aim to deliver your groceries in 10 minutes or less! Delivery times may slightly vary based on traffic and weather conditions, but we always optimize for speed." }
-        ]
-      },
-      {
-        question: "Are there any delivery charges?",
-        answer: [
-          { type: "paragraph", content: "Delivery charges vary based on your location and the total order value. The exact delivery fee will be displayed at checkout before you complete your payment." }
-        ]
-      }
-    ]
-  }
-];
-
-function FAQItem({ faq, isFirstOpen }) {
-  const [isOpen, setIsOpen] = useState(isFirstOpen);
+const FAQItem = ({ question, answer }) => {
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="border-t border-gray-200 py-5">
-      <div 
-        className="flex justify-between items-center cursor-pointer select-none"
+    <div className="border-t border-gray-200 bg-white">
+      <div
+        className="flex justify-between items-center py-5 sm:py-6 cursor-pointer select-none group"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <h3 className="sm:text-xl text-lg font-semibold text-[var(--text-primary)]">
-          {faq.question}
-        </h3>
+        <div
+          className="text-[14px] sm:text-[15px] font-bold text-[#1e293b] pr-6 w-full leading-snug"
+          dangerouslySetInnerHTML={{ __html: question }}
+        />
         <div className="flex-shrink-0 ml-4">
-          {isOpen ? <ChevronUp /> : <ChevronDown />}
+          {isOpen ? (
+            <div className="w-5 h-5 sm:w-[22px] sm:h-[22px] rounded-full text-gray-700 flex items-center justify-center transition-colors">
+              <Minus size={14} strokeWidth={2} />
+            </div>
+          ) : (
+            <div className="w-5 h-5 sm:w-[22px] sm:h-[22px] rounded-full text-gray-500 group-hover:border-gray-700 group-hover:text-gray-700 flex items-center justify-center transition-colors">
+              <Plus size={14} strokeWidth={2} />
+            </div>
+          )}
         </div>
       </div>
-      
-      {isOpen && (
-        <div className="mt-4 space-y-4">
-          {faq.answer.map((block, i) => {
-            if (block.type === 'paragraph') {
-              return (
-                <p key={i} className="text-base text-[var(--text-secondary)] leading-relaxed font-normal">
-                  {block.content}
-                </p>
-              );
-            }
-            if (block.type === 'list') {
-              return (
-                <ul key={i} className="list-disc pl-5 mt-2 space-y-1 ext-base text-[var(--text-secondary)] leading-relaxed font-normal">
-                  {block.items.map((item, j) => (
-                    <li key={j}>{item}</li>
-                  ))}
-                </ul>
-              );
-            }
-            return null;
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
 
-function CategoryPanel({ categoryGroup, isDefaultOpen }) {
-  const [isOpen, setIsOpen] = useState(isDefaultOpen);
-
-  return (
-    <div className="bg-[var(--bg-secondary)] rounded-xl  border border-gray-200 overflow-hidden mb-4">
-      <div 
-        className="flex justify-between items-center px-6 py-6 cursor-pointer select-none bg-[var(--bg-secondary)] transition-colors"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <h2 className="sm:text-3xl text-2xl font-bold text-[var(--text-primary)]">
-          {categoryGroup.category}
-        </h2>
-        <div>
-          {isOpen ? <ChevronUp /> : <ChevronDown />}
-        </div>
-      </div>
-      
       {isOpen && (
-        <div className="px-6 pb-2">
-          {categoryGroup.faqs.map((faq, index) => (
-            <FAQItem key={index} faq={faq} isFirstOpen={isDefaultOpen && index === 0} />
-          ))}
+        <div className="pb-6 pr-8 animate-in fade-in duration-300">
+          <div
+            className="text-[14px] sm:text-[15px] text-gray-500 leading-[1.8] font-medium faq_answer prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 list-disc pl-4"
+            dangerouslySetInnerHTML={{ __html: answer }}
+          />
         </div>
       )}
     </div>
@@ -147,22 +44,109 @@ function CategoryPanel({ categoryGroup, isDefaultOpen }) {
 }
 
 function FAQs() {
+  const dispatch = useDispatch();
+  const { faqs, loading } = useSelector((state) => state.faq);
+  const [activeTab, setActiveTab] = useState(null);
+
+  useEffect(() => {
+    dispatch(getAllFAQs());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (faqs && faqs.length > 0 && !activeTab) {
+      setActiveTab(faqs[0]._id);
+    }
+  }, [faqs, activeTab]);
+
   return (
-    <div className="w-full max-w-[1440px] mx-auto  min-h-screen pt-12 pb-24">
-      <div className="w-full  px-4 sm:px-6 lg:px-8">
-        <div className="mb-20">
-          {faqCategories.map((group, index) => (
-            <CategoryPanel 
-              key={index} 
-              categoryGroup={group} 
-              isDefaultOpen={index === 0} 
-            />
-          ))}
+    <>
+
+      <div className="w-full">
+        <div className="bg-[#f8f9fa] border-b border-gray-100 py-10 md:py-14 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-[1440px] mx-auto px-2 md:px-0 lg:px-4">
+            <h1 className="text-3xl md:text-[40px] font-bold text-[#1a1a1a] mb-3 tracking-tight">Frequently Asked Questions</h1>
+            <div className="flex items-center gap-2 text-[13px] md:text-sm text-gray-400 font-medium">
+              <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+              <span className="text-gray-300 font-light">&gt;</span>
+              <span className="text-gray-600">FAQs</span>
+            </div>
+          </div>
         </div>
-        
-        <Subscribe />
       </div>
-    </div>
+      <div className="w-full bg-white font-jost min-h-screen">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-16 pb-20">
+
+          <div className="mb-10 sm:mb-16">
+            <p className="text-textSecondary text-[15px] sm:text-[16px] leading-[1.7] max-w-[900px] font-medium">
+              We're here to assist you every step of the way. Explore our guides, FAQs, and expert help to make your shopping experience smooth, safe, and enjoyable.
+            </p>
+          </div>
+
+          {loading ? (
+            <div className="flex justify-center py-24 border-t border-gray-100">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : faqs && faqs.length > 0 ? (
+            <div className="flex flex-col md:flex-row gap-0 md:gap-10 lg:gap-16 items-start">
+
+              <div className="w-full md:w-[260px] lg:w-[280px] flex-shrink-0 flex flex-nowrap md:flex-col overflow-x-auto md:overflow-visible no-scrollbar mb-8 md:mb-0 border-b md:border-b-0 border-gray-100 pb-1 md:pb-0 relative z-10 md:sticky md:top-[120px]">
+                {faqs.map((group) => {
+                  const isActive = activeTab === group._id;
+                  return (
+                    <button
+                      key={group._id}
+                      onClick={() => setActiveTab(group._id)}
+                      className={`text-left px-5 py-4 sm:py-5 whitespace-nowrap md:whitespace-normal font-[700] text-[13px] sm:text-[14px] transition-all border-b border-gray-100/80 outline-none
+                        ${isActive
+                          ? 'bg-green-100 text-primary'
+                          : 'text-gray-500 hover:text-primary bg-white hover:bg-green-100'
+                        }`}
+                    >
+                      <span dangerouslySetInnerHTML={{ __html: group.title }} />
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex-1 w-full min-h-[400px]">
+                {faqs.map((group) => {
+                  if (activeTab !== group._id) return null;
+
+                  return (
+                    <div key={group._id} className="animate-in fade-in duration-500">
+                      <div className="w-full border-b border-gray-200">
+                        {group.faqs && group.faqs.length > 0 ? (
+                          group.faqs.map((faq, idx) => (
+                            <FAQItem
+                              key={faq._id || idx}
+                              question={faq.faqQuestion}
+                              answer={faq.faqAnswer}
+                            />
+                          ))
+                        ) : (
+                          <div className="py-10 text-gray-500 text-[15px] font-medium border-t border-gray-200">
+                            No questions available for this category yet.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+            </div>
+          ) : (
+            <div className="text-center py-24 text-gray-500 font-medium border-t border-gray-100">
+              No FAQs available at the moment.
+            </div>
+          )}
+        </div>
+
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pb-32">
+          <Subscribe />
+        </div>
+      </div>
+    </>
   );
 }
 

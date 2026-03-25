@@ -16,7 +16,7 @@ const Layout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f2f2f2] text-left relative">
+    <div className="min-h-screen text-left relative">
       {/* Sidebar */}
       <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
 
