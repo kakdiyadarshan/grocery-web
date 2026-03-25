@@ -144,8 +144,10 @@ const Table = ({ columns = [], data = [], onEdit, onView, onDelete, itemsPerPage
     }, [onView]);
 
     const handleDeleteAction = useCallback((item) => {
-        if (onDelete) {
+        if (typeof onDelete === 'function') {
             onDelete(item);
+        } else {
+            setDeleteModalData(item);
         }
     }, [onDelete]);
 
@@ -234,7 +236,7 @@ const Table = ({ columns = [], data = [], onEdit, onView, onDelete, itemsPerPage
                                         {columns.filter(col => !col.hideInTable).map((col, colIndex) => (
                                             <td key={colIndex} className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
                                                 {col.render ? (
-                                                    col.render(item)
+                                                    col.render(item, (effectivePage - 1) * effectiveRowsPerPage + rowIndex)
                                                 ) : ['status', 'paymentStatus', 'orderStatus', 'amount'].includes(col.accessor) ? (
                                                     <span className={`px-2.5 py-1 rounded-[4px] text-xs font-semibold border ${getStatusStyles(item[col.accessor])}`}>
                                                         {item[col.accessor]}

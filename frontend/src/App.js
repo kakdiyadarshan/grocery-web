@@ -48,6 +48,17 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
         </Route>
 
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/contact" element={<ContactUs />} />
+        <Route path="/aboutus" element={<About />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:id" element={<BlogDetails />} />
+        <Route path="/faqs" element={<FAQs />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/shipping-policy" element={<ShippingPolicy />} />
         <Route path="/admin/*" element={<Adminroutes />} />
       </Routes>
     </>

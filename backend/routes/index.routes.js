@@ -1,6 +1,7 @@
 const express = require('express');
 const indexRoutes = express.Router();
 const upload = require('../helper/imageUpload');
+const s3Service = require('../utils/s3Service');
 const { createUser, verifyOtp, resendOtp, userLogin, forgotPassword, forgotVerifyOtp, resetPassword, logout } = require('../controllers/auth.controller');
 const { getAllUsers, getUserById, updateUser, changePassword } = require('../controllers/user.controller');
 const { createCategory, getAllCategories, getCategoryById, updateCategory, deleteCategory } = require('../controllers/category.controller');
@@ -9,6 +10,8 @@ const { getWishlist, addToWishlist, removeFromWishlist } = require('../controlle
 const { createProduct, getAllProducts, getProductById, updateProduct, deleteProduct } = require('../controllers/product.controller');
 const { auth, authorizeRoles } = require('../middleware/auth.middleware');
 const { uploadPrivacyImage, saveAllPrivacyPolicies, getAllPrivacyPolicies, getPrivacyPolicyById } = require('../controllers/privacy.controller');
+const { addNewBlogCategoryController, getAllBlogCategoryController, getBlogCategoryByIdController, updateBlogCategoryController, deleteBlogCategoryController } = require('../controllers/blog.category.controller');
+const { getBlogWithCategoryController, getLatestBlogController, addNewBlogController, getAllBlogsController, getBlogByIdController, updateBlogController, deleteBlogController } = require('../controllers/blog.controller');
 
 // Auth routes
 indexRoutes.post('/register', createUser);
@@ -58,6 +61,36 @@ indexRoutes.post('/privacy/upload-image', auth, authorizeRoles('admin'), upload.
 indexRoutes.post('/saveallprivacy', auth, authorizeRoles('admin'), saveAllPrivacyPolicies);
 indexRoutes.get('/getallprivacy', getAllPrivacyPolicies);
 indexRoutes.get('/getprivacy/:id', getPrivacyPolicyById);
+
+//blog section api's
+// blog.category.routes.js
+indexRoutes.post("/new/blogCategory", auth, addNewBlogCategoryController);
+indexRoutes.get("/all/category", getAllBlogCategoryController);
+indexRoutes.get("/categoryById/:categoryId", getBlogCategoryByIdController);
+indexRoutes.patch("/update/blogCategory/:categoryId", auth, updateBlogCategoryController);
+indexRoutes.delete("/delete/blogCategory/:categoryId", auth, deleteBlogCategoryController);
+
+//find all blog with category Id
+indexRoutes.get("/blogs/with-category", getBlogWithCategoryController)
+indexRoutes.get("/latest/blog", getLatestBlogController)
+
+//blog.content*.route.js
+
+indexRoutes.post("/new/blog", auth, upload.any(), addNewBlogController);
+indexRoutes.get("/all/blogs", getAllBlogsController);
+indexRoutes.get("/blog/:blogId", getBlogByIdController);
+indexRoutes.patch("/update/blog/:blogId", upload.any(), updateBlogController);
+indexRoutes.delete("/delete/blog/:blogId", deleteBlogController);
+
+indexRoutes.get("/listBucket", async (req, res) => {
+    try {
+        const files = await s3Service.listBucketObjects();
+        return res.json({ success: true, Total: files.length, files });
+    } catch (err) {
+        console.error("Error listing bucket:", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+});
 
 
 module.exports = indexRoutes;

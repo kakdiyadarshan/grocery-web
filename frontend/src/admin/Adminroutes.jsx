@@ -11,6 +11,8 @@ import Category from './pages/Category'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 
 
+import BlogAdmin from './pages/BlogAdmin'
+import BlogCategoryAdmin from './pages/BlogCategoryAdmin'
 const Adminroutes = () => {
     const { isAuthenticated, user } = useSelector((state) => state.auth);
 
@@ -30,6 +32,15 @@ const Adminroutes = () => {
                     <Route path="categories" element={<Category/>} />
                     <Route path="products" element={<Product />} />
                     <Route path="privacy-policy" element={<PrivacyPolicy />} />
+                    <Route path="categories" element={<DataTable />} />
+                    <Route path="orders" element={<DataTable />} />
+                    <Route path="customers" element={<DataTable />} />
+                    <Route path="vendors" element={<DataTable />} />
+                    <Route path="blogs" element={<BlogAdmin />} />
+                    <Route path="blog-categories" element={<BlogCategoryAdmin />} />
+
+                    <Route path="settings" element={<div className="p-6 h-full flex items-center justify-center text-gray-400 font-medium">Coming Soon</div>} />
+
                 </Route>
             </Route>
         </Routes>
