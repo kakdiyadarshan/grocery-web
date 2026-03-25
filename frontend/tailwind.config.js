@@ -20,6 +20,15 @@ module.exports = {
       boxShadow: {
         custom: "var(--shadow)",
       },
+      keyframes: {
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
+        }
+      },
+      animation: {
+        'float-slow': 'float 4s ease-in-out infinite',
+      },
       screens: {
         xs: "425px",
         // mb: "512px",
