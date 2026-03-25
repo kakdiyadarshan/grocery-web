@@ -220,9 +220,9 @@ function ProductDetail() {
                 </div>
 
                 {/* Tabs Section */}
-                <div className="mt-16 border-t border-gray-200 pt-10">
+                <div className="mt-16 pt-6">
                     {/* Tab Navigation */}
-                    <div className="flex gap-4 mb-8">
+                    <div className="flex gap-4 mb-6 border-b border-gray-200 pb-7">
                         <button
                             onClick={() => setActiveTab('description')}
                             className={`px-6 py-2 rounded-md font-semibold transition-all duration-300 ${activeTab === 'description' ? 'bg-[#2E7D32] text-white border-[#2E7D32]' : 'bg-white text-gray-500 border border-gray-200 hover:border-gray-400'}`}
@@ -365,11 +365,11 @@ function ProductDetail() {
                     </div>
                 </div>
 
-                {/* Related products */}
-                <div className='mt-12 border-t border-gray-200 pt-8'>
-                    <h2 className="text-3xl font-semibold text-[#31353C] mb-8">Related products</h2>
+                {/* Related Products */}
+                <div className='mt-8 pt-4'>
+                    <h2 className="text-3xl font-semibold text-[#31353C] mb-8 border-b border-gray-200 pb-5">Related Products</h2>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-7">
+                    <div className="grid grid-cols-1 min-[425px]:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
                         {[
                             {
                                 id: 1,
@@ -422,44 +422,48 @@ function ProductDetail() {
                                 rating: 4
                             }
                         ].map((product) => (
-                            <div key={product.id} className="group relative bg-white border border-gray-200 rounded-lg p-4 flex flex-col cursor-pointer">
+                            <div key={product.id} className="group relative bg-white border border-gray-200 rounded-lg p-3 sm:p-4 flex flex-col cursor-pointer transition-all duration-300 hover:border-[#38b47e] hover:shadow-xl hover:shadow-green-50/50">
                                 {/* Discount Badge */}
                                 {product.discount && (
-                                    <span className="absolute top-4 left-4 z-10 bg-[#FF4F4F] text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">
+                                    <span className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 bg-[#FF4F4F] text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
                                         {product.discount}
                                     </span>
                                 )}
 
                                 {/* Product Image */}
-                                <div className="h-44 flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-105">
-                                    <img src={product.image} alt={product.title} className="max-w-full max-h-full object-contain" />
+                                <div className="h-28 sm:h-44 flex items-center justify-center mb-3 sm:mb-4 overflow-hidden">
+                                    <img
+                                        src={product.image}
+                                        alt={product.title}
+                                        className="max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-110"
+                                    />
                                 </div>
 
                                 {/* Product Info */}
-                                <div className="flex flex-col flex-grow space-y-2">
-                                    <span className="text-sm text-[#8D949C]">
+                                <div className="flex flex-col flex-grow space-y-1 sm:space-y-2">
+                                    <span className="text-[10px] sm:text-sm text-[#8D949C] uppercase tracking-wider font-medium">
                                         {product.brand}
                                     </span>
 
-                                    <h3 className="text-base font-semibold text-[#31353C] leading-tight line-clamp-2">
+                                    <h3 className="text-sm sm:text-base font-semibold text-[#31353C] leading-tight line-clamp-1 group-hover:text-[#38b47e] transition-colors">
                                         {product.title}
                                     </h3>
 
-                                    <div className="flex items-center gap-1">
+                                    <div className="flex items-center gap-0.5 sm:gap-1">
                                         {[...Array(5)].map((_, i) => (
                                             <AiFillStar
                                                 key={i}
-                                                className={`text-base ${i < product.rating ? "text-[#FFB81C]" : "text-[#E6E8EA]"}`}
+                                                className={`text-[10px] sm:text-base ${i < product.rating ? "text-[#FFB81C]" : "text-[#E6E8EA]"}`}
                                             />
                                         ))}
                                     </div>
 
-                                    <div className="flex items-baseline gap-2 mt-auto">
-                                        <span className="text-base font-bold text-[#00B880]">
+                                    <div className="flex items-baseline gap-1.5 sm:gap-2 mt-auto">
+                                        <span className="text-sm sm:text-base font-semibold text-[#00B880]">
                                             {product.price}
                                         </span>
                                         {product.originalPrice && (
-                                            <span className="text-base text-[#A2A9B1] line-through font-medium">
+                                            <span className="text-xs sm:text-base text-[#A2A9B1] line-through font-medium">
                                                 {product.originalPrice}
                                             </span>
                                         )}
@@ -491,23 +495,25 @@ function ProductDetail() {
                                 </p>
 
                                 {/* Input + Button */}
-                                <div className="mt-8 flex flex-col sm:flex-row items-center w-full bg-white rounded-md overflow-hidden border border-gray-200">
-
+                                <form className="mt-8 flex flex-col sm:flex-row gap-2 sm:gap-0 w-full max-w-md mx-auto md:mx-0 " onSubmit={(e) => e.preventDefault()}>
                                     <input
                                         type="email"
                                         placeholder="Email"
-                                        className="w-full px-5 py-3 text-sm md:text-base outline-none text-gray-600 bg-transparent"
+                                        className="flex-grow px-5 py-3 sm:py-4 rounded-md sm:rounded-none sm:rounded-l-md focus:outline-none text-[var(--text-secondary)] w-full border-none"
+                                        required
                                     />
-
-                                    <button className="w-full sm:w-auto bg-[#3BB77E] text-white px-4 py-3 text-sm md:text-base">
+                                    <button
+                                        type="submit"
+                                        className=" cursor-pointer  bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition duration-300 text-[var(--btn-text)] font-semibold px-6 sm:px-8 py-3 sm:py-4 rounded-md sm:rounded-none sm:rounded-r-md whitespace-nowrap"
+                                    >
                                         Subscribe
                                     </button>
-                                </div>
+                                </form>
                             </div>
                         </div>
                     </div>
                 </div>
-                
+
             </div>
         </div>
     );
