@@ -17,7 +17,7 @@ export default function Subscribe() {
     };
 
     return (
-        <div className="bg-[#e4fce7] relative overflow-hidden my-20 py-12 px-6 sm:px-12  lg:px-24 xl:px-32 flex flex-col md:flex-row items-center justify-between min-h-[400px] rounded-sm ">
+        <div className="bg-[#e4fce7] relative overflow-hidden  py-12 px-6 sm:px-12  lg:px-24 xl:px-32 flex flex-col md:flex-row items-center justify-between min-h-[400px] rounded-sm ">
 
             {/* Content Section */}
             <div className="relative z-10 w-full  flex flex-col gap-5 text-center md:text-left mb-8 md:mb-0">

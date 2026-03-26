@@ -16,7 +16,7 @@ function Blog() {
     }, [dispatch]);
 
     return (
-        <div className="min-h-screen bg-[var(--bg-main)] px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen  px-4 sm:px-6 lg:px-8">
             {/* Breadcrumb / Page Title */}
             <div className="bg-gray-50 py-8 border-b border-gray-100">
                 <div className="container mx-auto">

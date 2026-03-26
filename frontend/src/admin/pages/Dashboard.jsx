@@ -19,12 +19,13 @@ import {
   PieChart, Pie, Sector, ResponsiveContainer, Cell, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList
 } from 'recharts';
+import ReactApexChart from 'react-apexcharts';
 
 
 
 
-const COLORS = ['#10b981', '#f97316', '#fbbf24'];
-const barColors = ['#10b981', '#3b82f6', '#f97316', '#8b5cf6', '#ef4444', '#ec4899', '#fbbf24'];
+const COLORS = ['#228B22', '#b3d498', '#98d4a0',"#70bb70"];
+const barColors = ['#228B22'];
 
 const getPath = (x, y, width, height) => {
   return `M${x},${y + height}C${x + width / 3},${y + height} ${x + width / 2},${y + height / 3}
@@ -136,6 +137,22 @@ const Dashboard = () => {
     { name: 'New Add', value: 15 },
   ];
 
+  const [activeTimeframe, setActiveTimeframe] = useState('Weekly');
+  const analyticsData = {
+    Weekly: {
+      categories: ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'],
+      series: [4350, 4480, 4420, 4680, 4510, 4390, 4460]
+    },
+    Monthly: {
+      categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      series: [2500, 3100, 4000, 3500, 2900, 4200, 3800, 3100, 2500, 3200, 2600, 3800]
+    },
+    Yearly: {
+      categories: ['2021', '2022', '2023', '2024', '2025'],
+      series: [45000, 52000, 48000, 61000, 58000]
+    }
+  };
+
   const columns = [
     { header: '#', accessor: 'id' },
     {
@@ -203,6 +220,9 @@ const Dashboard = () => {
         />
       </div>
 
+
+      {/* ____________________________________________________________________________________________ */}
+
       {/* Analytics and Activity Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
         {/* Orders Analytics */}
@@ -255,9 +275,9 @@ const Dashboard = () => {
         <div className="bg-white rounded-md p-6 border border-slate-100">
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-xl font-bold">Product Analytics</h3>
-            <button className="p-1 hover:bg-slate-50 rounded-lg">
+            {/* <button className="p-1 hover:bg-slate-50 rounded-lg">
               <MoreVertical className="w-5 h-5 text-slate-400" />
-            </button>
+            </button> */}
           </div>
           <div className="flex flex-col items-center">
             <div className="relative w-full h-80 mb-4 flex justify-center">
@@ -293,6 +313,238 @@ const Dashboard = () => {
         </div>
       </div>
 
+
+      {/* ____________________________________________________________________________________________ */}
+
+      {/* Product Chart*/}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
+       
+
+        <div className="bg-white rounded-md p-4 border border-slate-100 lg:col-span-1">
+          <div className="flex items-center justify-between mb-8">
+            <h3 className="text-xl font-bold">Category Distribution</h3>
+            {/* <button className="p-1 hover:bg-slate-50 rounded-lg">
+              <MoreVertical className="w-5 h-5 text-slate-400" />
+            </button> */}
+          </div>
+          <div className="w-full">
+            <ReactApexChart
+              options={{
+                chart: {
+                  type: 'bar',
+                  height: 350,
+                  dropShadow: {
+                    enabled: true,
+                  },
+                  toolbar: {
+                    show: false
+                  }
+                },
+                plotOptions: {
+                  bar: {
+                    borderRadius: 4,
+                    horizontal: true,
+                    distributed: true,
+                    barHeight: '70%',
+                    isFunnel: false,
+                  },
+                },
+                colors: [
+                  primaryColor+'65',
+                  primaryColor+'70',
+                  primaryColor+'75',
+                  primaryColor+'80',
+                  primaryColor+'85',
+                  primaryColor+'90',
+                  primaryColor+'95',
+                  primaryColor,
+                ],
+                dataLabels: {
+                  enabled: false,
+                },
+                xaxis: {
+                  categories: ['Sweets', 'Processed Foods', 'Healthy Fats', 'Meat', 'Beans & Legumes', 'Dairy', 'Fruits & Vegetables', 'Grains'],
+                  axisBorder: { show: false },
+                  axisTicks: { show: false },
+                  labels: { show: false }
+                },
+                yaxis: {
+                  labels: {
+                    style: {
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      fontFamily: 'Jost, sans-serif',
+                      colors: ['#64748b']
+                    }
+                  }
+                },
+                legend: {
+                  show: false,
+                },
+                grid: {
+                  show: false,
+                  padding: {
+                    left: 0,
+                    right: 20
+                  }
+                },
+                responsive: [
+                  {
+                    breakpoint: 480,
+                    options: {
+                      chart: {
+                        height: 480
+                      },
+                      yaxis: {
+                        labels: {
+                          style: {
+                            fontSize: '11px',
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }}
+              series={[
+                {
+                  name: "Category Count",
+                  data: [200, 330, 548, 740, 880, 990, 1100, 1380],
+                },
+              ]}
+              type="bar"
+              height={350}
+            />
+          </div>
+        </div>
+
+        {/* Orders Analytics */}
+        <div className="lg:col-span-2 rounded-md bg-white p-4 border border-slate-100 flex flex-col">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-bold">Revenue</h3>
+            <CustomSelect
+              options={['Weekly', 'Monthly', 'Yearly']}
+              defaultValue={activeTimeframe}
+              onChange={(v) => setActiveTimeframe(v)}
+            />
+          </div>
+
+          {/* Metric Header */}
+          <div className="flex items-center gap-4 mb-6">
+            <h2 className="sm:text-3xl text-xl font-bold">
+              {activeTimeframe === 'Weekly' ? '$18,200.82' : activeTimeframe === 'Monthly' ? '$45,300.00' : '$264,000.00'}
+            </h2>
+            <div className="flex items-center px-2 py-1 rounded-full bg-emerald-50 text-emerald-600 text-xs font-bold gap-1 border border-emerald-100">
+               <ArrowUpRight className="w-3 h-3" />
+               {activeTimeframe === 'Weekly' ? '8.24%' : activeTimeframe === 'Monthly' ? '12.5%' : '15.8%'}
+            </div>
+          </div>
+
+          <div className="flex-1 w-full min-h-[300px]">
+            <ReactApexChart
+              options={{
+                chart: {
+                  type: 'area',
+                  toolbar: { show: false },
+                  zoom: { enabled: false },
+                  fontFamily: 'Jost, sans-serif'
+                },
+                stroke: {
+                  curve: 'smooth',
+                  width: 4,
+                  colors: [primaryColor]
+                },
+                fill: {
+                  type: 'gradient',
+                  gradient: {
+                    shadeIntensity: 1,
+                    opacityFrom: 0.45,
+                    opacityTo: 0.05,
+                    stops: [20, 100],
+                    colorStops: [
+                      {
+                        offset: 0,
+                        color: primaryColor,
+                        opacity: 0.4
+                      },
+                      {
+                        offset: 100,
+                        color: primaryColor,
+                        opacity: 0.01
+                      }
+                    ]
+                  }
+                },
+                dataLabels: {
+                  enabled: false
+                },
+                markers: {
+                  size: 0,
+                  colors: [primaryColor],
+                  strokeColors: '#fff',
+                  strokeWidth: 3,
+                  hover: { size: 7 }
+                },
+                grid: {
+                  borderColor: '#f1f5f9',
+                  strokeDashArray: 4,
+                  xaxis: { lines: { show: false } },
+                  yaxis: { lines: { show: true } },
+                  padding: {
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
+                    left: 0
+                  }
+                },
+                xaxis: {
+                  categories: analyticsData[activeTimeframe].categories,
+                  axisBorder: { show: false },
+                  axisTicks: { show: false },
+                  labels: {
+                    style: {
+                      colors: '#94a3b8',
+                      fontSize: '12px',
+                      fontWeight: 600
+                    }
+                  }
+                },
+                yaxis: {
+                  labels: {
+                    formatter: (val) => `$${val.toLocaleString()}`,
+                    style: {
+                      colors: '#94a3b8',
+                      fontSize: '12px',
+                      fontWeight: 500
+                    }
+                  }
+                },
+                tooltip: {
+                  custom: function({ series, seriesIndex, dataPointIndex, w }) {
+                    return '<div className="px-3 py-2 bg-emerald-600 text-white rounded-lg shadow-lg font-bold text-xs">' +
+                      '$' + series[seriesIndex][dataPointIndex].toLocaleString() +
+                      '</div>'
+                  },
+                  fixed: {
+                    enabled: false,
+                    position: 'topRight',
+                  }
+                }
+              }}
+              series={[{
+                name: 'Orders',
+                data: analyticsData[activeTimeframe].series
+              }]}
+              type="area"
+              height="100%"
+            />
+          </div>
+        </div>
+      </div>
+      {/* ____________________________________________________________________________________________ */}
+
+
+
       {/* Products and Recent Orders Table Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Top selling Product Section */}
@@ -314,7 +566,7 @@ const Dashboard = () => {
         <div className="bg-white p-4 rounded-md border border-slate-100">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold">Recent Orders</h3>
-            <button className="text-xs font-semibold text-slate-400 hover:text-emerald-500 transition-colors">See all</button>
+            {/* <button className="text-xs font-semibold text-slate-400 hover:text-emerald-500 transition-colors">See all</button> */}
           </div>
           <div className="space-y-6">
             <RecentOrderRow name="Grocery's" price="$500" img="🛒" />
