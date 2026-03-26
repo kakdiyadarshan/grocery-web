@@ -73,7 +73,7 @@ const CustomSelect = ({
         <div className={`relative ${className}`} ref={dropdownRef}>
             {label && (
                 <label className="block text-sm font-bold text-gray-700 mb-2">
-                    {label} {required && <span className="text-primary font-bold">*</span>}
+                    {label} {required && <span className="text-red-500">*</span>}
                 </label>
             )}
             <button

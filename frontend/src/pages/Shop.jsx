@@ -22,6 +22,10 @@ const Shop = () => {
     const [selectedTypes, setSelectedTypes] = useState([]);
     const [selectedBrands, setSelectedBrands] = useState([]);
 
+
+    console.log("products", products);
+
+
     useEffect(() => {
         dispatch(getAllProducts());
     }, [dispatch]);

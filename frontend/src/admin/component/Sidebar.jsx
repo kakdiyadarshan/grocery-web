@@ -3,10 +3,12 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { logout } from '../../redux/slice/auth.slice';
 import LogoutModal from './LogoutModal';
-import { FiHome, FiUsers, FiShoppingBag, FiPackage, FiMail, FiSliders, FiDollarSign, FiLogOut, FiX, FiGrid, FiHelpCircle, FiShield, FiFileText, FiCalendar, FiTag, FiStar, FiLayers, FiImage } from 'react-icons/fi';
+import { FiHome, FiUsers, FiShoppingBag, FiPackage, FiMail,  FiSliders, FiDollarSign, FiLogOut, FiX, FiGrid, FiHelpCircle, FiShield, FiFileText, FiCalendar, FiTag, FiStar, FiLayers, FiImage } from 'react-icons/fi';
 import { MdCategory } from 'react-icons/md';
 import { LuNotebookPen ,LuNotebookTabs } from "react-icons/lu";
 import { FaRegBell } from "react-icons/fa";
+import { RiContactsBook3Line } from "react-icons/ri";
+
 
 const Sidebar = ({ isOpen, onClose }) => {
     const dispatch = useDispatch();
@@ -29,13 +31,14 @@ const Sidebar = ({ isOpen, onClose }) => {
         { name: 'Dashboard', icon: <FiHome />, path: '/admin/dashboard' },
         { name: 'Products', icon: <FiPackage />, path: '/admin/products' },
         { name: 'Category', icon: <MdCategory  />, path: '/admin/categories' },
-        { name: 'Privacy Policy', icon: <FiFileText />, path: '/admin/privacy-policy' },
         { name: 'Blogs', icon: <LuNotebookPen />, path: '/admin/blogs' },
         { name: 'Blog Categories', icon: <LuNotebookTabs  />, path: '/admin/blog-categories' },
         { name: 'Subscribe', icon: <FaRegBell />, path: '/admin/subscribe' },
+        { name: 'Privacy Policy', icon: <FiFileText />, path: '/admin/privacy-policy' },
         { name: 'Terms & Conditions', icon: <FiFileText />, path: '/admin/terms-condition' },
         { name: 'Offers', icon: <FiGrid />, path: '/admin/offers' },
-        { name: 'FAQs', icon: <FiGrid />, path: '/admin/faqs' }
+        { name: 'FAQs', icon: <FiGrid />, path: '/admin/faqs' },
+        { name: 'Contact Us', icon: <RiContactsBook3Line />, path: '/admin/contact-us' }
     ];
 
     return (
