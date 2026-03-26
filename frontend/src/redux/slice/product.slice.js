@@ -11,6 +11,7 @@ const handleErrors = (error, dispatch, rejectWithValue) => {
 
 const initialState = {
     products: [],
+    product: null,
     loading: false,
     error: null,
 };
@@ -113,6 +114,12 @@ const productSlice = createSlice({
                 state.products = action.payload;
             })
             .addCase(getAllProducts.rejected, (state) => { state.loading = false; })
+            .addCase(getProductById.pending, (state) => { state.loading = true; })
+            .addCase(getProductById.fulfilled, (state, action) => {
+                state.loading = false;
+                state.product = action.payload;
+            })
+            .addCase(getProductById.rejected, (state) => { state.loading = false; })
             .addCase(updateProduct.pending, (state) => { state.loading = true; })
             .addCase(updateProduct.fulfilled, (state, action) => {
                 state.loading = false;

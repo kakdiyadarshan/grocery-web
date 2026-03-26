@@ -22,7 +22,7 @@ exports.addToCart = async (req, res) => {
         if (!cart) {
             cart = new Cart({ userId, items: [{ productId, quantity }] });
         } else {
-            const itemIndex = cart.items.findIndex(p => p.productId.toString() === productId);
+            const itemIndex = cart.items.findIndex(p => (p.productId._id || p.productId).toString() === productId);
             if (itemIndex > -1) {
                 cart.items[itemIndex].quantity += quantity;
             } else {
@@ -31,6 +31,7 @@ exports.addToCart = async (req, res) => {
         }
 
         await cart.save();
+        await cart.populate('items.productId');
         return res.status(200).json({ success: true, cart, message: 'Item added to cart successfully' });
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message });
@@ -49,10 +50,11 @@ exports.updateCartQuantity = async (req, res) => {
         const cart = await Cart.findOne({ userId });
         if (!cart) return res.status(404).json({ success: false, message: 'Cart not found' });
 
-        const itemIndex = cart.items.findIndex(p => p.productId.toString() === productId);
+        const itemIndex = cart.items.findIndex(p => (p.productId._id || p.productId).toString() === productId);
         if (itemIndex > -1) {
             cart.items[itemIndex].quantity = quantity;
             await cart.save();
+            await cart.populate('items.productId');
             return res.status(200).json({ success: true, cart, message: 'Cart updated successfully' });
         }
 
@@ -70,8 +72,9 @@ exports.removeFromCart = async (req, res) => {
         const cart = await Cart.findOne({ userId });
         if (!cart) return res.status(404).json({ success: false, message: 'Cart not found' });
 
-        cart.items = cart.items.filter(item => item.productId.toString() !== productId);
+        cart.items = cart.items.filter(item => (item.productId._id || item.productId).toString() !== productId);
         await cart.save();
+        await cart.populate('items.productId');
 
         return res.status(200).json({ success: true, cart, message: 'Item removed from cart' });
     } catch (error) {

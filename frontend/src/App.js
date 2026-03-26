@@ -56,7 +56,7 @@ function App() {
           <Route path='/invoice' element={<InvoicePage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/category" element={<Shop />} />
+          <Route path="/shop" element={<Shop />} />
           {/* <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} /> */}
           <Route path="/forgot-password" element={<ForgotPassword />} />

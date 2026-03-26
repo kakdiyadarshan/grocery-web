@@ -1,29 +1,59 @@
-import React, { useState } from 'react';
-import ProductCard from '../component/ProductCard';
-import ProductSlider from '../component/ProductSlider';
-import { allProducts } from '../data/products';
+import React, { useState, useEffect } from 'react';
 import { MdKeyboardArrowRight, MdVisibility, MdKeyboardArrowUp, MdKeyboardArrowDown } from "react-icons/md";
 import { AiOutlineHeart, AiFillStar, AiOutlineStar } from "react-icons/ai";
 import { IoIosGitCompare } from "react-icons/io";
 import { FiMinus, FiPlus, FiShoppingCart } from "react-icons/fi";
-import image1 from '../Image/02_4f606a6b-57e8-4991-8605-fa3ba641c0c0.webp';
-import image2 from '../Image/03_5f4ee6dc-f7e4-4a0a-b988-d9b893ead0a0.webp';
-import image3 from '../Image/04_26183b2f-eb65-48de-b9c1-ac376c5b9e37.webp';
-import image4 from '../Image/05_aa60bf65-3569-4105-8cd6-c4c0274d7dab.webp';
-import image5 from '../Image/06.webp';
-import image6 from '../Image/02_4f606a6b-57e8-4991-8605-fa3ba641c0c0.webp';
+import { useParams, Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { getProductById, getAllProducts } from '../redux/slice/product.slice';
+import { addToCart } from '../redux/slice/cart.slice';
+import { addToWishlist } from '../redux/slice/wishlist.slice';
+
 import NewsletterImage from '../Image/newsletter.png';
-import Newsletter from '../component/Newsletter';
 
 function ProductDetail() {
-    const images = [image1, image2, image3, image4, image5, image6];
-    const [selectedImage, setSelectedImage] = useState(image1);
+    const { id } = useParams();
+    const dispatch = useDispatch();
+    const { product, products, loading } = useSelector(state => state.product);
+
+    useEffect(() => {
+        if (id) {
+            dispatch(getProductById(id));
+        }
+        if (products.length === 0) {
+            dispatch(getAllProducts());
+        }
+    }, [id, dispatch]);
+
+    const images = product?.images?.map(img => img.url) || [];
+    const [selectedImage, setSelectedImage] = useState(null);
     const [quantity, setQuantity] = useState(1);
     const [startIndex, setStartIndex] = useState(0);
     const [activeTab, setActiveTab] = useState('description');
 
+    useEffect(() => {
+        if (product?.images?.length > 0) {
+            setSelectedImage(product.images[0].url);
+        }
+    }, [product]);
+
     const incrementQuantity = () => setQuantity(prev => prev + 1);
     const decrementQuantity = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
+
+    const handleAddToCart = () => {
+        if (product) {
+            dispatch(addToCart({ productId: product._id, quantity }));
+        }
+    };
+
+    const handleAddToWishlist = () => {
+        if (product) {
+            dispatch(addToWishlist(product._id));
+        }
+    };
+
+    if (loading && !product) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    if (!product) return <div className="min-h-screen flex items-center justify-center">Product not found.</div>;
 
     return (
         <div className="bg-white min-h-screen">
@@ -32,10 +62,10 @@ function ProductDetail() {
                 <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-4 py-4 sm:py-6 md:py-8 flex items-center flex-wrap gap-1 text-xs sm:text-sm md:text-base text-gray-600 font-medium">
                     <span className="cursor-pointer hover:text-green-600 transition">Home</span>
                     <MdKeyboardArrowRight className="text-xl" />
-                    <span className="cursor-pointer hover:text-green-600 transition">Fruits</span>
+                    <span className="cursor-pointer hover:text-green-600 transition">{product.category?.categoryName || 'Category'}</span>
                     <MdKeyboardArrowRight className="text-xl" />
                     <span className="text-gray-400 truncate max-w-[150px] xs:max-w-none">
-                        Fully Juicy Yellow Organic Lemons
+                        {product.name}
                     </span>
                 </div>
             </div>
@@ -106,7 +136,7 @@ function ProductDetail() {
                     <div className="lg:w-2/5 space-y-3">
                         {/* Title */}
                         <h1 className="text-xl md:text-2xl font-semibold text-[#1F2937]">
-                            Fully Juicy Yellow Organic Lemons
+                            {product.name}
                         </h1>
 
                         {/* Star Rating */}
@@ -116,7 +146,7 @@ function ProductDetail() {
                                 {[1, 2, 3, 4, 5].map((_, i) => (
                                     <AiFillStar
                                         key={i}
-                                        className="text-[#D3D3D3] text-base sm:text-lg"
+                                        className={`text-base sm:text-lg ${i < (product.reviews?.length > 0 ? product.reviews.reduce((acc, r) => acc + r.rating, 0) / product.reviews.length : 4) ? "text-[#FFB81C]" : "text-[#D3D3D3]"}`}
                                     />
                                 ))}
                             </div>
@@ -126,7 +156,7 @@ function ProductDetail() {
 
                             {/* Rating Count */}
                             <span className="text-xs sm:text-sm text-gray-500">
-                                992 Ratings
+                                {product.reviews?.length || 0} Ratings
                             </span>
                         </div>
 
@@ -135,23 +165,30 @@ function ProductDetail() {
                             <div className="flex items-center gap-3">
                                 {/* Discounted Price */}
                                 <span className="text-2xl md:text-3xl font-bold text-[#00B880]">
-                                    $9.00
+                                    ₹{product.discountPrice || (product.weighstWise?.[0]?.price || 0)}
                                 </span>
 
                                 {/* Original Price */}
-                                <span className="text-sm md:text-base text-gray-400 line-through">
-                                    $12.00
-                                </span>
+                                {product.discountPrice && (
+                                    <span className="text-sm md:text-base text-gray-400 line-through">
+                                        ₹{product.weighstWise?.[0]?.price}
+                                    </span>
+                                )}
 
                                 {/* Discount Badge */}
-                                <span className="text-xs md:text-sm font-medium text-red-500 bg-[#FFF1F1] px-2 py-1 rounded-md border border-[#FFE4E4]">
-                                    25% OFF
-                                </span>
+                                {product.discountPrice && (
+                                    <span className="text-xs md:text-sm font-medium text-red-500 bg-[#FFF1F1] px-2 py-1 rounded-md border border-[#FFE4E4]">
+                                        {Math.round(((product.weighstWise[0].price - product.discountPrice) / product.weighstWise[0].price) * 100)}% OFF
+                                    </span>
+                                )}
                             </div>
 
                             {/* Wishlist & Compare Section */}
                             <div className="flex items-center gap-3">
-                                <button className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-200 hover:bg-white hover:border-[#00B880] hover:text-[#00B880] transition-all duration-300 shadow-sm group">
+                                <button
+                                    onClick={handleAddToWishlist}
+                                    className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-200 hover:bg-white hover:border-[#00B880] hover:text-[#00B880] transition-all duration-300 shadow-sm group"
+                                >
                                     <AiOutlineHeart className="text-xl text-gray-400 group-hover:text-[#00B880]" />
                                 </button>
                             </div>
@@ -159,13 +196,13 @@ function ProductDetail() {
 
                         {/* Description */}
                         <p className="text-[#6B7280] leading-relaxed text-sm md:text-base mt-4">
-                            A popular sweet-tasting root vegetable, Carrots are narrow and cone shaped. They have thick, fleshy, deeply colored root, which grows underground, and feathery green leaves that emerge above the ground.
+                            {product.description}
                         </p>
 
                         {/* Metadata */}
                         <div className="mt-8 space-y-3 pt-4 border-t border-gray-100">
-                            <p className="text-base font-semibold text-[#333333]">SKU: <span className="font-normal text-gray-500 ml-2">AF-001-KT</span></p>
-                            <p className="text-base font-semibold text-[#333333]">Category: <span className="font-normal text-gray-500 ml-2">Vegetables</span></p>
+                            <p className="text-base font-semibold text-[#333333]">SKU: <span className="font-normal text-gray-500 ml-2">AF-001-{product._id?.slice(-4)}</span></p>
+                            <p className="text-base font-semibold text-[#333333]">Category: <span className="font-normal text-gray-500 ml-2">{product.category?.categoryName}</span></p>
                         </div>
 
                         {/* Quantity & Stock Status */}
@@ -192,7 +229,7 @@ function ProductDetail() {
                         {/* Subtotal */}
                         <div className="flex items-center gap-2 mt-6">
                             <span className="text-base font-semibold text-[#333333]">Subtotal:</span>
-                            <span className="text-gray-500 text-base">${(quantity * 18).toFixed(2)}</span>
+                            <span className="text-gray-500 text-base">₹{(quantity * (product.discountPrice || (product.weighstWise?.[0]?.price || 0))).toFixed(2)}</span>
                         </div>
 
                         {/* Size Selection */}
@@ -212,7 +249,10 @@ function ProductDetail() {
 
                         {/* Main Action Buttons */}
                         <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
-                            <button className="w-full sm:flex-1 h-12 bg-[#EEEEEE] hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 rounded text-[#333333] font-semibold text-lg">
+                            <button
+                                onClick={handleAddToCart}
+                                className="w-full sm:flex-1 h-12 bg-[#EEEEEE] hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 rounded text-[#333333] font-semibold text-lg"
+                            >
                                 <FiShoppingCart className="text-xl" />
                                 Add to cart
                             </button>
@@ -370,10 +410,123 @@ function ProductDetail() {
                 </div>
 
                 {/* Related Products */}
-                <ProductSlider title="Related Products" products={allProducts} className="mt-8 pt-4" />
+                <div className='mt-8 pt-4'>
+                    <h2 className="text-3xl font-semibold text-[#31353C] mb-8 border-b border-gray-200 pb-5">Related Products</h2>
+
+                    <div className="grid grid-cols-1 min-[425px]:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
+                        {products
+                            .filter(p => p._id !== id && p.category?._id === product.category?._id)
+                            .slice(0, 5)
+                            .map((p) => (
+                                <div key={p._id} className="group relative bg-white border border-gray-200 rounded-lg p-3 sm:p-4 flex flex-col cursor-pointer transition-all duration-300 hover:border-[#38b47e] hover:shadow-xl hover:shadow-green-50/50">
+                                    {/* Discount Badge */}
+                                    {p.discountPrice && (
+                                        <span className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 bg-[#FF4F4F] text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
+                                            -{Math.round(((p.weighstWise[0].price - p.discountPrice) / p.weighstWise[0].price) * 100)}%
+                                        </span>
+                                    )}
+
+                                    {/* Product Image */}
+                                    <div className="h-28 sm:h-44 flex items-center justify-center mb-3 sm:mb-4 overflow-hidden">
+                                        <img
+                                            src={p.images?.[0]?.url || 'https://via.placeholder.com/400'}
+                                            alt={p.name}
+                                            className="max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-110"
+                                        />
+                                    </div>
+
+                                    {/* Product Info */}
+                                    <div className="flex flex-col flex-grow space-y-1 sm:space-y-2">
+                                        <span className="text-[10px] sm:text-sm text-[#8D949C] uppercase tracking-wider font-medium">
+                                            {p.category?.categoryName}
+                                        </span>
+
+                                        <Link to={`/product-details/${p._id}`} onClick={() => window.scrollTo(0, 0)}>
+                                            <h3 className="text-sm sm:text-base font-semibold text-[#31353C] leading-tight line-clamp-1 group-hover:text-[#38b47e] transition-colors">
+                                                {p.name}
+                                            </h3>
+                                        </Link>
+
+                                        <div className="flex items-center gap-0.5 sm:gap-1">
+                                            {[...Array(5)].map((_, i) => (
+                                                <AiFillStar
+                                                    key={i}
+                                                    className={`text-[10px] sm:text-base ${i < 4 ? "text-[#FFB81C]" : "text-[#E6E8EA]"}`}
+                                                />
+                                            ))}
+                                        </div>
+
+                                        <div className="flex items-baseline gap-1.5 sm:gap-2 mt-auto">
+                                            <span className="text-sm sm:text-base font-semibold text-[#00B880]">
+                                                ₹{p.discountPrice || p.weighstWise?.[0]?.price}
+                                            </span>
+                                            {p.discountPrice && (
+                                                <span className="text-xs sm:text-base text-[#A2A9B1] line-through font-medium">
+                                                    ₹{p.weighstWise?.[0]?.price}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Vertical Action Buttons (Hover) */}
+                                    <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 z-10">
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); dispatch(addToWishlist(p._id)); }}
+                                            className="w-8 h-8 bg-white border border-gray-100 rounded-full flex items-center justify-center text-gray-400 hover:bg-[#38b47e] hover:text-white transition-all shadow-sm"
+                                        >
+                                            <AiOutlineHeart size={16} />
+                                        </button>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); dispatch(addToCart({ productId: p._id, quantity: 1 })); }}
+                                            className="w-8 h-8 bg-white border border-gray-100 rounded-full flex items-center justify-center text-gray-400 hover:bg-[#38b47e] hover:text-white transition-all shadow-sm"
+                                        >
+                                            <FiShoppingCart size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                    </div>
+                </div>
 
                 {/* Newsletter */}
-                <Newsletter className="w-full pt-6 mt-10" />
+                <div className="w-full py-6 mt-10">
+                    <div
+                        className="relative overflow-hidden rounded-md bg-[#DDEEE5] bg-no-repeat bg-cover bg-center sm:bg-right min-h-[380px] flex items-center"
+                        style={{ backgroundImage: `url(${NewsletterImage})` }}
+                    >
+                        <div className="relative z-10 p-6 md:p-10 lg:p-20 w-full lg:w-1/2">
+                            {/* LEFT CONTENT */}
+                            <div className="text-left">
+                                {/* Title */}
+                                <h2 className="text-[#253D4E] text-2xl sm:text-3xl font-medium leading-tight">
+                                    Stay Home & Get Your Daily <br className="hidden sm:block" />
+                                    Needs From Our Shop
+                                </h2>
+
+                                {/* Description */}
+                                <p className="text-[#7E7E7E] mt-4 text-sm">
+                                    Subscribe to our latest newsletter to get news about special discounts.
+                                </p>
+
+                                {/* Input + Button */}
+                                <form className="mt-8 flex flex-col sm:flex-row gap-2 sm:gap-0 w-full max-w-md mx-auto md:mx-0 " onSubmit={(e) => e.preventDefault()}>
+                                    <input
+                                        type="email"
+                                        placeholder="Email"
+                                        className="flex-grow px-5 py-3 sm:py-4 rounded-md sm:rounded-none sm:rounded-l-md focus:outline-none text-[var(--text-secondary)] w-full border-none"
+                                        required
+                                    />
+                                    <button
+                                        type="submit"
+                                        className=" cursor-pointer  bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition duration-300 text-[var(--btn-text)] font-semibold px-6 sm:px-8 py-3 sm:py-4 rounded-md sm:rounded-none sm:rounded-r-md whitespace-nowrap"
+                                    >
+                                        Subscribe
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
             </div>
         </div>
