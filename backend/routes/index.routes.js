@@ -18,6 +18,7 @@ const { getTermConditionById, getAllTermConditions, saveAllTermConditions, uploa
 const { createOffer, getAllOffers, getOfferById, updateOffer, deleteOffer } = require('../controllers/offerController');
 const { createFAQ, getAllFAQs, getFAQById, updateFAQ, deleteFAQ } = require('../controllers/faq.controller');
 const { createReview, getReviewById, getAllReviews, deleteReview } = require('../controllers/review.controller');
+const { addAddress, getAddresses, updateAddress, deleteAddress, setDefaultAddress } = require('../controllers/address.controller');
 
 // Auth routes
 indexRoutes.post('/register', createUser);
@@ -132,5 +133,12 @@ indexRoutes.get("/listBucket", async (req, res) => {
 indexRoutes.post('/contact', createContact);
 indexRoutes.get('/contacts', auth, authorizeRoles('admin'), getAllContacts);
 indexRoutes.delete('/contacts/:id', auth, authorizeRoles('admin'), deleteContact);
+
+// Address Management
+indexRoutes.post('/address', auth, addAddress);
+indexRoutes.get('/addresses', auth, getAddresses);
+indexRoutes.put('/address/:addressId', auth, updateAddress);
+indexRoutes.delete('/address/:addressId', auth, deleteAddress);
+indexRoutes.put('/address-default/:addressId', auth, setDefaultAddress);
 
 module.exports = indexRoutes;

@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Product = require("../models/product.model");
 const { uploadToS3, updateS3, deleteFromS3, deleteManyFromS3 } = require("../utils/s3Service");
 
@@ -62,7 +63,6 @@ exports.createProduct = async (req, res) => {
     }
 };
 
-// Get All Products (with populated category)
 exports.getAllProducts = async (req, res) => {
     try {
         const products = await Product.aggregate([
@@ -87,12 +87,23 @@ exports.getAllProducts = async (req, res) => {
                     path: '$category',
                     preserveNullAndEmptyArrays: true
                 }
+            },
+            {
+                $lookup: {
+                    from: 'reviews',
+                    localField: '_id',
+                    foreignField: 'productId',
+                    as: 'reviews'
+                }
+            },
+            {
+                $addFields: {
+                    avgRating: { $avg: '$reviews.rating' },
+                    reviewCount: { $size: '$reviews' }
+                }
             }
         ]);
 
-        // const products = await Product.find()
-        //     .populate("category")
-        //     .populate("reviews");
         res.status(200).json({ success: true, products });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -128,17 +139,24 @@ exports.getProductById = async (req, res) => {
                     path: '$category',
                     preserveNullAndEmptyArrays: true
                 }
+            },
+            {
+                $lookup: {
+                    from: 'reviews',
+                    localField: '_id',
+                    foreignField: 'productId',
+                    as: 'reviews'
+                }
+            },
+            {
+                $addFields: {
+                    avgRating: { $avg: '$reviews.rating' },
+                    reviewCount: { $size: '$reviews' }
+                }
             }
         ]);
 
-        // if (!product.length) {
-        // const product = await Product.findById(req.params.id)
-        //     .populate("category", "categoryName")
-        //     .populate({
-        //         path: "reviews",
-        //         populate: { path: "userId", select: "name photo" }
-        //     });
-        if (!product) {
+        if (!product || product.length === 0) {
             return res.status(404).json({ success: false, message: "Product not found" });
         }
 
@@ -158,10 +176,10 @@ exports.updateProduct = async (req, res) => {
             return res.status(404).json({ success: false, message: "Product not found" });
         }
 
-        let currentImages = product.images;
+        let productsImages = [...product.images];
+        let newImages = [];
 
         if (req.files && req.files.length > 0) {
-            const newImages = [];
             for (const file of req.files) {
                 const result = await uploadToS3(file, "products");
                 newImages.push({
@@ -169,24 +187,27 @@ exports.updateProduct = async (req, res) => {
                     public_id: result.public_id
                 });
             }
-            currentImages = [...currentImages, ...newImages];
         }
 
         if (oldImages) {
-            let imagesToKeep = [];
             try {
-                imagesToKeep = JSON.parse(oldImages);
+                const imagesToKeep = JSON.parse(oldImages);
                 const imagesToDelete = product.images.filter(img => !imagesToKeep.includes(img.public_id));
 
                 if (imagesToDelete.length > 0) {
                     await deleteManyFromS3(imagesToDelete.map(img => img.public_id));
                 }
 
-                currentImages = product.images.filter(img => imagesToKeep.includes(img.public_id));
+                const keptImages = product.images.filter(img => imagesToKeep.includes(img.public_id));
+                productsImages = [...keptImages, ...newImages];
             } catch (e) {
                 console.error("Error parsing oldImages:", e);
+                productsImages = [...productsImages, ...newImages];
             }
+        } else {
+            productsImages = [...productsImages, ...newImages];
         }
+
         product.name = name || product.name;
         product.category = category || product.category;
         product.description = description || product.description;
@@ -195,7 +216,7 @@ exports.updateProduct = async (req, res) => {
                 product.weighstWise = typeof weighstWise === 'string' ? JSON.parse(weighstWise) : weighstWise;
             } catch (e) { }
         }
-        product.images = currentImages;
+        product.images = productsImages;
 
         await product.save();
 
