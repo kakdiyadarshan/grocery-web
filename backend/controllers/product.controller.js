@@ -65,12 +65,26 @@ exports.createProduct = async (req, res) => {
 
 exports.getAllProducts = async (req, res) => {
     try {
+        const today = new Date();
+
         const products = await Product.aggregate([
             {
                 $lookup: {
                     from: 'offers',
-                    localField: '_id',
-                    foreignField: 'product_id',
+                    let: { productId: '$_id' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $in: ['$$productId', '$product_id'] },
+                                        { $lte: ['$offer_start_date', today] },
+                                        { $gte: ['$offer_end_date', today] }
+                                    ]
+                                }
+                            }
+                        }
+                    ],
                     as: 'offer'
                 }
             },
@@ -105,6 +119,7 @@ exports.getAllProducts = async (req, res) => {
         ]);
 
         res.status(200).json({ success: true, products });
+
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -112,6 +127,8 @@ exports.getAllProducts = async (req, res) => {
 
 exports.getProductById = async (req, res) => {
     try {
+        const today = new Date();
+
         const product = await Product.aggregate([
             {
                 $match: {
@@ -121,8 +138,20 @@ exports.getProductById = async (req, res) => {
             {
                 $lookup: {
                     from: 'offers',
-                    localField: '_id',
-                    foreignField: 'product_id',
+                    let: { productId: '$_id' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $in: ['$$productId', '$product_id'] },
+                                        { $lte: ['$offer_start_date', today] },
+                                        { $gte: ['$offer_end_date', today] }
+                                    ]
+                                }
+                            }
+                        }
+                    ],
                     as: 'offer'
                 }
             },
@@ -161,6 +190,7 @@ exports.getProductById = async (req, res) => {
         }
 
         res.status(200).json({ success: true, product: product[0] });
+
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

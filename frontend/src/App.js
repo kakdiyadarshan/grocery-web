@@ -67,7 +67,7 @@ function App() {
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/  " element={<ForgotPassword />} />
+        <Route path="/" element={<ForgotPassword />} />
         <Route path="/admin/*" element={<Adminroutes />} />
       </Routes>
     </>
