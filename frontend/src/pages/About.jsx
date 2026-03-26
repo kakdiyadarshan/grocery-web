@@ -70,7 +70,7 @@ export default function About() {
       </div>
 
        {/* Service Highlights Section */}
-      <div className="w-full mb-16 py-10 px-6 sm:px-12 bg-[#f4f9fc] rounded-[32px] border border-blue-50/50">
+      <div className="w-full mb-16 py-10 px-6 sm:px-12 bg-[#f4f9fc] border border-blue-50/50">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Item 1 */}
           <div className="flex items-center gap-5 group">

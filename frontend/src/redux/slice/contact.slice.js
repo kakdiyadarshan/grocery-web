@@ -46,6 +46,19 @@ export const deleteContact = createAsyncThunk(
     }
 );
 
+export const createContact = createAsyncThunk(
+    'contact/createContact',
+    async (formData, { dispatch, rejectWithValue }) => {
+        try {
+            const response = await axios.post(`${BASE_URL}/contact`, formData);
+            dispatch(setAlert({ text: 'Message sent successfully!', type: 'success' }));
+            return response.data.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
 const contactSlice = createSlice({
     name: 'contact',
     initialState,
@@ -60,7 +73,13 @@ const contactSlice = createSlice({
             .addCase(getAllContacts.rejected, (state) => { state.loading = false; })
             .addCase(deleteContact.fulfilled, (state, action) => {
                 state.contacts = state.contacts.filter(c => c._id !== action.payload);
-            });
+            })
+            .addCase(createContact.pending, (state) => { state.loading = true; })
+            .addCase(createContact.fulfilled, (state, action) => {
+                state.loading = false;
+                state.contacts.push(action.payload);
+            })
+            .addCase(createContact.rejected, (state) => { state.loading = false; });
     }
 });
 
