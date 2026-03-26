@@ -12,7 +12,9 @@ const CustomSelect = ({
     buttonClassName = "",
     dropdownAlign = "left",
     required = false,
-    searchable = true  // New prop to control search visibility
+    searchable = true,
+    dropdownClassName = "",
+    optionClassName = ""
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -70,7 +72,7 @@ const CustomSelect = ({
     };
 
     return (
-        <div className={`relative ${className}`} ref={dropdownRef}>
+        <div className={`relative ${className} ${isOpen ? 'z-50' : ''}`} ref={dropdownRef}>
             {label && (
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                     {label} {required && <span className="text-primary font-bold">*</span>}
@@ -91,7 +93,7 @@ const CustomSelect = ({
             </button>
 
             {isOpen && (
-                <div className={`absolute top-full ${dropdownAlign === 'right' ? 'right-0' : 'left-0'} mt-1 w-full min-w-[200px] bg-white rounded-[4px] shadow-xl border border-gray-100 overflow-hidden animate-in fade-in zoom-in-95 duration-100 flex flex-col z-50`}>
+                <div className={`absolute top-full ${dropdownAlign === 'right' ? 'right-0' : 'left-0'} mt-1 w-full min-w-full bg-white rounded-[4px] shadow-xl border border-gray-100 overflow-hidden animate-in fade-in zoom-in-95 duration-100 flex flex-col z-50 ${dropdownClassName}`}>
                     {/* Search Input - Only show if searchable is true */}
                     {searchable && (
                         <div className="p-2 border-b border-gray-100 sticky top-0 bg-white z-10">
@@ -120,7 +122,7 @@ const CustomSelect = ({
                         </div>
                     )}
 
-                    <div className="overflow-y-auto max-h-60 no-scrollbar py-1">
+                    <div className="overflow-y-auto max-h-40  no-scrollbar py-1">
                         {filteredOptions.length === 0 ? (
                             <div className="px-4 py-6 text-sm text-gray-500 text-center">
                                 {options.length === 0 ? "No options available" : `No results found for "${searchTerm}"`}
@@ -138,13 +140,13 @@ const CustomSelect = ({
                                         key={index}
                                         type="button"
                                         onClick={() => handleSelect(optionValue)}
-                                        className={`flex items-center gap-2 w-full px-4 py-2.5 text-sm transition-colors text-left
+                                        className={`flex items-center gap-2 w-full px-4 py-2 text-sm transition-colors text-left
                                             ${isSelected
                                                 ? 'bg-primary/5 text-primary font-medium'
                                                 : 'text-gray-600 hover:bg-gray-50'
-                                            }`}
+                                            } ${optionClassName}`}
                                     >
-                                        {optionIcon && <span className={isSelected ? 'text-primary' : 'text-gray-400'}>{optionIcon}</span>}
+                                        {optionIcon && <span className={isSelected ? 'text-primary text-xs' : 'text-gray-400 text-xs'}>{optionIcon}</span>}
                                         <span className="truncate">{optionLabel}</span>
                                     </button>
                                 );

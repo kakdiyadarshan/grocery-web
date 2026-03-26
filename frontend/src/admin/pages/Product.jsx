@@ -11,10 +11,11 @@ import {
 import { getAllCategories } from '../../redux/slice/category.slice';
 import Table from '../component/DataTable';
 import Breadcrumb from '../component/Breadcrumb';
-import { FiPlus, FiX, FiUpload, FiLoader, FiTrash2, FiPlusCircle, FiAlertTriangle } from 'react-icons/fi';
+import { FiPlus, FiX, FiUpload, FiLoader, FiTrash2, FiPlusCircle, FiAlertTriangle, FiTag, FiCalendar } from 'react-icons/fi';
 import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
 import DeleteModal from '../component/DeleteModal';
 import StockChart from '../component/StockChart';
+import CustomSelect from '../component/CustomSelect';
 
 const Product = () => {
     const dispatch = useDispatch();
@@ -233,7 +234,7 @@ const Product = () => {
                 const prices = row.weighstWise.map(w => w.price);
                 const minPrice = Math.min(...prices);
                 const maxPrice = Math.max(...prices);
-                return minPrice === maxPrice ? `₹${minPrice}` : `₹${minPrice} - ₹${maxPrice}`;
+                return minPrice === maxPrice ? `$${minPrice}` : `$${minPrice} - $${maxPrice}`;
             }
         },
         {
@@ -331,21 +332,16 @@ const Product = () => {
                                         </div>
 
                                         <div className="space-y-1.5">
-                                            <label className="text-sm font-semibold text-gray-700 block">
-                                                Category <span className="text-red-500 font-bold">*</span>
-                                            </label>
-                                            <select
-                                                name="category"
-                                                onChange={formik.handleChange}
-                                                onBlur={formik.handleBlur}
+                                            <CustomSelect
+                                                label="Category"
+                                                className="w-full"
+                                                options={categories.map((cat) => ({ value: cat._id, label: cat.categoryName }))}
                                                 value={formik.values.category}
-                                                className={`w-full px-4 py-2.5 border rounded-[4px] outline-none transition-all bg-gray-50/50 focus:bg-white text-gray-900 text-sm ${formik.touched.category && formik.errors.category ? 'border-red-500' : 'border-gray-200 focus:border-primary'}`}
-                                            >
-                                                <option value="">Select Category</option>
-                                                {categories.map((cat) => (
-                                                    <option key={cat._id} value={cat._id}>{cat.categoryName}</option>
-                                                ))}
-                                            </select>
+                                                onChange={(value) => formik.setFieldValue('category', value)}
+                                                placeholder="Select Category"
+                                                required
+                                                buttonClassName={formik.touched.category && formik.errors.category ? 'border-red-500' : 'border-gray-200'}
+                                            />
                                             {formik.touched.category && formik.errors.category && <p className="text-xs text-red-500">{formik.errors.category}</p>}
                                         </div>
 
@@ -380,13 +376,13 @@ const Product = () => {
                                                 </button>
                                             </div>
 
-                                            <div className="max-h-[280px] overflow-y-auto pr-2 custom-scrollbar space-y-4">
+                                            <div className="pr-2 space-y-4">
                                                 <FieldArray
                                                     name="weighstWise"
                                                     render={arrayHelpers => (
-                                                        <div className="space-y-4">
+                                                        <div className="space-y-3">
                                                             {formik.values.weighstWise.map((variation, index) => (
-                                                                <div key={index} className="flex gap-2 items-start bg-gray-50/80 p-4 rounded-xl border border-gray-100 relative group transition-all hover:bg-gray-100/50">
+                                                                <div key={index} style={{ zIndex: formik.values.weighstWise.length - index }} className="flex gap-2 items-start bg-gray-50/80 p-4 rounded-xl border border-gray-100 relative group transition-all hover:bg-gray-100/50">
                                                                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 flex-grow">
                                                                         <div className="space-y-1">
                                                                             <label className="text-[10px] font-bold text-gray-400  ml-1">Weight</label>
@@ -400,22 +396,26 @@ const Product = () => {
                                                                         </div>
                                                                         <div className="space-y-1">
                                                                             <label className="text-[10px] font-bold text-gray-400  ml-1">Unit</label>
-                                                                            <select
-                                                                                name={`weighstWise[${index}].unit`}
-                                                                                onChange={formik.handleChange}
+                                                                            <CustomSelect
+                                                                                className="w-full"
+                                                                                options={[
+                                                                                    { value: 'Gram', label: 'g' },
+                                                                                    { value: 'Kilogram', label: 'kg' },
+                                                                                    { value: 'Pound', label: 'lb' },
+                                                                                    { value: 'Liter', label: 'L' },
+                                                                                    { value: 'Milliliter', label: 'ml' },
+                                                                                    { value: 'Piece', label: 'pc' }
+                                                                                ]}
                                                                                 value={variation.unit}
-                                                                                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-primary focus:ring-2 focus:ring-primary/5 bg-white"
-                                                                            >
-                                                                                <option value="Gram">Gram (g)</option>
-                                                                                <option value="Kilogram">Kilogram (kg)</option>
-                                                                                <option value="Pound">Pound (lb)</option>
-                                                                                <option value="Liter">Liter (L)</option>
-                                                                                <option value="Milliliter">Milliliter (ml)</option>
-                                                                                <option value="Piece">Piece (pc)</option>
-                                                                            </select>
+                                                                                onChange={(value) => formik.setFieldValue(`weighstWise[${index}].unit`, value)}
+                                                                                placeholder="Unit"
+                                                                                searchable={false}
+                                                                                buttonClassName="!h-[34px] !py-0 !px-3 !text-xs !rounded-lg "
+                                                                                optionClassName="!py-1.5 !px-3 !text-[11px]"
+                                                                            />
                                                                         </div>
                                                                         <div className="space-y-1">
-                                                                            <label className="text-[10px] font-bold text-gray-400  ml-1">Price (₹)</label>
+                                                                            <label className="text-[10px] font-bold text-gray-400  ml-1">Price ($)</label>
                                                                             <input
                                                                                 name={`weighstWise[${index}].price`}
                                                                                 type="text"
@@ -510,7 +510,7 @@ const Product = () => {
             {/* View Modal */}
             {isViewModalOpen && selectedProduct && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsViewModalOpen(false)}>
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all animate-in zoom-in-95 duration-300 border border-gray-100 flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-white rounded-[4px] shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all animate-in zoom-in-95 duration-300 border border-gray-100 flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
                         <div className="relative h-64 w-full bg-slate-100">
                             <img
                                 src={selectedProduct.images[activeImageIndex]?.url || selectedProduct.images[0]?.url}
@@ -544,6 +544,48 @@ const Product = () => {
                                     <div className="bg-gray-50/50 rounded-xl border border-gray-100 mb-6">
                                         {renderStars(selectedProduct.reviews)}
                                     </div>
+
+                                    {/* Active Offers Section */}
+                                    {selectedProduct.offer && selectedProduct.offer.length > 0 && (
+                                        <>
+                                            <h4 className="text-[10px] font-bold text-gray-900 tracking-widest mb-3 flex items-center gap-2">
+                                                <div className="w-6 h-[2px] bg-primary" /> Active Offers
+                                            </h4>
+                                            {selectedProduct.offer.map((offer, idx) => (
+                                                <div key={idx} className="bg-primary/5 rounded-xl  relative overflow-hidden group">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                                                            <FiTag size={18} />
+                                                        </div>
+                                                        <div>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-[10px] font-black text-primary uppercase tracking-widest">{offer.offer_type} Discount</span>
+                                                            </div>
+                                                            <h5 className="text-xl font-black text-gray-900 leading-none mt-0.5">
+                                                                {offer.offer_type === 'Discount' ? `${offer.offer_value}% OFF` : `$${offer.offer_value} OFF`}
+                                                            </h5>
+                                                        </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-4 pt-3">
+                                                        <div className="flex flex-col gap-0.5">
+                                                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">Start Date</span>
+                                                            <div className="flex items-center gap-1.5 text-gray-600 text-[11px] font-bold">
+                                                                <FiCalendar size={12} className="text-primary ms-1" />
+                                                                {new Date(offer.offer_start_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex flex-col gap-0.5">
+                                                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">End Date</span>
+                                                            <div className="flex items-center gap-1.5 text-gray-600 text-[11px] font-bold">
+                                                                <FiCalendar size={12} className="text-red-400 ms-1" />
+                                                                {new Date(offer.offer_end_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </>
+                                    )}
                                 </div>
                                 <div>
                                     <h4 className="text-[10px] font-bold text-gray-900  tracking-widest mb-4 flex items-center gap-2">
@@ -561,7 +603,7 @@ const Product = () => {
                                                         </span>
                                                     </div>
                                                     <div className="text-right">
-                                                        <div className={`font-black text-xl ${isLowStock ? 'text-red-600' : 'text-primary'}`}>₹{v.price}</div>
+                                                        <div className={`font-black text-xl ${isLowStock ? 'text-red-600' : 'text-primary'}`}>${v.price}</div>
                                                     </div>
                                                 </div>
                                             );

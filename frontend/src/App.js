@@ -27,6 +27,7 @@ import Layout from './component/Layout';
 import OrderCompleted from './pages/OrderCompleted';
 import OrderTracking from './pages/OrderTracking';
 import Termscondition from './pages/Termscondition';
+import UserProfile from './pages/UserProfile';
 
 function App() {
   const dispatch = useDispatch();
@@ -57,6 +58,8 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/shop" element={<Shop />} />
+          <Route path="/category" element={<Shop />} />
+          <Route path="/profile" element={<UserProfile />} />
           {/* <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} /> */}
           <Route path="/forgot-password" element={<ForgotPassword />} />

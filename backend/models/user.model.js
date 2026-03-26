@@ -41,9 +41,19 @@ const userSchema = new mongoose.Schema({
         url: { type: String },
         public_id: { type: String }
     },
-    // refreshToken: {
-    //     type: String
-    // }
+    addresses: [
+        {
+            address: { type: String, required: true },
+            city: { type: String, required: true },
+            state: { type: String, required: true },
+            zip: { type: String, required: true },
+            country: { type: String, required: true },
+            phone: { type: String, required: true },
+            email: { type: String, required: true },
+            isDefault: { type: Boolean, default: false },
+            createdAt: { type: Date, default: Date.now }
+        }
+    ],
 }, {
     timestamps: true,
     toJSON: {
