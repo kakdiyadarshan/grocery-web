@@ -1,12 +1,20 @@
 import React, { useState } from 'react';
 import Header from '../component/Header';
 import Footer from '../component/Footer';
-import { ChevronRight, Banknote } from 'lucide-react';
+import { ChevronRight, Banknote, ChevronDown } from 'lucide-react';
 import { FaCcMastercard, FaCcAmex } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
 const CheckOut = () => {
   const [paymentMethod, setPaymentMethod] = useState('cod');
+  const [isBankDropdownOpen, setIsBankDropdownOpen] = useState(false);
+  const banks = [
+    "State Bank of India",
+    "HDFC Bank",
+    "ICICI Bank",
+    "Axis Bank",
+    "Kotak Mahindra Bank"
+  ];
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -16,7 +24,9 @@ const CheckOut = () => {
     address: '',
     country: '',
     city: '',
-    zip: ''
+    zip: '',
+    upiId: '',
+    selectedBank: ''
   });
   const [errors, setErrors] = useState({});
 
@@ -57,6 +67,14 @@ const CheckOut = () => {
     if (!formData.country) newErrors.country = "Please select a country";
     if (!formData.city.trim()) newErrors.city = "Town / City is required";
     if (!formData.zip.trim()) newErrors.zip = "ZIP/Postcode is required";
+    
+    // Payment specific validation
+    if (paymentMethod === 'upi' && !formData.upiId.trim()) {
+      newErrors.upiId = "UPI ID is required";
+    }
+    if (paymentMethod === 'netbanking' && !formData.selectedBank) {
+      newErrors.selectedBank = "Please select a bank";
+    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -225,29 +243,85 @@ const CheckOut = () => {
                   </label>
 
                   {/* UPI */}
-                  <label className={`flex items-center justify-between border rounded-md p-4 cursor-pointer transition-all ${paymentMethod === 'upi' ? 'border-[var(--primary)] bg-blue-50/30 shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300'}`}>
-                    <div className="flex items-center gap-3">
-                      <input type="radio" name="payment" value="upi" checked={paymentMethod === 'upi'} onChange={() => setPaymentMethod('upi')} className="sr-only" />
-                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors shrink-0 ${paymentMethod === 'upi' ? 'border-[var(--primary)]' : 'border-gray-400'}`}>
-                        {paymentMethod === 'upi' && <div className="w-2 h-2 rounded-full bg-[var(--primary)]" />}
+                  <div className={`border rounded-md p-4 transition-all ${paymentMethod === 'upi' ? 'border-[var(--primary)] bg-blue-50/10 shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300'}`}>
+                    <label className="flex items-center justify-between cursor-pointer" onClick={() => setPaymentMethod('upi')}>
+                      <div className="flex items-center gap-3">
+                        <input type="radio" name="payment" value="upi" checked={paymentMethod === 'upi'} readOnly className="sr-only" />
+                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors shrink-0 ${paymentMethod === 'upi' ? 'border-[var(--primary)]' : 'border-gray-400'}`}>
+                          {paymentMethod === 'upi' && <div className="w-2 h-2 rounded-full bg-[var(--primary)]" />}
+                        </div>
+                        <span className="text-[14.5px] font-bold text-[#1e5066]">UPI</span>
                       </div>
-                      <span className="text-[14.5px] font-bold text-[#1e5066]">UPI</span>
-                    </div>
-                    <FaCcAmex className="w-6 h-6 text-[#2671B9] opacity-80" />
-                  </label>
+                      <FaCcAmex className="w-6 h-6 text-[#2671B9] opacity-80" />
+                    </label>
+                    {paymentMethod === 'upi' && (
+                      <div className="mt-4 pt-4 border-t border-[var(--primary)]/10 animate-fadeIn">
+                        <label className="block text-[13px] font-bold text-gray-600 mb-2 ms-0.5">UPI ID</label>
+                        <input
+                          type="text"
+                          name="upiId"
+                          value={formData.upiId}
+                          onChange={handleChange}
+                          placeholder="username@upi"
+                          className="w-full px-4 py-2.5 rounded border border-gray-200 outline-none focus:border-[var(--primary)] text-[14.5px] text-gray-700 transition-colors bg-white shadow-sm"
+                        />
+                        {errors.upiId && <p className="text-red-500 text-[12px] mt-1.5 font-medium">{errors.upiId}</p>}
+                      </div>
+                    )}
+                  </div>
 
                   {/* Net Banking */}
-                  <label className={`flex items-center justify-between border rounded-md p-4 cursor-pointer transition-all ${paymentMethod === 'netbanking' ? 'border-[var(--primary)] bg-blue-50/30 shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300'}`}>
-                    <div className="flex items-center gap-3">
-                      <input type="radio" name="payment" value="netbanking" checked={paymentMethod === 'netbanking'} onChange={() => setPaymentMethod('netbanking')} className="sr-only" />
-                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors shrink-0 ${paymentMethod === 'netbanking' ? 'border-[var(--primary)]' : 'border-gray-400'}`}>
-                        {paymentMethod === 'netbanking' && <div className="w-2 h-2 rounded-full bg-[var(--primary)]" />}
+                  <div className={`border rounded-md p-4 transition-all ${paymentMethod === 'netbanking' ? 'border-[var(--primary)] bg-blue-50/10 shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300'}`}>
+                    <label className="flex items-center justify-between cursor-pointer" onClick={() => setPaymentMethod('netbanking')}>
+                      <div className="flex items-center gap-3">
+                        <input type="radio" name="payment" value="netbanking" checked={paymentMethod === 'netbanking'} readOnly className="sr-only" />
+                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors shrink-0 ${paymentMethod === 'netbanking' ? 'border-[var(--primary)]' : 'border-gray-400'}`}>
+                          {paymentMethod === 'netbanking' && <div className="w-2 h-2 rounded-full bg-[var(--primary)]" />}
+                        </div>
+                        <span className="text-[14.5px] font-bold text-[#1e5066]">Net Banking</span>
                       </div>
-                      <span className="text-[14.5px] font-bold text-[#1e5066]">Net Banking</span>
-                    </div>
-                    <FaCcMastercard className="w-6 h-6 text-[#eb001b]" />
-                  </label>
+                      <FaCcMastercard className="w-6 h-6 text-[#eb001b]" />
+                    </label>
+                    {paymentMethod === 'netbanking' && (
+                      <div className="mt-4 pt-4 border-t border-[var(--primary)]/10 animate-fadeIn">
+                        <label className="block text-[13px] font-bold text-gray-600 mb-2 ms-0.5">Select Bank</label>
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() => setIsBankDropdownOpen(!isBankDropdownOpen)}
+                            className={`w-full px-4 py-2.5 rounded border border-gray-200 flex justify-between items-center bg-white text-[14.5px] shadow-sm transition-all ${isBankDropdownOpen ? 'border-[var(--primary)] ring-1 ring-[var(--primary)]/10' : 'hover:border-gray-300'}`}
+                          >
+                            <span className={formData.selectedBank ? 'text-gray-800 font-medium' : 'text-gray-400'}>
+                              {formData.selectedBank || "Select your bank"}
+                            </span>
+                            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isBankDropdownOpen ? 'rotate-180' : ''}`} />
+                          </button>
 
+                          {isBankDropdownOpen && (
+                            <div className="absolute left-0 right-0 mt-1.5 bg-white border border-gray-100 rounded shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+                              {banks.map((bank) => (
+                                <div
+                                  key={bank}
+                                  onClick={() => {
+                                    setFormData({ ...formData, selectedBank: bank });
+                                    setIsBankDropdownOpen(false);
+                                    setErrors(prev => ({ ...prev, selectedBank: "" }));
+                                  }}
+                                  className={`px-4 py-2.5 text-[14px] cursor-pointer transition-colors ${formData.selectedBank === bank
+                                      ? 'bg-[var(--primary-light)] text-[var(--primary)] font-bold'
+                                      : 'text-gray-700 hover:bg-[var(--primary)] hover:text-white'
+                                    }`}
+                                >
+                                  {bank}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        {errors.selectedBank && <p className="text-red-500 text-[12px] mt-1.5 font-medium">{errors.selectedBank}</p>}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <p className="text-[13px] text-gray-500 mb-6 leading-relaxed">

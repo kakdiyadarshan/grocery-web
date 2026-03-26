@@ -18,6 +18,9 @@ const { getTermConditionById, getAllTermConditions, saveAllTermConditions, uploa
 const { createOffer, getAllOffers, getOfferById, updateOffer, deleteOffer } = require('../controllers/offerController');
 const { createFAQ, getAllFAQs, getFAQById, updateFAQ, deleteFAQ } = require('../controllers/faq.controller');
 const { createReview, getReviewById, getAllReviews, deleteReview } = require('../controllers/review.controller');
+const { createCoupon, getAllCoupons, deleteCoupon, getCouponById, updateCoupon } = require('../controllers/coupon.controller');
+const { createOrder, getAllOrders, getOrderById, updateOrderStatus, deleteOrder, getUserOrders, cancelOrder, trackOrder } = require('../controllers/order.controller');
+const { createPayment, getPaymentById, getAllPayments, deletePayment, getPaymentByUserId, getPaymentByOrderId } = require('../controllers/payment.controller');
 const { addAddress, getAddresses, updateAddress, deleteAddress, setDefaultAddress } = require('../controllers/address.controller');
 const { createOfferBanner, getAllOfferBanners, updateOfferBanner, deleteOfferBanner } = require('../controllers/offerbanner.controller');
 const { createBanner, getAllBanners, updateBanner, deleteBanner } = require('../controllers/banner.controller');
@@ -149,6 +152,31 @@ indexRoutes.get("/listBucket", async (req, res) => {
 indexRoutes.post('/contact', createContact);
 indexRoutes.get('/contacts', auth, authorizeRoles('admin'), getAllContacts);
 indexRoutes.delete('/contacts/:id', auth, authorizeRoles('admin'), deleteContact);
+
+// Coupon Routes
+indexRoutes.post('/createCoupon', auth, authorizeRoles('admin'), createCoupon);
+indexRoutes.get('/getAllCoupons', auth, authorizeRoles('admin','user'), getAllCoupons);
+indexRoutes.delete('/deleteCoupon/:id', auth, authorizeRoles('admin'), deleteCoupon);
+indexRoutes.get('/getCoupon/:id', auth, authorizeRoles('admin','user'), getCouponById);
+indexRoutes.put('/updateCoupon/:id', auth, authorizeRoles('admin'), updateCoupon);
+
+// Order Routes
+indexRoutes.post('/createOrder', auth, createOrder);
+indexRoutes.get('/getAllOrders', auth, authorizeRoles('admin'), getAllOrders);
+indexRoutes.get('/getOrder/:id', auth, authorizeRoles('admin','user'), getOrderById);
+indexRoutes.put('/updateOrderStatus/:id', auth, authorizeRoles('admin'), updateOrderStatus);
+indexRoutes.delete('/deleteOrder/:id', auth, authorizeRoles('admin'), deleteOrder); 
+indexRoutes.get('/getUserOrders', auth, getUserOrders);
+indexRoutes.put('/cancelOrder/:id', auth, cancelOrder);
+indexRoutes.get('/trackOrder/:id', auth, trackOrder);
+
+// Payment Routes
+indexRoutes.post('/createPayment', auth, createPayment);
+indexRoutes.get('/getPayment/:id', auth,authorizeRoles('admin'), getPaymentById);
+indexRoutes.get('/getAllPayments', auth, authorizeRoles('admin'), getAllPayments);
+indexRoutes.delete('/deletePayment/:id', auth, authorizeRoles('admin'), deletePayment);
+indexRoutes.get('/getPaymentByUserId/:userId', auth, authorizeRoles('admin'), getPaymentByUserId);
+indexRoutes.get('/getPaymentByOrderId/:orderId', auth, authorizeRoles('admin'), getPaymentByOrderId);
 
 // Address Management
 indexRoutes.post('/address', auth, addAddress);
