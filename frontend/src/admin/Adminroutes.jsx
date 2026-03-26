@@ -17,6 +17,10 @@ import Termscondition from './pages/Termscondition'
 import Offers from './pages/Offer'
 import Faqs from './pages/Faqs'
 import Profile from './pages/Profile'
+import OfferBanners from './pages/OfferBanners'
+import CreateOfferBanner from './pages/CreateOfferBanner'
+import Banners from './pages/Banners'
+import CreateBanner from './pages/CreateBanner'
 
 const Adminroutes = () => {
     const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -38,16 +42,18 @@ const Adminroutes = () => {
                     <Route path="products" element={<Product />} />
                     <Route path="privacy-policy" element={<PrivacyPolicy />} />
                     <Route path="terms-condition" element={<Termscondition />} />
-                    <Route path="categories" element={<DataTable />} />
-                    <Route path="orders" element={<DataTable />} />
-                    <Route path="customers" element={<DataTable />} />
-                    <Route path="vendors" element={<DataTable />} />
                     <Route path="blogs" element={<BlogAdmin />} />
                     <Route path="subscribe" element={<Subscribe />} />
                     <Route path="blog-categories" element={<BlogCategoryAdmin />} />
                     <Route path="offers" element={<Offers />} />
                     <Route path="faqs" element={<Faqs />} />
                     <Route path="profile" element={<Profile />} />
+                    <Route path="banners" element={<Banners />} />
+                    <Route path="banners/create" element={<CreateBanner />} />
+                    <Route path="banners/edit/:id" element={<CreateBanner />} />
+                    <Route path="offerbanners/create" element={<CreateOfferBanner />} />
+                    <Route path="offerbanners/edit/:id" element={<CreateOfferBanner />} />
+                    <Route path="offerbanners" element={<OfferBanners />} />
 
                     <Route path="settings" element={<div className="p-6 h-full flex items-center justify-center text-gray-400 font-medium">Coming Soon</div>} />
 

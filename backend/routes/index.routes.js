@@ -18,6 +18,8 @@ const { getTermConditionById, getAllTermConditions, saveAllTermConditions, uploa
 const { createOffer, getAllOffers, getOfferById, updateOffer, deleteOffer } = require('../controllers/offerController');
 const { createFAQ, getAllFAQs, getFAQById, updateFAQ, deleteFAQ } = require('../controllers/faq.controller');
 const { createReview, getReviewById, getAllReviews, deleteReview } = require('../controllers/review.controller');
+const { createOfferBanner, getAllOfferBanners, updateOfferBanner, deleteOfferBanner } = require('../controllers/offerbanner.controller');
+const { createBanner, getAllBanners, updateBanner, deleteBanner } = require('../controllers/banner.controller');
 
 // Auth routes
 indexRoutes.post('/register', createUser);
@@ -117,6 +119,20 @@ indexRoutes.post('/addReview', auth, upload.array('images', 5), createReview);
 indexRoutes.get('/getReview/:id', getReviewById);
 indexRoutes.get('/getAllReviews', getAllReviews); // Can take productId as query param
 indexRoutes.delete('/deleteReview/:id', auth, deleteReview);
+
+// Banner routes
+indexRoutes.post('/createbanner', auth, authorizeRoles('admin'), upload.single('image'), createBanner);
+indexRoutes.get('/getbanners', getAllBanners);
+indexRoutes.put('/updatebanner/:id', auth, authorizeRoles('admin'), upload.single('image'), updateBanner);
+indexRoutes.delete('/deletebanner/:id', auth, authorizeRoles('admin'), deleteBanner);
+
+// Offer Banner routes
+indexRoutes.post('/createofferbanner', auth, authorizeRoles('admin'), upload.single('image'), createOfferBanner);
+indexRoutes.get('/getofferbanners', getAllOfferBanners);
+indexRoutes.put('/updateofferbanner/:id', auth, authorizeRoles('admin'), upload.single('image'), updateOfferBanner);
+indexRoutes.delete('/deleteofferbanner/:id', auth, authorizeRoles('admin'), deleteOfferBanner);
+
+
 
 indexRoutes.get("/listBucket", async (req, res) => {
     try {

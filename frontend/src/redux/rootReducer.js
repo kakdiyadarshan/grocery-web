@@ -13,6 +13,8 @@ import offerSlice from "./slice/offer.slice";
 import faqSlice from "./slice/faq.slice";
 import cartSlice from "./slice/cart.slice";
 import wishlistSlice from "./slice/wishlist.slice";
+import offerbannerSlice from "./slice/offerbanner.slice";
+import bannerSlice from "./slice/banner.slice";
 
 export const rootReducer = combineReducers({
     alert: alertSlice,
@@ -29,5 +31,7 @@ export const rootReducer = combineReducers({
     faq: faqSlice,
     cart: cartSlice,
     wishlist: wishlistSlice,
+    banner: bannerSlice,
+    offerbanner: offerbannerSlice,
 });
 
