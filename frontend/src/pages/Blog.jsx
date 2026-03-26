@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllBlogs } from '../redux/slice/blog.slice';
+import Newsletter from '../component/Newsletter';
 
 function Blog() {
     const navigate = useNavigate();
@@ -87,7 +88,10 @@ function Blog() {
                     </div>
                 )}
 
-                <Subscribe />
+                {/* <Subscribe /> */}
+
+                {/* Newsletter */}
+                <Newsletter className="w-full pt-6 mt-8" />
             </main>
         </div>
     );

@@ -65,7 +65,7 @@ const BannerSlider = () => {
                                 <p className="text-sm sm:text-base md:text-xl text-gray-600 mb-6 md:mb-8 max-w-sm md:max-w-xl">
                                     {slide.description}
                                 </p>
-                                <button className="bg-[#38b47e] hover:bg-[#319b6e] text-white px-6 py-2.5 rounded-lg font-medium text-base transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg shadow-[#38b47e]/20">
+                                <button className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white px-6 py-2.5 rounded-lg font-medium text-base transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg shadow-[#38b47e]/20">
                                     {slide.buttonText}
                                 </button>
                             </div>
@@ -81,7 +81,7 @@ const BannerSlider = () => {
                         key={index}
                         aria-label={`Go to slide ${index + 1}`}
                         className={`h-2.5 rounded-full transition-all duration-500 ${currentSlide === index
-                            ? 'w-2.5 bg-[#38b47e]'
+                            ? 'w-2.5 bg-[var(--primary)]'
                             : 'w-2.5 bg-white'
                             }`}
                         onClick={() => goToSlide(index)}

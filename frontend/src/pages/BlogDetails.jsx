@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getBlogById } from '../redux/slice/blog.slice';
 import Subscribe from './Subscribe';
+import Newsletter from '../component/Newsletter';
 
 function BlogDetails() {
     const { id } = useParams();
@@ -119,7 +120,10 @@ function BlogDetails() {
                 </div>
             </div>
 
-            <Subscribe/>
+            {/* <Subscribe/> */}
+
+            {/* Newsletter */}
+            <Newsletter className="w-full pt-6 mt-8" />
         </div>
     );
 }

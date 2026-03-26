@@ -2,6 +2,7 @@ import React from 'react';
 import Subscribe from './Subscribe';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
+import Newsletter from '../component/Newsletter';
 
 const shippingData = [
 
@@ -87,7 +88,11 @@ function ShippingPolicy() {
                         </div>
                     ))}
                 </div>
-                <Subscribe />
+
+                {/* <Subscribe /> */}
+
+                {/* Newsletter */}
+                <Newsletter className="w-full pt-6 mt-8" />
             </main>
 
         </div>

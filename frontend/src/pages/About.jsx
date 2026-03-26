@@ -3,7 +3,7 @@ import { FaLeaf, FaHandHoldingUsd, FaRecycle, FaHandHoldingWater, FaShoppingBask
 import Subscribe from './Subscribe';
 import { Link } from 'react-router-dom';
 import { ChevronRight, CreditCard, Sparkles, ShieldCheck, Timer } from 'lucide-react';
-
+ 
 export default function About() {
   return (
     <div className="min-h-screen  px-4 sm:px-6 lg:px-8">
@@ -19,36 +19,36 @@ export default function About() {
         </div>
       </div>
       <main  className="container mx-auto py-12">
-      
-
+     
+ 
       {/* Our Story Section */}
       <div className="w-full mb-16 ">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-center">
-          
+         
           {/* Images Grid */}
           <div className="w-full lg:w-1/2 grid grid-cols-2 gap-4">
-            <img 
-              src="https://retailinsider.b-cdn.net/wp-content/uploads/2020/03/shutterstock_373602469.jpg" 
-              alt="Grocery delivery" 
+            <img
+              src="https://retailinsider.b-cdn.net/wp-content/uploads/2020/03/shutterstock_373602469.jpg"
+              alt="Grocery delivery"
               className="w-full h-full object-cover rounded-xl shadow-sm"
             />
-            <img 
-              src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&h=400&q=80" 
-              alt="Fresh vegetables stand" 
+            <img
+              src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&h=400&q=80"
+              alt="Fresh vegetables stand"
               className="w-full h-full object-cover rounded-xl shadow-sm"
             />
-            <img 
-              src="https://cdn.metro-online.com/-/media/Project/MCW/PK_Metro/2020-to-2021/Product-world-small-banners/14-Grocery-World.jpg?rev=8746957d463b4e61bc45e75c415024d3" 
-              alt="Grocery delivery interaction" 
+            <img
+              src="https://cdn.metro-online.com/-/media/Project/MCW/PK_Metro/2020-to-2021/Product-world-small-banners/14-Grocery-World.jpg?rev=8746957d463b4e61bc45e75c415024d3%22"
+              alt="Grocery delivery interaction"
               className="w-full h-full object-cover rounded-xl shadow-sm"
             />
-            <img 
-              src="https://img-cdn.misfitsmarket.com/melodious-taiyaki-9pkr2z/aH6BNUMqNJQqILDE_20240730_Assortment_4_Fill.jpg" 
-              alt="Fresh vegetables closeup" 
+            <img
+              src="https://img-cdn.misfitsmarket.com/melodious-taiyaki-9pkr2z/aH6BNUMqNJQqILDE_20240730_Assortment_4_Fill.jpg%22"
+              alt="Fresh vegetables closeup"
               className="w-full h-full object-cover rounded-xl shadow-sm"
             />
           </div>
-
+ 
           {/* Text Content */}
           <div className="w-full lg:w-1/2 flex flex-col justify-center">
            
@@ -65,10 +65,10 @@ export default function About() {
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
             </p> */}
           </div>
-          
+         
         </div>
       </div>
-
+ 
        {/* Service Highlights Section */}
       <div className="w-full mb-16 py-10 px-6 sm:px-12 bg-[#f4f9fc] border border-blue-50/50">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
@@ -84,7 +84,7 @@ export default function About() {
               </p>
             </div>
           </div>
-
+ 
           {/* Item 2 */}
           <div className="flex items-center gap-5 group">
             <div className="flex-shrink-0 w-14 h-14 flex items-center justify-center bg-white rounded-2xl shadow-sm text-amber-500 group-hover:bg-amber-500 group-hover:text-white transition-all duration-300 transform group-hover:-translate-y-1">
@@ -97,7 +97,7 @@ export default function About() {
               </p>
             </div>
           </div>
-
+ 
           {/* Item 3 */}
           <div className="flex items-center gap-5 group">
             <div className="flex-shrink-0 w-14 h-14 flex items-center justify-center bg-white rounded-2xl shadow-sm text-green-600 group-hover:bg-green-600 group-hover:text-white transition-all duration-300 transform group-hover:-translate-y-1">
@@ -110,7 +110,7 @@ export default function About() {
               </p>
             </div>
           </div>
-
+ 
           {/* Item 4 */}
           <div className="flex items-center gap-5 group">
             <div className="flex-shrink-0 w-14 h-14 flex items-center justify-center bg-white rounded-2xl shadow-sm text-red-500 group-hover:bg-red-500 group-hover:text-white transition-all duration-300 transform group-hover:-translate-y-1">
@@ -125,14 +125,14 @@ export default function About() {
           </div>
         </div>
       </div>
-
+ 
       {/* Why Choose Us Section */}
       <div className="w-full mb-16 ">
         <h2 className="text-3xl font-bold text-center text-[var(--text-primary)] mb-12">
           Why Choose us?
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-x-12 lg:gap-x-24 gap-y-10">
-          
+         
           {/* Feature 1 */}
           <div className="flex items-start flex-row gap-6">
             <div className="flex-shrink-0 flex items-center justify-center h-16 w-16 rounded-xl bg-slate-50 border border-slate-100 text-green-700">
@@ -145,7 +145,7 @@ export default function About() {
               </p>
             </div>
           </div>
-
+ 
           {/* Feature 2 */}
           <div className="flex items-start flex-row gap-6">
             <div className="flex-shrink-0 flex items-center justify-center h-16 w-16 rounded-xl bg-slate-50 border border-slate-100 text-green-700">
@@ -158,7 +158,7 @@ export default function About() {
               </p>
             </div>
           </div>
-
+ 
           {/* Feature 3 */}
           <div className="flex items-start flex-row gap-6">
             <div className="flex-shrink-0 flex items-center justify-center h-16 w-16 rounded-xl bg-slate-50 border border-slate-100 text-green-700">
@@ -171,7 +171,7 @@ export default function About() {
               </p>
             </div>
           </div>
-
+ 
           {/* Feature 4 */}
           <div className="flex items-start flex-row gap-6">
             <div className="flex-shrink-0 flex items-center justify-center h-16 w-16 rounded-xl bg-slate-50 border border-slate-100 text-green-700">
@@ -184,7 +184,7 @@ export default function About() {
               </p>
             </div>
           </div>
-
+ 
           {/* Feature 5 */}
           <div className="flex items-start flex-row gap-6">
             <div className="flex-shrink-0 flex items-center justify-center h-16 w-16 rounded-xl bg-slate-50 border border-slate-100 text-green-700">
@@ -197,7 +197,7 @@ export default function About() {
               </p>
             </div>
           </div>
-
+ 
           {/* Feature 6 */}
           <div className="flex items-start flex-row gap-6">
             <div className="flex-shrink-0 flex items-center justify-center h-16 w-16 rounded-xl bg-slate-50 border border-slate-100 text-green-700">
@@ -210,16 +210,18 @@ export default function About() {
               </p>
             </div>
           </div>
-
+ 
         </div>
       </div>
-
+ 
      
-
+ 
       {/* Subscribe Section */}
       <Subscribe />
       </main>
-
+ 
     </div>
   );
 }
+ 
+ 
