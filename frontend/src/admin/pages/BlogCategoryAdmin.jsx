@@ -19,6 +19,7 @@ const BlogCategoryAdmin = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [currentId, setCurrentId] = useState(null);
     const [formData, setFormData] = useState({ blogCategoryName: '' });
+    const [error, setError] = useState('');
 
     // Delete Modal state
     const [deleteItem, setDeleteItem] = useState(null);
@@ -49,6 +50,13 @@ const BlogCategoryAdmin = () => {
     // ─── CREATE / UPDATE ─────────────────────────────────────────────────────────
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!formData.blogCategoryName.trim()) {
+            setError('Category name is required.');
+            return;
+        }
+
+        setError('');
         const action = isEditing
             ? await dispatch(updateBlogCategory({ id: currentId, formData }))
             : await dispatch(createBlogCategory(formData));
@@ -85,6 +93,7 @@ const BlogCategoryAdmin = () => {
         setIsEditing(false);
         setCurrentId(null);
         setFormData({ blogCategoryName: '' });
+        setError('');
     };
 
     return (
@@ -96,13 +105,6 @@ const BlogCategoryAdmin = () => {
                     <Breadcrumb />
                 </div>
                 <div className="flex items-center gap-2">
-                    <button
-                        onClick={fetchCategories}
-                        className="p-2 text-gray-500 hover:text-primary hover:bg-primary/5 rounded-[4px] transition-colors"
-                        title="Refresh"
-                    >
-                        <FiRefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                    </button>
                     <button
                         onClick={() => setIsModalOpen(true)}
                         className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-[4px] hover:bg-primaryHover transition-colors font-medium text-sm"
@@ -155,12 +157,16 @@ const BlogCategoryAdmin = () => {
                                     Category Name <span className="text-red-500">*</span>
                                 </label>
                                 <input
-                                    type="text" required autoFocus
+                                    type="text" autoFocus
                                     value={formData.blogCategoryName}
-                                    onChange={(e) => setFormData({ ...formData, blogCategoryName: e.target.value })}
-                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-[4px] outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
+                                    onChange={(e) => {
+                                        setFormData({ ...formData, blogCategoryName: e.target.value });
+                                        if (error) setError('');
+                                    }}
+                                    className={`w-full px-3 py-2.5 border rounded-[4px] outline-none focus:ring-2 focus:ring-primary/20 text-sm transition-all ${error ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-primary'}`}
                                     placeholder="e.g. Health & Nutrition"
                                 />
+                                {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
                                 <p className="text-xs text-gray-400 mt-1">A URL-friendly slug will be auto-generated from this name.</p>
                             </div>
 
