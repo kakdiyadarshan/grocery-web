@@ -129,7 +129,7 @@ const Shop = () => {
                                 </div>
                             </section>
 
-                            <section>
+                            {/* <section>
                                 <h3 className="text-[15px] font-bold text-[#1a1a1a] mb-4 flex items-center justify-between uppercase tracking-wider">
                                     Color <ChevronDown size={14} />
                                 </h3>
@@ -138,7 +138,7 @@ const Shop = () => {
                                         <button key={c.id} className="w-6 h-6 rounded-full border border-gray-200 shadow-sm transition-transform hover:scale-110 active:scale-90 ring-offset-2 hover:ring-1 hover:ring-gray-300" style={{ backgroundColor: c.color }} />
                                     ))}
                                 </div>
-                            </section>
+                            </section> */}
 
                             <section>
                                 <h3 className="text-[15px] font-bold text-[#1a1a1a] mb-4 flex items-center justify-between uppercase tracking-wider">
