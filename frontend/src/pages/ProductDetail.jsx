@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import ProductCard from '../component/ProductCard';
+import ProductSlider from '../component/ProductSlider';
+import { allProducts } from '../data/products';
 import { MdKeyboardArrowRight, MdVisibility, MdKeyboardArrowUp, MdKeyboardArrowDown } from "react-icons/md";
 import { AiOutlineHeart, AiFillStar, AiOutlineStar } from "react-icons/ai";
 import { IoIosGitCompare } from "react-icons/io";
@@ -10,6 +13,7 @@ import image4 from '../Image/05_aa60bf65-3569-4105-8cd6-c4c0274d7dab.webp';
 import image5 from '../Image/06.webp';
 import image6 from '../Image/02_4f606a6b-57e8-4991-8605-fa3ba641c0c0.webp';
 import NewsletterImage from '../Image/newsletter.png';
+import Newsletter from '../component/Newsletter';
 
 function ProductDetail() {
     const images = [image1, image2, image3, image4, image5, image6];
@@ -366,153 +370,10 @@ function ProductDetail() {
                 </div>
 
                 {/* Related Products */}
-                <div className='mt-8 pt-4'>
-                    <h2 className="text-3xl font-semibold text-[#31353C] mb-8 border-b border-gray-200 pb-5">Related Products</h2>
-
-                    <div className="grid grid-cols-1 min-[425px]:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
-                        {[
-                            {
-                                id: 1,
-                                title: "Natural & Delicious Red Beetroot Slices",
-                                brand: "Omnilert",
-                                image: image1,
-                                price: "$19.00",
-                                originalPrice: null,
-                                discount: null,
-                                rating: 4
-                            },
-                            {
-                                id: 2,
-                                title: "Curate Mango Mallika Large Premium",
-                                brand: "Fruity-Liscious",
-                                image: image2,
-                                price: "$32.00",
-                                originalPrice: "$35.00",
-                                discount: "-9%",
-                                rating: 4
-                            },
-                            {
-                                id: 3,
-                                title: "Soft Drink 7 Up Lemon Flavour Can, 250 ml",
-                                brand: "BrightFruit",
-                                image: image3,
-                                price: "$12.00",
-                                originalPrice: null,
-                                discount: null,
-                                rating: 0
-                            },
-                            {
-                                id: 4,
-                                title: "Essence Of Malabar Raw Natural Coconut",
-                                brand: "Fruity-Liscious",
-                                image: image4,
-                                price: "$15.00",
-                                originalPrice: null,
-                                discount: null,
-                                rating: 3
-                            },
-                            {
-                                id: 5,
-                                title: "Fresh Standard Quality Babugosha /Nashpati",
-                                brand: "Omnilert",
-                                image: image5,
-                                price: "$36.00",
-                                originalPrice: "$40.00",
-                                discount: "-10%",
-                                rating: 4
-                            }
-                        ].map((product) => (
-                            <div key={product.id} className="group relative bg-white border border-gray-200 rounded-lg p-3 sm:p-4 flex flex-col cursor-pointer transition-all duration-300 hover:border-[#38b47e] hover:shadow-xl hover:shadow-green-50/50">
-                                {/* Discount Badge */}
-                                {product.discount && (
-                                    <span className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 bg-[#FF4F4F] text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
-                                        {product.discount}
-                                    </span>
-                                )}
-
-                                {/* Product Image */}
-                                <div className="h-28 sm:h-44 flex items-center justify-center mb-3 sm:mb-4 overflow-hidden">
-                                    <img
-                                        src={product.image}
-                                        alt={product.title}
-                                        className="max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-110"
-                                    />
-                                </div>
-
-                                {/* Product Info */}
-                                <div className="flex flex-col flex-grow space-y-1 sm:space-y-2">
-                                    <span className="text-[10px] sm:text-sm text-[#8D949C] uppercase tracking-wider font-medium">
-                                        {product.brand}
-                                    </span>
-
-                                    <h3 className="text-sm sm:text-base font-semibold text-[#31353C] leading-tight line-clamp-1 group-hover:text-[#38b47e] transition-colors">
-                                        {product.title}
-                                    </h3>
-
-                                    <div className="flex items-center gap-0.5 sm:gap-1">
-                                        {[...Array(5)].map((_, i) => (
-                                            <AiFillStar
-                                                key={i}
-                                                className={`text-[10px] sm:text-base ${i < product.rating ? "text-[#FFB81C]" : "text-[#E6E8EA]"}`}
-                                            />
-                                        ))}
-                                    </div>
-
-                                    <div className="flex items-baseline gap-1.5 sm:gap-2 mt-auto">
-                                        <span className="text-sm sm:text-base font-semibold text-[#00B880]">
-                                            {product.price}
-                                        </span>
-                                        {product.originalPrice && (
-                                            <span className="text-xs sm:text-base text-[#A2A9B1] line-through font-medium">
-                                                {product.originalPrice}
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+                <ProductSlider title="Related Products" products={allProducts} className="mt-8 pt-4" />
 
                 {/* Newsletter */}
-                <div className="w-full py-6 mt-10">
-                    <div
-                        className="relative overflow-hidden rounded-md bg-[#DDEEE5] bg-no-repeat bg-cover bg-center sm:bg-right min-h-[380px] flex items-center"
-                        style={{ backgroundImage: `url(${NewsletterImage})` }}
-                    >
-                        <div className="relative z-10 p-6 md:p-10 lg:p-20 w-full lg:w-1/2">
-                            {/* LEFT CONTENT */}
-                            <div className="text-left">
-                                {/* Title */}
-                                <h2 className="text-[#253D4E] text-2xl sm:text-3xl font-medium leading-tight">
-                                    Stay Home & Get Your Daily <br className="hidden sm:block" />
-                                    Needs From Our Shop
-                                </h2>
-
-                                {/* Description */}
-                                <p className="text-[#7E7E7E] mt-4 text-sm">
-                                    Subscribe to our latest newsletter to get news about special discounts.
-                                </p>
-
-                                {/* Input + Button */}
-                                <form className="mt-8 flex flex-col sm:flex-row gap-2 sm:gap-0 w-full max-w-md mx-auto md:mx-0 " onSubmit={(e) => e.preventDefault()}>
-                                    <input
-                                        type="email"
-                                        placeholder="Email"
-                                        className="flex-grow px-5 py-3 sm:py-4 rounded-md sm:rounded-none sm:rounded-l-md focus:outline-none text-[var(--text-secondary)] w-full border-none"
-                                        required
-                                    />
-                                    <button
-                                        type="submit"
-                                        className=" cursor-pointer  bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition duration-300 text-[var(--btn-text)] font-semibold px-6 sm:px-8 py-3 sm:py-4 rounded-md sm:rounded-none sm:rounded-r-md whitespace-nowrap"
-                                    >
-                                        Subscribe
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <Newsletter className="w-full pt-6 mt-10" />
 
             </div>
         </div>
