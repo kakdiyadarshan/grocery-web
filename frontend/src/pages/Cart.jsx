@@ -58,7 +58,11 @@ const Cart = () => {
     };
 
     // Calculations
-    const subtotal = cartItems.reduce((acc, item) => acc + (item.productId?.price * item.quantity), 0);
+    const subtotal = cartItems.reduce((acc, item) => {
+        const prod = item.productId;
+        const price = prod?.discountPrice || prod?.weighstWise?.[0]?.price || prod?.price || 0;
+        return acc + (price * item.quantity);
+    }, 0);
     const shippingBase = cartItems.length > 0 ? (subtotal >= 50 ? 0 : 5.99) : 0;
     const shipping = (appliedCoupon?.type === 'shipping') ? 0 : shippingBase;
     const tax = cartItems.length > 0 ? (subtotal * 0.08) : 0; // 8% tax
@@ -105,36 +109,41 @@ const Cart = () => {
                             {cartItems.map((wish) => {
                                 const item = wish.productId;
                                 if (!item) return null;
+                                const prodId = item._id || item;
                                 return (
                                     <div key={wish._id} className="bg-white rounded-md border border-[var(--border)] p-4 sm:p-5 flex flex-col sm:flex-row gap-5 items-start sm:items-center transition-all">
                                         <div className="w-full sm:w-28 h-28 shrink-0 bg-gray-50 rounded-md overflow-hidden border border-gray-100 flex items-center justify-center p-2">
-                                            <img src={item.images?.[0] || item.image || 'https://via.placeholder.com/400'} alt={item.productName || item.name} className="w-full h-full object-cover mix-blend-multiply rounded-md" />
+                                            <img
+                                                src={item.images?.[0]?.url || item.images?.[0] || item.image || item.image?.[0] || 'https://via.placeholder.com/400'}
+                                                alt={item.name || item.productName || 'Product'}
+                                                className="w-full h-full object-contain mix-blend-multiply rounded-md"
+                                            />
                                         </div>
 
                                         <div className="flex-1 w-full flex flex-col justify-between">
                                             <div className="flex justify-between items-start gap-4">
                                                 <div>
                                                     <span className="text-[10px] font-bold text-[var(--primary)] uppercase tracking-wider bg-[var(--primary-light)] px-2.5 py-1 rounded-sm mb-2 inline-block">
-                                                        {typeof item.category === 'string' ? item.category : item.category?.categoryName}
+                                                        {item.category?.categoryName || (typeof item.category === 'string' ? item.category : 'General')}
                                                     </span>
-                                                    <h3 className="font-bold text-[var(--text-primary)] text-lg mb-1 leading-tight"><Link to={`/product/${item._id}`} className="hover:text-[var(--primary)] transition-colors">{item.productName || item.name}</Link></h3>
-                                                    <p className="text-[var(--text-secondary)] font-medium">${item.price} each</p>
+                                                    <h3 className="font-bold text-[var(--text-primary)] text-lg mb-1 leading-tight"><Link to={`/product/${item._id}`} className="hover:text-[var(--primary)] transition-colors">{item.name || item.productName}</Link></h3>
+                                                    <p className="text-[var(--text-secondary)] font-medium">₹{item.discountPrice || item.weighstWise?.[0]?.price || item.price || 0} each</p>
                                                 </div>
-                                                <span className="font-bold text-xl text-[var(--text-primary)]">${(item.price * wish.quantity).toFixed(2)}</span>
+                                                <span className="font-bold text-xl text-[var(--text-primary)]">₹{((item.discountPrice || item.weighstWise?.[0]?.price || item.price || 0) * wish.quantity).toFixed(2)}</span>
                                             </div>
 
                                             <div className="flex items-center justify-between mt-5 pt-4 border-t border-[var(--border)] border-dashed">
                                                 <div className="flex items-center border border-gray-200 rounded-sm overflow-hidden">
-                                                    <button onClick={() => handleUpdateQuantity(item._id, wish.quantity - 1)} className="w-9 h-9 flex items-center justify-center text-gray-500 hover:bg-white hover:text-[var(--primary)] transition-colors">
+                                                    <button onClick={() => handleUpdateQuantity(prodId, wish.quantity - 1)} className="w-9 h-9 flex items-center justify-center text-gray-500 hover:bg-white hover:text-[var(--primary)] transition-colors">
                                                         <Minus size={14} strokeWidth={2.5} />
                                                     </button>
                                                     <input type="text" readOnly value={wish.quantity} className="w-10 h-9 bg-transparent text-center font-bold text-[var(--text-primary)] text-sm focus:outline-none" />
-                                                    <button onClick={() => handleUpdateQuantity(item._id, wish.quantity + 1)} className="w-9 h-9 flex items-center justify-center text-gray-500 hover:bg-white hover:text-[var(--primary)] transition-colors">
+                                                    <button onClick={() => handleUpdateQuantity(prodId, wish.quantity + 1)} className="w-9 h-9 flex items-center justify-center text-gray-500 hover:bg-white hover:text-[var(--primary)] transition-colors">
                                                         <Plus size={14} strokeWidth={2.5} />
                                                     </button>
                                                 </div>
 
-                                                <button onClick={() => handleRemoveFromCart(item._id)} className="flex items-center gap-1.5 text-sm font-[500] text-red-500 hover:text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors">
+                                                <button onClick={() => handleRemoveFromCart(prodId)} className="flex items-center gap-1.5 text-sm font-[500] text-red-500 hover:text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors">
                                                     <Trash2 size={16} /> <span className="hidden sm:inline">Remove</span>
                                                 </button>
                                             </div>
@@ -238,18 +247,18 @@ const Cart = () => {
                                 <div className="space-y-4 text-sm font-medium mb-6">
                                     <div className="flex justify-between text-[var(--text-secondary)]">
                                         <span>Subtotal ({cartItems.length} items)</span>
-                                        <span className="text-[var(--text-primary)]">${subtotal.toFixed(2)}</span>
+                                        <span className="text-[var(--text-primary)]">₹{subtotal.toFixed(2)}</span>
                                     </div>
                                     <div className="flex justify-between text-[var(--text-secondary)]">
                                         <span>Estimated Tax (8%)</span>
-                                        <span className="text-[var(--text-primary)]">${tax.toFixed(2)}</span>
+                                        <span className="text-[var(--text-primary)]">₹{tax.toFixed(2)}</span>
                                     </div>
                                     <div className="flex justify-between text-[var(--text-secondary)]">
                                         <span>Shipping</span>
                                         {shipping === 0 ? (
                                             <span className="text-[var(--primary)] font-bold">Free</span>
                                         ) : (
-                                            <span className="text-[var(--text-primary)]">${shipping.toFixed(2)}</span>
+                                            <span className="text-[var(--text-primary)]">₹{shipping.toFixed(2)}</span>
                                         )}
                                     </div>
                                     {couponDiscount > 0 && (
@@ -257,7 +266,7 @@ const Cart = () => {
                                             <span className="flex items-center gap-1">
                                                 <Tag size={12} /> Coupon ({appliedCoupon.code})
                                             </span>
-                                            <span className="font-bold">-${couponDiscount.toFixed(2)}</span>
+                                            <span className="font-bold">-₹{couponDiscount.toFixed(2)}</span>
                                         </div>
                                     )}
                                     {appliedCoupon?.type === 'shipping' && shippingBase > 0 && (
@@ -273,9 +282,9 @@ const Cart = () => {
                                 <div className="border-t border-[var(--border)] pt-4 mb-6">
                                     <div className="flex justify-between items-center">
                                         <span className="text-lg font-bold text-[var(--text-primary)]">Total</span>
-                                        <span className="text-2xl font-bold text-[var(--text-primary)]">${total.toFixed(2)}</span>
+                                        <span className="text-2xl font-bold text-[var(--text-primary)]">₹{total.toFixed(2)}</span>
                                     </div>
-                                    <p className="text-xs text-[var(--text-secondary)] mt-1.5 text-right">Pre-tax currency USD</p>
+                                    <p className="text-xs text-[var(--text-secondary)] mt-1.5 text-right">Pre-tax currency INR</p>
                                 </div>
 
                                 <button className="w-full flex items-center justify-center gap-2 py-4 bg-[var(--primary)] text-white rounded-md font-[500] text-lg hover:bg-[var(--primary-hover)] transition-all duration-300 shadow-md shadow-[var(--primary)]/20 active:scale-95 mb-4 border border-transparent">

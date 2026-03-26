@@ -61,7 +61,11 @@ const Wishlist = () => {
                             return (
                                 <div key={wish._id} className="rounded-md border border-[var(--border)] overflow-hidden group transition-all duration-300 transform">
                                     <div className="relative h-56 overflow-hidden flex items-center justify-center p-4">
-                                        <img src={item.images?.[0] || item.image || 'https://via.placeholder.com/400'} alt={item.productName || item.name} className="w-full h-full object-cover mix-blend-multiply transition-transform duration-500 rounded-lg" />
+                                        <img
+                                            src={item.images?.[0]?.url || item.images?.[0] || item.image || item.image?.[0] || 'https://via.placeholder.com/400'}
+                                            alt={item.name || item.productName || 'Product'}
+                                            className="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 rounded-lg"
+                                        />
                                         <button
                                             onClick={() => handleRemoveFromWishlist(item._id)}
                                             className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm text-red-500 rounded-full transition-colors duration-300 border border-red-50"
@@ -78,13 +82,13 @@ const Wishlist = () => {
                                     <div className="p-5">
                                         {item.category && (
                                             <span className="text-[10px] font-bold text-[var(--primary)] uppercase tracking-wider bg-[var(--primary-light)] px-2 py-1 rounded-md">
-                                                {typeof item.category === 'string' ? item.category : item.category.categoryName}
+                                                {item.category?.categoryName || (typeof item.category === 'string' ? item.category : 'General')}
                                             </span>
                                         )}
-                                        <h3 className="font-[500] text-[var(--text-primary)] text-lg mt-3 mb-1 line-clamp-1 group-hover:text-[var(--primary)] transition-colors">{item.productName || item.name}</h3>
+                                        <h3 className="font-[500] text-[var(--text-primary)] text-lg mt-3 mb-1 line-clamp-1 group-hover:text-[var(--primary)] transition-colors">{item.name || item.productName || 'No Name'}</h3>
 
                                         <div className="flex items-center justify-between mt-2">
-                                            <span className="text-lg font-bold text-[var(--text-primary)]">${item.price}</span>
+                                            <span className="text-lg font-bold text-[var(--text-primary)]">₹{item.discountPrice || item.weighstWise?.[0]?.price || item.price || 0}</span>
                                         </div>
 
                                         <button
