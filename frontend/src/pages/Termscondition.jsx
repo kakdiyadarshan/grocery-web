@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getAllTerms } from '../redux/slice/terms.slice';
 import Subscribe from './Subscribe';
 import { Link } from 'react-router-dom';
+import Newsletter from '../component/Newsletter';
 
 const Termscondition = () => {
 
@@ -43,7 +44,10 @@ const Termscondition = () => {
                     </div>
                 </div>
 
-                <Subscribe />
+                {/* <Subscribe /> */}
+
+                {/* Newsletter */}
+                <Newsletter className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-4 py-4 sm:py-6 md:py-8 pt-6 mt-8" />
             </div>
         </>
     );

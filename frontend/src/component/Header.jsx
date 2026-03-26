@@ -7,10 +7,13 @@ import Cart from './Cart';
 import { getCart } from '../redux/slice/cart.slice';
 import { getWishlist } from '../redux/slice/wishlist.slice';
 
+import { getAllCategories } from '../redux/slice/category.slice';
+
 const Header = () => {
   const dispatch = useDispatch();
   const { cart } = useSelector((state) => state.cart);
   const { wishlist } = useSelector((state) => state.wishlist);
+  const { categories } = useSelector((state) => state.category);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
@@ -21,6 +24,7 @@ const Header = () => {
   useEffect(() => {
     dispatch(getCart());
     dispatch(getWishlist());
+    dispatch(getAllCategories());
   }, [dispatch]);
 
   useEffect(() => {
@@ -172,26 +176,13 @@ const Header = () => {
                 {isCategoryMenuOpen && (
                   <div className="absolute top-full left-0 w-[240px] sm:w-[260px] bg-white border border-gray-100 shadow-xl rounded-b py-2 text-[var(--text-gray)]">
                     <ul className="flex flex-col">
-                      <li>
-                        <Link to="/" className="flex items-center justify-between px-5 py-2.5 hover:bg-gray-50 hover:text-[var(--primary)] transition-colors">
-                          <span className="text-[14.5px]">Chips & Namkeens</span>
-                        </Link>
-                      </li>
-                      <li>
-                        <Link to="/" className="block px-5 py-2.5 hover:bg-gray-50 hover:text-[var(--primary)] transition-colors text-[14.5px]">Vegetables</Link>
-                      </li>
-                      <li>
-                        <Link to="/" className="block px-5 py-2.5 hover:bg-gray-50 hover:text-[var(--primary)] transition-colors text-[14.5px]">Fruits</Link>
-                      </li>
-                      <li>
-                        <Link to="/" className="block px-5 py-2.5 hover:bg-gray-50 hover:text-[var(--primary)] transition-colors text-[14.5px]">Dry fruits</Link>
-                      </li>
-                      <li>
-                        <Link to="/" className="block px-5 py-2.5 hover:bg-gray-50 hover:text-[var(--primary)] transition-colors text-[14.5px]">Bakery & Snacks</Link>
-                      </li>
-                      <li>
-                        <Link to="/" className="block px-5 py-2.5 hover:bg-gray-50 hover:text-[var(--primary)] transition-colors text-[14.5px]">Ice Cream & Frozen</Link>
-                      </li>
+                      {categories?.length > 0 && categories.map((category) => (
+                        <li key={category._id}>
+                          <Link to={`/category/${category._id}`} className="flex items-center justify-between px-5 py-2.5 hover:bg-gray-50 hover:text-[var(--primary)] transition-colors">
+                            <span className="text-[14.5px]">{category.categoryName}</span>
+                          </Link>
+                        </li>
+                      ))}
                     </ul>
                   </div>
                 )}

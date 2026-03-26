@@ -3,12 +3,7 @@ import BannerSlider from '../component/BannerSlider';
 import ProductCard from '../component/ProductCard';
 import ProductSlider from '../component/ProductSlider';
 import { allProducts } from '../data/products';
-import cat1 from '../Image/cat1.png';
-import cat2 from '../Image/cat2.png';
-import cat3 from '../Image/cat3.png';
-import cat4 from '../Image/cat4.png';
-import cat5 from '../Image/cat5.png';
-import cat6 from '../Image/cat6.png';
+
 import subbanner1 from '../Image/sub-banner-1.png';
 import subbanner2 from '../Image/sub-banner-2.png';
 import subbanner3 from '../Image/sub-banner-3.png';
@@ -17,13 +12,36 @@ import cmsbanner2 from '../Image/cms-banner-2.png';
 import bannerImg from '../Image/banner-img.jpg';
 import Newsletter from '../component/Newsletter';
 
+import { getAllCategories } from '../redux/slice/category.slice';
+import { useDispatch, useSelector } from 'react-redux';
+
+import { getAllProducts } from '../redux/slice/product.slice';
+
 
 function Home() {
+  const dispatch = useDispatch();
+  const { categories: apiCategories } = useSelector((state) => state.category);
+  const { products: apiProducts } = useSelector((state) => state.product);
+
+  useEffect(() => {
+    dispatch(getAllCategories());
+    dispatch(getAllProducts());
+  }, [dispatch]);
+
   const scrollRef = useRef(null);
-  const [activeTab, setActiveTab] = useState('Fresh Fruits');
   const [isPending, setIsPending] = useState(false);
 
-  const categories = ['Fresh Fruits', 'Milk & Dairies', 'Vegetables'];
+  const categories = apiCategories?.length > 0
+    ? apiCategories.slice(0, 3).map(c => c.categoryName)
+    : ['Fresh Fruits', 'Milk & Dairies', 'Vegetables'];
+
+  const [activeTab, setActiveTab] = useState(categories[0]);
+
+  useEffect(() => {
+    if (apiCategories?.length > 0) {
+      setActiveTab(apiCategories[0].categoryName);
+    }
+  }, [apiCategories]);
 
   const handleTabChange = (category) => {
     if (category === activeTab) return;
@@ -34,7 +52,11 @@ function Home() {
     }, 200);
   };
 
-  const filteredProducts = allProducts.filter(product => product.category === activeTab);
+  const filteredProducts = apiProducts?.length > 0 ? apiProducts.filter(product => {
+    const catName = typeof product.category === 'object' ? product.category?.categoryName : product.category;
+    return catName === activeTab;
+  }) : [];
+  console.log("filteredProducts", filteredProducts);
 
   useEffect(() => {
     const setupDragScroll = (el) => {
@@ -119,28 +141,15 @@ function Home() {
 
             <div
               ref={scrollRef}
-              className='flex overflow-x-auto no-scrollbar pb-6 gap-6 md:gap-10 lg:gap-14 px-5 sm:px-8 scroll-smooth w-full cursor-grab'
+              className='flex overflow-x-auto no-scrollbar pt-4 pb-6 gap-6 md:gap-10 lg:gap-14 px-5 sm:px-8 scroll-smooth w-full cursor-grab'
             >
-              {[
-                { name: 'Vegetables', img: cat1 },
-                { name: 'Fresh Fruit', img: cat2 },
-                { name: 'Baking', img: cat3 },
-                { name: 'Drinks', img: cat4 },
-                { name: 'Cheese', img: cat5 },
-                { name: 'Milk', img: cat6 },
-                { name: 'Vegetables', img: cat1 },
-                { name: 'Fresh Fruit', img: cat2 },
-                { name: 'Baking', img: cat3 },
-                { name: 'Drinks', img: cat4 },
-                { name: 'Cheese', img: cat5 },
-                { name: 'Milk', img: cat6 },
-              ].map((category, index) => (
-                <div key={index} className='group cursor-pointer text-center flex-shrink-0'>
+              {apiCategories?.map((category, index) => (
+                <div key={category._id || index} className='group cursor-pointer text-center flex-shrink-0'>
                   <div className='w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden shadow-sm transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl group-hover:shadow-green-100 mb-3'>
-                    <img src={category.img} alt={category.name} className='w-full h-full object-cover transition-transform duration-500 group-hover:scale-110' />
+                    <img src={category.categoryImage?.url} alt={category.categoryName} className='w-full h-full object-cover transition-transform duration-500 group-hover:scale-110' />
                   </div>
                   <span className='text-sm sm:text-base font-semibold text-gray-700 group-hover:text-[#38b47e] transition-colors'>
-                    {category.name}
+                    {category.categoryName}
                   </span>
                 </div>
               ))}
@@ -188,8 +197,8 @@ function Home() {
                     key={category}
                     onClick={() => handleTabChange(category)}
                     className={`text-sm sm:text-base font-medium transition-all duration-300 relative pb-1 ${activeTab === category
-                      ? "text-[#38b47e] after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-[#38b47e]"
-                      : "text-gray-500 hover:text-[#38b47e]"
+                      ? "text-[var(--primary-hover)] after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-[var(--primary-hover)]"
+                      : "text-gray-500 hover:text-[var(--primary-hover)]"
                       }`}
                   >
                     {category}
@@ -200,7 +209,7 @@ function Home() {
 
             <div className={`grid grid-cols-1 min-[425px]:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 transition-all duration-300 ${isPending ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}>
               {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product._id || product.id} product={product} />
               ))}
             </div>
           </div>
@@ -233,7 +242,7 @@ function Home() {
                   <h3 className={`text-xl sm:text-2xl lg:text-2xl font-semibold ${banner.accentColor} mb-6 sm:mb-8 max-w-[180px] sm:max-w-[280px] leading-tight`}>
                     {banner.title}
                   </h3>
-                  <button className='bg-[#38b47e] text-white px-5 py-2.5 sm:py-2.5 rounded-md font-medium text-sm sm:text-base transition-all duration-300 hover:bg-[#2e3d30] transform active:scale-95 shadow-md'>
+                  <button className='bg-[var(--primary)] text-white px-5 py-2.5 sm:py-2.5 rounded-md font-medium text-sm sm:text-base transition-all duration-300 hover:bg-[var(--primary-hover)] transform active:scale-95 shadow-md'>
                     Shop Now
                   </button>
                 </div>
@@ -254,17 +263,17 @@ function Home() {
 
           {/* Content Wrapper to align text with the rest of the site */}
           <div className="relative z-10 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-4 w-full">
-            <p className="text-sm sm:text-xl md:text-2xl font-medium text-[#79a206] uppercase tracking-wider mb-5">UP TO 35% OFF</p>
+            <p className="text-sm sm:text-xl md:text-2xl font-medium text-[var(--primary)] uppercase tracking-wider mb-5">UP TO 35% OFF</p>
 
             <h2 className="text-2xl sm:text-4xl lg:text-5xl font-medium text-[#252525] leading-[1.15] mb-6 max-w-[500px]">
               Fresh Organic Food <br /> Health Benefits
             </h2>
 
             <p className="text-base sm:text-xl md:text-2xl text-[#333333] mb-6 font-medium">
-              Starting At Only <span className="text-[#79a206]">$59.00</span>
+              Starting At Only <span className="text-[var(--primary)]">$59.00</span>
             </p>
 
-            <button className='bg-[#79a206]  text-white px-5 py-2.5 sm:py-2.5 rounded-md font-medium text-sm sm:text-base transition-all duration-300 hover:bg-[#5d7d04] transform active:scale-95 shadow-md'>
+            <button className='bg-[var(--primary)] text-white px-5 py-2.5 sm:py-2.5 rounded-md font-medium text-sm sm:text-base transition-all duration-300 hover:bg-[var(--primary-hover)] transform active:scale-95 shadow-md'>
               Shop Now
             </button>
           </div>
