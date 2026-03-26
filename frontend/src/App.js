@@ -53,7 +53,6 @@ function App() {
           <Route path="/my-order" element={<MyOrder />} />
           <Route path='/order-tracking' element={<OrderTracking />} />
           <Route path='/order-completed' element={<OrderCompleted />} />
-          <Route path='/invoice' element={<InvoicePage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/category" element={<Shop />} />
