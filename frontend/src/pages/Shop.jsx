@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { ChevronDown, ChevronRight, Grid, List, RotateCcw, Search, SlidersHorizontal, Star, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Eye, Grid, Heart, List, ShoppingCart, SlidersHorizontal, Star, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getAllProducts } from '../redux/slice/product.slice';
 import { addToCart } from '../redux/slice/cart.slice';
@@ -8,31 +8,16 @@ import { addToWishlist } from '../redux/slice/wishlist.slice';
 
 const Shop = () => {
     const dispatch = useDispatch();
-    const { products, loading } = useSelector((state) => state.product);
+    const { products = [], loading = false } = useSelector((state) => state.product || {});
 
     const [viewType, setViewType] = useState('grid');
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [sortBy, setSortBy] = useState('alphabetical-az');
 
-    // Filter states
-    const [availability, setAvailability] = useState([]);
-    const [priceRange, setPriceRange] = useState({ min: '', max: '' });
-    const [selectedColors, setSelectedColors] = useState([]);
-    const [selectedWeights, setSelectedWeights] = useState([]);
-    const [selectedTypes, setSelectedTypes] = useState([]);
-    const [selectedBrands, setSelectedBrands] = useState([]);
-
     useEffect(() => {
         dispatch(getAllProducts());
     }, [dispatch]);
 
-    const handleAddToCart = (productId) => {
-        dispatch(addToCart({ productId, quantity: 1 }));
-    };
-
-    const handleAddToWishlist = (productId) => {
-        dispatch(addToWishlist(productId));
-    };
 
     // Placeholder data for filters based on image
     const filters = {
@@ -129,7 +114,7 @@ const Shop = () => {
                                 </div>
                             </section>
 
-                            <section>
+                            {/* <section>
                                 <h3 className="text-[15px] font-bold text-[#1a1a1a] mb-4 flex items-center justify-between uppercase tracking-wider">
                                     Color <ChevronDown size={14} />
                                 </h3>
@@ -138,7 +123,7 @@ const Shop = () => {
                                         <button key={c.id} className="w-6 h-6 rounded-full border border-gray-200 shadow-sm transition-transform hover:scale-110 active:scale-90 ring-offset-2 hover:ring-1 hover:ring-gray-300" style={{ backgroundColor: c.color }} />
                                     ))}
                                 </div>
-                            </section>
+                            </section> */}
 
                             <section>
                                 <h3 className="text-[15px] font-bold text-[#1a1a1a] mb-4 flex items-center justify-between uppercase tracking-wider">
@@ -246,92 +231,98 @@ const Shop = () => {
                                 ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
                                 : "flex flex-col gap-6"
                             }>
-                                {products.map((product) => (
-                                    <div key={product._id} className={`group bg-white rounded-xl border border-gray-100 hover:border-[var(--primary)]/20 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-500 overflow-hidden relative ${viewType === 'list' ? 'flex flex-col md:flex-row md:items-center' : 'flex flex-col'}`}>
+                                {products.map((product) => {
+                                    const minPrice = product.weighstWise?.length > 0
+                                        ? Math.min(...product.weighstWise.map(w => Number(w.price) || 0))
+                                        : 0;
+                                    const hasDiscount = product.discountPrice > 0 && product.discountPrice < minPrice;
+                                    const outOfStock = product.weighstWise?.every(w => w.stock <= 0);
+                                    const avgRating = product.reviews?.length > 0
+                                        ? product.reviews.reduce((acc, rev) => acc + (rev.rating || 0), 0) / product.reviews.length
+                                        : 0;
 
-                                        {/* ── Badge ── */}
-                                        <div className="absolute top-3 left-3 z-[10] flex flex-col gap-1.5">
-                                            {product.discountPrice < product.price && product.discountPrice > 0 && (
-                                                <span className="bg-red-500 text-white text-[10px] sm:text-[11px] font-black px-2.5 py-1 rounded shadow-sm uppercase tracking-tighter">
-                                                    Sale
+                                    return (
+                                        <div key={product._id} className={`group relative bg-white border border-gray-200 rounded-lg p-3 sm:p-4 flex flex-col cursor-pointer transition-all duration-300 hover:border-[#38b47e] hover:shadow-xl hover:shadow-green-50/50 ${viewType === 'list' ? 'flex flex-col md:flex-row md:items-center' : ''}`}>
+
+                                            {/* Discount Badge */}
+                                            {hasDiscount && (
+                                                <span className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 bg-[#FF4F4F] text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
+                                                    -{Math.round(((minPrice - product.discountPrice) / minPrice) * 100)}%
                                                 </span>
                                             )}
-                                            {!product.stock && (
-                                                <span className="bg-[#1a1a1a] text-white text-[10px] sm:text-[11px] font-black px-2.5 py-1 rounded shadow-sm uppercase tracking-tighter">
-                                                    Sold Out
-                                                </span>
-                                            )}
-                                        </div>
 
-                                        {/* ── Image Container ── */}
-                                        <div className={`relative bg-[#f9fafb] flex items-center justify-center p-6 overflow-hidden transition-colors group-hover:bg-white ${viewType === 'list' ? 'w-full md:w-[240px] aspect-square shrink-0' : 'aspect-[4/4]'}`}>
-                                            <Link to={`/product-details/${product._id}`} className="w-full h-full flex items-center justify-center">
-                                                <img
-                                                    src={product.images?.[0] || product.image || 'https://via.placeholder.com/400?text=No+Image'}
-                                                    alt={product.productName}
-                                                    className="max-w-full max-h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-700 ease-in-out"
-                                                />
-                                            </Link>
+                                            {/* Product Image */}
+                                            <div className={`relative h-28 sm:h-44 flex items-center justify-center mb-3 sm:mb-4 overflow-hidden ${viewType === 'list' ? 'w-full md:w-[220px] aspect-square shrink-0' : ''}`}>
+                                                <Link to={`/product-details/${product._id}`} className="w-full h-full flex items-center justify-center">
+                                                    <img
+                                                        src={product.images?.[0]?.url || 'https://via.placeholder.com/400?text=No+Image'}
+                                                        alt={product.name}
+                                                        className="max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-110"
+                                                    />
+                                                </Link>
 
-                                            {/* Hover Actions */}
-                                            <div className="absolute inset-x-0 bottom-4 flex justify-center gap-2 translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                                                <button
-                                                    onClick={() => handleAddToWishlist(product._id)}
-                                                    className="w-10 h-10 bg-white shadow-md rounded-full flex items-center justify-center text-[#1a1a1a] hover:bg-[var(--primary)] hover:text-white transition-all transform hover:scale-110 active:scale-90"
-                                                    title="Add to Wishlist"
-                                                >
-                                                    <RotateCcw size={18} strokeWidth={2.5} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleAddToCart(product._id)}
-                                                    disabled={!product.stock}
-                                                    className={`w-10 h-10 bg-white shadow-md rounded-full flex items-center justify-center text-[#1a1a1a] transition-all transform hover:scale-110 active:scale-90 ${product.stock ? 'hover:bg-[var(--primary)] hover:text-white' : 'opacity-50 cursor-not-allowed'}`}
-                                                    title="Add to Cart"
-                                                >
-                                                    <Search size={18} strokeWidth={2.5} />
-                                                </button>
+                                                {/* Vertical Action Buttons (Hover) */}
+                                                <div className="absolute top-0 right-0 flex flex-col gap-2 translate-x-12 group-hover:translate-x-0 opacity-0 group-hover:opacity-100 transition-all duration-300 z-20">
+                                                    <button
+                                                        onClick={() => dispatch(addToWishlist(product._id))}
+                                                        className="w-8 h-8 bg-white shadow-md rounded-full flex items-center justify-center text-gray-600 hover:bg-[#38b47e] hover:text-white transition-all transform hover:scale-110"
+                                                        title="Add to Wishlist"
+                                                    >
+                                                        <Heart size={14} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => dispatch(addToCart({ productId: product._id, quantity: 1 }))}
+                                                        className="w-8 h-8 bg-white shadow-md rounded-full flex items-center justify-center text-gray-600 hover:bg-[#38b47e] hover:text-white transition-all transform hover:scale-110"
+                                                        title="Add to Cart"
+                                                    >
+                                                        <ShoppingCart size={14} />
+                                                    </button>
+                                                    <Link
+                                                        to={`/product-details/${product._id}`}
+                                                        className="w-8 h-8 bg-white shadow-md rounded-full flex items-center justify-center text-gray-600 hover:bg-[#38b47e] hover:text-white transition-all transform hover:scale-110"
+                                                        title="View Details"
+                                                    >
+                                                        <Eye size={14} />
+                                                    </Link>
+                                                </div>
                                             </div>
-                                        </div>
 
-                                        {/* ── Product Info ── */}
-                                        <div className={`p-4 sm:p-5 flex flex-col flex-1 ${viewType === 'list' ? 'md:pl-2' : ''}`}>
-                                            <div className="mb-auto">
-                                                <span className="text-[10px] sm:text-[11px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-1.5 block">
-                                                    {typeof product.category === 'string' ? product.category : product.category?.categoryName || 'Fresh Fruits'}
+                                            {/* Product Info */}
+                                            <div className="flex flex-col flex-grow space-y-1 sm:space-y-2">
+                                                <span className="text-[10px] sm:text-xs text-[#8D949C] uppercase tracking-wider font-semibold">
+                                                    {product.category?.categoryName || 'GENERAL'}
                                                 </span>
-                                                <h3 className="text-[15px] sm:text-[17px] font-extrabold text-[#1a1a1a] leading-snug mb-2 group-hover:text-[var(--primary)] transition-colors line-clamp-2">
-                                                    <Link to={`/product-details/${product._id}`}>{product.productName}</Link>
+
+                                                <h3 className="text-sm sm:text-base font-bold text-[#31353C] leading-tight line-clamp-1 group-hover:text-[#38b47e] transition-colors">
+                                                    <Link to={`/product-details/${product._id}`}>{product.name}</Link>
                                                 </h3>
 
-                                                {/* Ratings */}
-                                                <div className="flex items-center gap-0.5 mb-4">
-                                                    {[1, 2, 3, 4, 5].map(star => (
+                                                <div className="flex items-center gap-0.5 sm:gap-1">
+                                                    {[...Array(5)].map((_, i) => (
                                                         <Star
-                                                            key={star}
+                                                            key={i}
                                                             size={14}
-                                                            fill={star <= 4 ? "currentColor" : "none"}
-                                                            className={star <= 4 ? "text-yellow-400" : "text-gray-200"}
+                                                            fill={i < Math.round(avgRating || 4) ? "#FFB81C" : "none"}
+                                                            className={i < Math.round(avgRating || 4) ? "text-[#FFB81C]" : "text-[#E6E8EA]"}
                                                         />
                                                     ))}
+                                                    <span className="text-[10px] text-gray-400 ml-1">({product.reviews?.length || 0})</span>
                                                 </div>
-                                            </div>
 
-                                            {/* Price & Action */}
-                                            <div className="flex items-end justify-between">
-                                                <div className="flex flex-col">
-                                                    {product.discountPrice > 0 && product.discountPrice < product.price && (
-                                                        <span className="text-[12px] sm:text-[13px] font-bold text-gray-300 line-through mb-0.5">
-                                                            ${(Number(product.price) || 0).toFixed(2)}
+                                                <div className="flex items-baseline gap-1.5 sm:gap-2 mt-auto">
+                                                    <span className="text-sm sm:text-lg font-bold text-[#38b47e]">
+                                                        ₹{(Number(product.discountPrice || minPrice) || 0).toFixed(2)}
+                                                    </span>
+                                                    {hasDiscount && (
+                                                        <span className="text-xs sm:text-sm text-[#A2A9B1] line-through font-medium">
+                                                            ₹{minPrice.toFixed(2)}
                                                         </span>
                                                     )}
-                                                    <span className="text-[18px] sm:text-[20px] font-black text-[var(--primary)] leading-none">
-                                                        ${(Number(product.discountPrice || product.price) || 0).toFixed(2)}
-                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
 

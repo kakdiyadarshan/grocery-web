@@ -1,8 +1,5 @@
 const Subscribe = require('../models/subscribe.model');
 
-// @desc    Add new subscriber
-// @route   POST /api/subscribe
-// @access  Public
 exports.addSubscriber = async (req, res) => {
     try {
         const { email } = req.body;
@@ -23,9 +20,6 @@ exports.addSubscriber = async (req, res) => {
     }
 };
 
-// @desc    Get all subscribers
-// @route   GET /api/all-subscribers
-// @access  Admin
 exports.getAllSubscribers = async (req, res) => {
     try {
         const subscribers = await Subscribe.find({}).sort({ createdAt: -1 });
@@ -35,9 +29,6 @@ exports.getAllSubscribers = async (req, res) => {
     }
 };
 
-// @desc    Delete a subscriber
-// @route   DELETE /api/delete-subscriber/:id
-// @access  Admin
 exports.deleteSubscriber = async (req, res) => {
     try {
         const subscriber = await Subscribe.findByIdAndDelete(req.params.id);

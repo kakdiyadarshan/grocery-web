@@ -2,11 +2,11 @@ import React from 'react';
 import { FaLeaf, FaHandHoldingUsd, FaRecycle, FaHandHoldingWater, FaShoppingBasket, FaPiggyBank } from 'react-icons/fa';
 import Subscribe from './Subscribe';
 import { Link } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, CreditCard, Sparkles, ShieldCheck, Timer } from 'lucide-react';
 
 export default function About() {
   return (
-    <div className="min-h-screen bg-[var(--bg-main)] px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen  px-4 sm:px-6 lg:px-8">
       {/* Breadcrumb / Page Title */}
       <div className="bg-gray-50 py-8 border-b border-gray-100">
         <div className="container mx-auto">
@@ -52,7 +52,7 @@ export default function About() {
           {/* Text Content */}
           <div className="w-full lg:w-1/2 flex flex-col justify-center">
            
-            <h2 className="text-3xl lg:text-4xl font-bold text-green-700 mb-6">
+            <h2 className="text-3xl lg:text-4xl font-bold text-[var(--text-primary)] mb-6">
               Fresh, Healthy, and Delivered!
             </h2>
             <p className="text-[var(--text-secondary)] text-lg leading-relaxed mb-4">
@@ -69,9 +69,66 @@ export default function About() {
         </div>
       </div>
 
+       {/* Service Highlights Section */}
+      <div className="w-full mb-16 py-10 px-6 sm:px-12 bg-[#f4f9fc] border border-blue-50/50">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+          {/* Item 1 */}
+          <div className="flex items-center gap-5 group">
+            <div className="flex-shrink-0 w-14 h-14 flex items-center justify-center bg-white rounded-2xl shadow-sm text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 transform group-hover:-translate-y-1">
+              <CreditCard className="w-7 h-7" />
+            </div>
+            <div>
+              <h4 className="font-bold text-[#1e5066] text-[17px]">Online Payment</h4>
+              <p className="text-gray-500 text-[13px] font-medium leading-tight mt-1">
+                Safe & Secure Transactions
+              </p>
+            </div>
+          </div>
+
+          {/* Item 2 */}
+          <div className="flex items-center gap-5 group">
+            <div className="flex-shrink-0 w-14 h-14 flex items-center justify-center bg-white rounded-2xl shadow-sm text-amber-500 group-hover:bg-amber-500 group-hover:text-white transition-all duration-300 transform group-hover:-translate-y-1">
+              <Sparkles className="w-7 h-7" />
+            </div>
+            <div>
+              <h4 className="font-bold text-[#1e5066] text-[17px]">Fresh stocks and sales</h4>
+              <p className="text-gray-500 text-[13px] font-medium leading-tight mt-1">
+                Daily fresh arrivals & deals
+              </p>
+            </div>
+          </div>
+
+          {/* Item 3 */}
+          <div className="flex items-center gap-5 group">
+            <div className="flex-shrink-0 w-14 h-14 flex items-center justify-center bg-white rounded-2xl shadow-sm text-green-600 group-hover:bg-green-600 group-hover:text-white transition-all duration-300 transform group-hover:-translate-y-1">
+              <ShieldCheck className="w-7 h-7" />
+            </div>
+            <div>
+              <h4 className="font-bold text-[#1e5066] text-[17px]">Quality assurance</h4>
+              <p className="text-gray-500 text-[13px] font-medium leading-tight mt-1">
+                100% Premium quality check
+              </p>
+            </div>
+          </div>
+
+          {/* Item 4 */}
+          <div className="flex items-center gap-5 group">
+            <div className="flex-shrink-0 w-14 h-14 flex items-center justify-center bg-white rounded-2xl shadow-sm text-red-500 group-hover:bg-red-500 group-hover:text-white transition-all duration-300 transform group-hover:-translate-y-1">
+              <Timer className="w-7 h-7" />
+            </div>
+            <div>
+              <h4 className="font-bold text-[#1e5066] text-[17px]">Delivery within 1 hour</h4>
+              <p className="text-gray-500 text-[13px] font-medium leading-tight mt-1">
+                Super fast doorstep delivery
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Why Choose Us Section */}
       <div className="w-full mb-16 ">
-        <h2 className="text-3xl font-bold text-center text-green-700 mb-12">
+        <h2 className="text-3xl font-bold text-center text-[var(--text-primary)] mb-12">
           Why Choose us?
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-x-12 lg:gap-x-24 gap-y-10">
@@ -156,6 +213,8 @@ export default function About() {
 
         </div>
       </div>
+
+     
 
       {/* Subscribe Section */}
       <Subscribe />

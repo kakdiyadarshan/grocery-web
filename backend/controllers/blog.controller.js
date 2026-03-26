@@ -150,12 +150,8 @@ const getBlogByIdController = async (req, res) => {
 const updateBlogController = async (req, res) => {
     try {
         const { blogId } = req.params;
-        const blogCategoryId = req.body?.blogCategoryId;
-        const blogTitle = req.body?.blogTitle;
-        const blogDesc = req.body?.blogDesc;
-        const conclusion = req.body?.conclusion;
-
-        const section = req.body?.section ? JSON.parse(req.body.section) : null;
+        const { blogCategoryId, blogTitle, blogDesc, conclusion, removeHeroImage } = req.body;
+        const sectionData = req.body?.section ? JSON.parse(req.body.section) : null;
 
         if (!mongoose.Types.ObjectId.isValid(blogId))
             return res.status(400).json({ success: false, message: "Invalid Blog ID" });
@@ -163,10 +159,16 @@ const updateBlogController = async (req, res) => {
         const blog = await blogModel.findById(blogId);
         if (!blog) return res.status(404).json({ success: false, message: "Blog not found" });
 
+        // 1. Hero Image handling
+        if (removeHeroImage === 'true' && blog.heroImage) {
+            const key = blog.heroImage.split(".amazonaws.com/").pop();
+            await deleteFromS3(key);
+            blog.heroImage = null;
+        }
+
         if (req.files && Array.isArray(req.files)) {
             const heroFile = req.files.find(f => f.fieldname === "heroImage");
             if (heroFile) {
-                console.log("Updating hero image");
                 if (blog.heroImage) {
                     const key = blog.heroImage.split(".amazonaws.com/").pop();
                     await deleteFromS3(key);
@@ -176,89 +178,55 @@ const updateBlogController = async (req, res) => {
             }
         }
 
+        // 2. Text fields
         if (blogTitle) blog.blogTitle = blogTitle;
         if (blogCategoryId) blog.blogCategoryId = blogCategoryId;
         if (blogDesc) blog.blogDesc = blogDesc;
-        if (conclusion) blog.conclusion = conclusion;
+        if (conclusion !== undefined) blog.conclusion = conclusion;
 
-        if (req.files && Array.isArray(req.files)) {
-            const sectionImageFiles = req.files.filter(file =>
-                file.fieldname.startsWith('sectionImg_')
-            );
+        // 3. Section handling
+        if (sectionData && Array.isArray(sectionData)) {
+            // Global cleanup of deleted images from S3
+            const currentSectionImgs = (blog.section || []).flatMap(s => s.sectionImg || []);
+            const keepSectionImgs = sectionData.flatMap(s => s.sectionImg || []);
 
-            for (const file of sectionImageFiles) {
-                const match = file.fieldname.match(/sectionImg_(\d+)/);
-                if (match) {
-                    const sectionIndex = parseInt(match[1]);
-
-                    if (!blog.section) blog.section = [];
-
-                    if (!blog.section[sectionIndex]) {
-                        blog.section[sectionIndex] = {
-                            sectionTitle: null,
-                            sectionDesc: [],
-                            sectionImg: [],
-                            sectionPoints: [],
-                            sectionOtherInfo: []
-                        };
-                    }
-
-                    if (blog.section[sectionIndex].sectionImg &&
-                        blog.section[sectionIndex].sectionImg.length > 0) {
-                        console.log(`Deleting ${blog.section[sectionIndex].sectionImg.length} old images for section ${sectionIndex}`);
-                        for (const oldImg of blog.section[sectionIndex].sectionImg) {
-                            if (oldImg && oldImg.includes('.amazonaws.com/')) {
-                                const key = oldImg.split(".amazonaws.com/").pop();
-                                await deleteFromS3(key);
-                            }
-                        }
-                    }
-
-                    const result = await uploadToS3(file, "blogs");
-                    if (result) blog.section[sectionIndex].sectionImg = [result.url];
+            const toDelete = currentSectionImgs.filter(img => !keepSectionImgs.includes(img));
+            for (const img of toDelete) {
+                if (img && img.includes('.amazonaws.com/')) {
+                    const key = img.split(".amazonaws.com/").pop();
+                    await deleteFromS3(key);
                 }
             }
-        }
 
-        if (section && Array.isArray(section)) {
-            console.log("Updating section data");
+            // Build new sections with new uploads
+            const newSections = [];
+            for (let i = 0; i < sectionData.length; i++) {
+                const incomingSec = sectionData[i];
+                let finalImgs = incomingSec.sectionImg || [];
 
-            if (!blog.section) blog.section = [];
-
-            for (let i = 0; i < section.length; i++) {
-                const updatedSection = section[i];
-
-                if (!blog.section[i]) {
-                    blog.section[i] = {
-                        sectionTitle: null,
-                        sectionDesc: [],
-                        sectionImg: [],
-                        sectionPoints: [],
-                        sectionOtherInfo: []
-                    };
+                // Handle new file uploads for this section
+                if (req.files && Array.isArray(req.files)) {
+                    const sectionFiles = req.files.filter(f => f.fieldname === `sectionImg_${i}`);
+                    if (sectionFiles.length > 0) {
+                        const uploadedUrls = await Promise.all(
+                            sectionFiles.map(async (file) => {
+                                const res = await uploadToS3(file, "blogs");
+                                return res ? res.url : null;
+                            })
+                        );
+                        finalImgs = [...finalImgs, ...uploadedUrls.filter(Boolean)];
+                    }
                 }
 
-                if (updatedSection.sectionTitle !== undefined)
-                    blog.section[i].sectionTitle = updatedSection.sectionTitle;
-
-                if (updatedSection.sectionDesc !== undefined) {
-                    blog.section[i].sectionDesc = Array.isArray(updatedSection.sectionDesc)
-                        ? updatedSection.sectionDesc
-                        : [updatedSection.sectionDesc];
-                }
-
-                if (updatedSection.sectionPoints !== undefined) {
-                    blog.section[i].sectionPoints = Array.isArray(updatedSection.sectionPoints)
-                        ? updatedSection.sectionPoints
-                        : [updatedSection.sectionPoints];
-                }
-
-                if (updatedSection.sectionOtherInfo !== undefined) {
-                    blog.section[i].sectionOtherInfo = Array.isArray(updatedSection.sectionOtherInfo)
-                        ? updatedSection.sectionOtherInfo
-                        : [updatedSection.sectionOtherInfo];
-                }
+                newSections.push({
+                    sectionTitle: incomingSec.sectionTitle || "",
+                    sectionDesc: Array.isArray(incomingSec.sectionDesc) ? incomingSec.sectionDesc : [],
+                    sectionPoints: Array.isArray(incomingSec.sectionPoints) ? incomingSec.sectionPoints : [],
+                    sectionOtherInfo: Array.isArray(incomingSec.sectionOtherInfo) ? incomingSec.sectionOtherInfo : [],
+                    sectionImg: finalImgs
+                });
             }
+            blog.section = newSections;
         }
 
         await blog.save();

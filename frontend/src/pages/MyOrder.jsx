@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const MyOrder = () => {
+const MyOrder = ({ isEmbedded = false }) => {
     const [activeTab, setActiveTab] = useState('All');
 
     const tabs = ['All', 'In Progress', 'Delivered', 'Cancelled'];
@@ -47,28 +47,30 @@ const MyOrder = () => {
         : orders.filter(order => order.status.toLowerCase() === activeTab.toLowerCase());
 
     return (
-        <div className="container mx-auto px-4 py-8 max-w-5xl">
-            <div className=" py-8">
-                <div className=" mx-auto px-4 lg:px-6">
-                    <h1 className="text-[28px] sm:text-[32px] font-bold text-[#1e5066] mb-3">My Orders</h1>
-                    <div className="flex items-center gap-1 text-[14px] text-gray-500 font-medium">
-                        <Link to="/" className="hover:text-[var(--primary)] transition-colors">Home</Link>
-                        <ChevronRight className="w-4 h-4 text-gray-400" />
-                        <Link to="/" className="hover:text-[var(--primary)] transition-colors">My Account</Link>
-                        <ChevronRight className="w-4 h-4 text-gray-400" />
-                        <span className="text-[var(--primary)] font-bold">My Orders</span>
+        <div className={`${isEmbedded ? 'w-full px-0 py-0' : 'container mx-auto px-4 py-8 max-w-5xl'}`}>
+            {!isEmbedded && (
+                <div className=" py-8">
+                    <div className=" mx-auto px-4 lg:px-6">
+                        <h1 className="text-[28px] sm:text-[32px] font-bold text-[#1e5066] mb-3">My Orders</h1>
+                        <div className="flex items-center gap-1 text-[14px] text-gray-500 font-medium">
+                            <Link to="/" className="hover:text-[var(--primary)] transition-colors">Home</Link>
+                            <ChevronRight className="w-4 h-4 text-gray-400" />
+                            <Link to="/" className="hover:text-[var(--primary)] transition-colors">My Account</Link>
+                            <ChevronRight className="w-4 h-4 text-gray-400" />
+                            <span className="text-[var(--primary)] font-bold">My Orders</span>
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
 
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div className={`flex flex-col gap-4 ${isEmbedded ? 'mb-5' : 'mb-8'}`}>
                 {/* Tabs */}
-                <div className="flex space-x-3 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
+                <div className="flex space-x-2 overflow-x-auto pb-1 scrollbar-hide">
                     {tabs.map(tab => (
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
-                            className={`whitespace-nowrap px-6 py-2 rounded-full border text-sm font-medium transition-colors ${activeTab === tab
+                            className={`whitespace-nowrap px-4 py-1.5 rounded-full border text-xs sm:text-sm font-medium transition-colors ${activeTab === tab
                                 ? 'border-[var(--primary)] text-[var(--primary)] bg-[var(--primary-light)]'
                                 : 'border-gray-200 text-gray-600 hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-gray-50'
                                 }`}
@@ -82,20 +84,20 @@ const MyOrder = () => {
             {/* Orders List */}
             <div className="space-y-4">
                 {filteredOrders.map((order, index) => (
-                    <Link 
+                    <Link
                         to="/order-tracking"
                         state={{ order }}
-                        key={index} 
+                        key={index}
                         className="border border-gray-200 rounded-2xl p-4 md:p-6 bg-white hover:shadow-md transition-shadow cursor-pointer flex items-center justify-between gap-2 md:gap-4 w-full block"
                     >
                         <div className="flex-1 min-w-0">
                             {/* Header Info */}
-                            <div className="flex items-center gap-3 mb-4 text-sm">
-                                <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full font-medium ${order.status.toLowerCase() === 'in progress' ? 'bg-orange-50 text-orange-600' :
+                            <div className="flex flex-wrap items-center gap-2 mb-4 text-sm">
+                                <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full font-medium text-xs sm:text-sm ${order.status.toLowerCase() === 'in progress' ? 'bg-orange-50 text-orange-600' :
                                     order.status.toLowerCase() === 'delivered' ? 'bg-[#f4f8ec] text-[#6b9b3e]' :
                                         'bg-red-50 text-red-600'
                                     }`}>
-                                    <span className={`w-2 h-2 rounded-full ${order.status.toLowerCase() === 'in progress' ? 'bg-orange-500' :
+                                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${order.status.toLowerCase() === 'in progress' ? 'bg-orange-500' :
                                         order.status.toLowerCase() === 'delivered' ? 'bg-[#6b9b3e]' :
                                             'bg-red-500'
                                         }`}></span>
@@ -106,8 +108,7 @@ const MyOrder = () => {
                                         2hr Express
                                     </span>
                                 )}
-                                <span className="text-gray-300">|</span>
-                                <span className="text-gray-600 font-medium">{order.date}</span>
+                                <span className="text-gray-400 text-xs font-medium">{order.date}</span>
                             </div>
 
                             {/* Order Details */}

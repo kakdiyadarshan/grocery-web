@@ -12,7 +12,11 @@ const Cart = ({ isOpen, onClose }) => {
     const [instructions, setInstructions] = useState('');
 
     const cartItems = cart?.items || [];
-    const subtotal = cartItems.reduce((acc, item) => acc + (item.productId?.price * item.quantity), 0);
+    const subtotal = cartItems.reduce((acc, item) => {
+        const prod = item.productId;
+        const price = prod?.discountPrice || prod?.weighstWise?.[0]?.price || prod?.price || 0;
+        return acc + (price * item.quantity);
+    }, 0);
 
     const handleUpdateQuantity = (productId, newQuantity) => {
         if (newQuantity < 1) return;
@@ -68,45 +72,46 @@ const Cart = ({ isOpen, onClose }) => {
                         cartItems.map((wish) => {
                             const item = wish.productId;
                             if (!item) return null;
+                            const prodId = item._id || item;
                             return (
                                 <div key={wish._id} className="flex justify-between items-start border-b border-gray-100 pb-8 gap-2">
                                     <div className="flex gap-2 sm:gap-4 flex-1 min-w-0">
                                         <div className="w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 bg-gray-50 rounded-md overflow-hidden p-1">
                                             <img
-                                                src={item.images?.[0] || item.image || 'https://via.placeholder.com/100'}
-                                                alt={item.productName || item.name}
+                                                src={item.images?.[0]?.url || item.images?.[0] || item.image || item.image?.[0] || 'https://via.placeholder.com/100'}
+                                                alt={item.name || item.productName || 'Product'}
                                                 className="w-full h-full object-contain mix-blend-multiply"
                                             />
                                         </div>
 
                                         <div className="flex flex-col gap-0.5 flex-1 min-w-0">
                                             <span className="text-[12px] sm:text-[13px] text-gray-400 tracking-wide truncate">
-                                                {typeof item.category === 'string' ? item.category : item.category?.categoryName}
+                                                {item.category?.categoryName || (typeof item.category === 'string' ? item.category : 'General')}
                                             </span>
                                             <span className="text-[14px] sm:text-[15px] font-medium leading-snug text-[var(--text-gray)] mt-0.5 break-words line-clamp-2">
-                                                {item.productName || item.name}
+                                                {item.name || item.productName}
                                             </span>
-                                            <span className="text-[12px] sm:text-[13px] text-gray-500 mt-1 truncate">${item.price}</span>
+                                            <span className="text-[12px] sm:text-[13px] text-gray-500 mt-1 truncate">₹{item.discountPrice || item.weighstWise?.[0]?.price || item.price || 0}</span>
 
                                             {/* Controls */}
                                             <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-3 sm:mt-4">
                                                 <div className="flex items-center border border-gray-200 rounded px-2 w-[75px] sm:w-[85px] h-8 sm:h-9 justify-between">
-                                                    <button onClick={() => handleUpdateQuantity(item._id, wish.quantity - 1)} className="text-gray-400 hover:text-[var(--primary)] shrink-0 transition-colors">
+                                                    <button onClick={() => handleUpdateQuantity(prodId, wish.quantity - 1)} className="text-gray-400 hover:text-[var(--primary)] shrink-0 transition-colors">
                                                         <Minus className="w-3.5 h-3.5" />
                                                     </button>
                                                     <span className="text-[14px] sm:text-[15px] font-medium shrink-0">{wish.quantity}</span>
-                                                    <button onClick={() => handleUpdateQuantity(item._id, wish.quantity + 1)} className="text-gray-400 hover:text-[var(--primary)] shrink-0 transition-colors">
+                                                    <button onClick={() => handleUpdateQuantity(prodId, wish.quantity + 1)} className="text-gray-400 hover:text-[var(--primary)] shrink-0 transition-colors">
                                                         <Plus className="w-3.5 h-3.5" />
                                                     </button>
                                                 </div>
 
-                                                <button onClick={() => handleRemove(item._id)} className="bg-[var(--primary)] text-white w-8 h-8 sm:w-9 sm:h-9 rounded flex items-center justify-center hover:bg-[var(--primary-hover)] transition-colors shrink-0">
+                                                <button onClick={() => handleRemove(prodId)} className="bg-[var(--primary)] text-white w-8 h-8 sm:w-9 sm:h-9 rounded flex items-center justify-center hover:bg-[var(--primary-hover)] transition-colors shrink-0">
                                                     <Trash2 className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]" />
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
-                                    <span className="font-bold text-[var(--primary)] text-[14px] sm:text-[16px] shrink-0 whitespace-nowrap">${(item.price * wish.quantity).toFixed(2)}</span>
+                                    <span className="font-bold text-[var(--primary)] text-[14px] sm:text-[16px] shrink-0 whitespace-nowrap">₹{((item.discountPrice || item.weighstWise?.[0]?.price || item.price || 0) * wish.quantity).toFixed(2)}</span>
                                 </div>
                             );
                         })
@@ -145,7 +150,7 @@ const Cart = ({ isOpen, onClose }) => {
 
                         <div className="flex items-center justify-between mb-2">
                             <span className="font-bold text-[var(--text-gray)] text-[15px] sm:text-[17px] tracking-wide shrink-0">Subtotal</span>
-                            <span className="font-bold text-[var(--primary)] text-[15px] sm:text-[17px] tracking-wide shrink-0 whitespace-nowrap">${subtotal.toFixed(2)} USD</span>
+                            <span className="font-bold text-[var(--primary)] text-[15px] sm:text-[17px] tracking-wide shrink-0 whitespace-nowrap">₹{subtotal.toFixed(2)} USD</span>
                         </div>
 
                         <p className="text-[12px] sm:text-[13px] text-[var(--text-gray)] mb-6 opacity-80 break-words">Taxes and shipping calculated at checkout</p>

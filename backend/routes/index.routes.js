@@ -21,6 +21,9 @@ const { createReview, getReviewById, getAllReviews, deleteReview } = require('..
 const { createCoupon, getAllCoupons, deleteCoupon, getCouponById, updateCoupon } = require('../controllers/coupon.controller');
 const { createOrder, getAllOrders, getOrderById, updateOrderStatus, deleteOrder, getUserOrders, cancelOrder, trackOrder } = require('../controllers/order.controller');
 const { createPayment, getPaymentById, getAllPayments, deletePayment, getPaymentByUserId, getPaymentByOrderId } = require('../controllers/payment.controller');
+const { addAddress, getAddresses, updateAddress, deleteAddress, setDefaultAddress } = require('../controllers/address.controller');
+const { createOfferBanner, getAllOfferBanners, updateOfferBanner, deleteOfferBanner } = require('../controllers/offerbanner.controller');
+const { createBanner, getAllBanners, updateBanner, deleteBanner } = require('../controllers/banner.controller');
 
 // Auth routes
 indexRoutes.post('/register', createUser);
@@ -121,6 +124,20 @@ indexRoutes.get('/getReview/:id', getReviewById);
 indexRoutes.get('/getAllReviews', getAllReviews); // Can take productId as query param
 indexRoutes.delete('/deleteReview/:id', auth, deleteReview);
 
+// Banner routes
+indexRoutes.post('/createbanner', auth, authorizeRoles('admin'), upload.single('image'), createBanner);
+indexRoutes.get('/getbanners', getAllBanners);
+indexRoutes.put('/updatebanner/:id', auth, authorizeRoles('admin'), upload.single('image'), updateBanner);
+indexRoutes.delete('/deletebanner/:id', auth, authorizeRoles('admin'), deleteBanner);
+
+// Offer Banner routes
+indexRoutes.post('/createofferbanner', auth, authorizeRoles('admin'), upload.single('image'), createOfferBanner);
+indexRoutes.get('/getofferbanners', getAllOfferBanners);
+indexRoutes.put('/updateofferbanner/:id', auth, authorizeRoles('admin'), upload.single('image'), updateOfferBanner);
+indexRoutes.delete('/deleteofferbanner/:id', auth, authorizeRoles('admin'), deleteOfferBanner);
+
+
+
 indexRoutes.get("/listBucket", async (req, res) => {
     try {
         const files = await s3Service.listBucketObjects();
@@ -161,5 +178,11 @@ indexRoutes.delete('/deletePayment/:id', auth, authorizeRoles('admin'), deletePa
 indexRoutes.get('/getPaymentByUserId/:userId', auth, authorizeRoles('admin'), getPaymentByUserId);
 indexRoutes.get('/getPaymentByOrderId/:orderId', auth, authorizeRoles('admin'), getPaymentByOrderId);
 
+// Address Management
+indexRoutes.post('/address', auth, addAddress);
+indexRoutes.get('/addresses', auth, getAddresses);
+indexRoutes.put('/address/:addressId', auth, updateAddress);
+indexRoutes.delete('/address/:addressId', auth, deleteAddress);
+indexRoutes.put('/address-default/:addressId', auth, setDefaultAddress);
 
 module.exports = indexRoutes;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Table from '../component/DataTable';
-import { FiPlus, FiTrash2, FiImage, FiArrowLeft, FiRefreshCw } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiImage, FiArrowLeft, FiRefreshCw, FiX } from 'react-icons/fi';
 import Breadcrumb from '../component/Breadcrumb';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -13,6 +13,7 @@ import { getAllBlogCategory } from '../../redux/slice/blogCategory.slice';
 
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
+import CustomSelect from '../component/CustomSelect';
 
 const BlogAdmin = () => {
     const dispatch = useDispatch();
@@ -40,6 +41,7 @@ const BlogAdmin = () => {
     const [heroImage, setHeroImage] = useState(null);
     const [heroPreview, setHeroPreview] = useState(null);
     const [sections, setSections] = useState([]);
+    const [errors, setErrors] = useState({});
 
     // ─── API CALLS ──────────────────────────────────────────────────────────────
 
@@ -130,11 +132,35 @@ const BlogAdmin = () => {
         });
     };
 
+    const handleRemoveExistingImage = (sectionIndex, imageIndex) => {
+        setSections(prev => {
+            const updated = [...prev];
+            const updatedSec = { ...updated[sectionIndex] };
+            updatedSec.existingImages = updatedSec.existingImages.filter((_, i) => i !== imageIndex);
+            updated[sectionIndex] = updatedSec;
+            return updated;
+        });
+    };
+
     // ─── FORM SUBMIT ─────────────────────────────────────────────────────────────
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        const newErrors = {};
+        if (!formData.blogTitle.trim()) newErrors.blogTitle = 'Blog title is required';
+        if (!formData.blogCategoryId) newErrors.blogCategoryId = 'Category is required';
+        if (!formData.blogDesc.trim()) newErrors.blogDesc = 'Description is required';
+        if (!heroPreview && !heroImage) newErrors.heroImage = 'Hero image is required';
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            const firstError = Object.keys(newErrors)[0];
+            document.getElementsByName(firstError)[0]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+
+        setErrors({});
         const data = new FormData();
         data.append('blogTitle', formData.blogTitle);
         data.append('blogCategoryId', formData.blogCategoryId);
@@ -148,8 +174,13 @@ const BlogAdmin = () => {
             sectionDesc: textToArray(sec.sectionDesc),
             sectionPoints: textToArray(sec.sectionPoints),
             sectionOtherInfo: textToArray(sec.sectionOtherInfo),
+            sectionImg: sec.existingImages
         }));
         data.append('section', JSON.stringify(sectionJson));
+
+        if (isEditing && !heroPreview && !heroImage) {
+            data.append('removeHeroImage', 'true');
+        }
 
         sections.forEach((sec, i) => {
             if (sec.files && sec.files.length > 0) {
@@ -226,6 +257,7 @@ const BlogAdmin = () => {
         setHeroImage(null);
         setHeroPreview(null);
         setSections([]);
+        setErrors({});
     };
 
     // ─── RENDER ───────────────────────────────────────────────────────────────────
@@ -241,13 +273,6 @@ const BlogAdmin = () => {
                 <div className="flex items-center gap-2">
                     {view === 'list' && (
                         <>
-                            <button
-                                onClick={fetchBlogs}
-                                className="p-2 text-gray-500 hover:text-primary hover:bg-primary/5 rounded-[4px] transition-colors"
-                                title="Refresh"
-                            >
-                                <FiRefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                            </button>
                             <button
                                 onClick={() => { setIsEditing(false); setView('form'); }}
                                 className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-[4px] hover:bg-primaryHover transition-colors font-medium text-sm"
@@ -360,28 +385,32 @@ const BlogAdmin = () => {
                                     Blog Title <span className="text-red-500">*</span>
                                 </label>
                                 <input
-                                    type="text" required
+                                    name="blogTitle"
+                                    type="text"
                                     value={formData.blogTitle}
-                                    onChange={(e) => setFormData({ ...formData, blogTitle: e.target.value })}
-                                    className="w-full px-4 py-2.5 border border-gray-200 rounded-[4px] outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+                                    onChange={(e) => {
+                                        setFormData({ ...formData, blogTitle: e.target.value });
+                                        if (errors.blogTitle) setErrors({ ...errors, blogTitle: null });
+                                    }}
+                                    className={`w-full px-4 py-2.5 border rounded-[4px] outline-none focus:ring-2 focus:ring-primary/20 text-sm ${errors.blogTitle ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-primary'}`}
                                     placeholder="Enter blog title"
                                 />
+                                {errors.blogTitle && <p className="text-xs text-red-500 mt-1">{errors.blogTitle}</p>}
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Category <span className="text-red-500">*</span>
-                                </label>
-                                <select
-                                    required
+                            <div className="space-y-1">
+                                <CustomSelect
+                                    label="Category"
+                                    required={true}
+                                    options={categories.map(cat => ({ value: cat._id, label: cat.blogCategoryName }))}
                                     value={formData.blogCategoryId}
-                                    onChange={(e) => setFormData({ ...formData, blogCategoryId: e.target.value })}
-                                    className="w-full px-4 py-2.5 border border-gray-200 rounded-[4px] outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
-                                >
-                                    <option value="" disabled>Select Category</option>
-                                    {categories.map((cat) => (
-                                        <option key={cat._id} value={cat._id}>{cat.blogCategoryName}</option>
-                                    ))}
-                                </select>
+                                    onChange={(val) => {
+                                        setFormData({ ...formData, blogCategoryId: val });
+                                        if (errors.blogCategoryId) setErrors({ ...errors, blogCategoryId: null });
+                                    }}
+                                    placeholder="Select Category"
+                                    buttonClassName={errors.blogCategoryId ? 'border-red-500 focus:border-red-500' : ''}
+                                />
+                                {errors.blogCategoryId && <p className="text-xs text-red-500">{errors.blogCategoryId}</p>}
                             </div>
                         </div>
 
@@ -391,44 +420,69 @@ const BlogAdmin = () => {
                                 Blog Description <span className="text-red-500">*</span>
                             </label>
                             <textarea
-                                required rows="4"
+                                name="blogDesc"
+                                rows="4"
                                 value={formData.blogDesc}
-                                onChange={(e) => setFormData({ ...formData, blogDesc: e.target.value })}
-                                className="w-full px-4 py-2.5 border border-gray-200 rounded-[4px] outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm resize-none"
+                                onChange={(e) => {
+                                    setFormData({ ...formData, blogDesc: e.target.value });
+                                    if (errors.blogDesc) setErrors({ ...errors, blogDesc: null });
+                                }}
+                                className={`w-full px-4 py-2.5 border rounded-[4px] outline-none focus:ring-2 focus:ring-primary/20 text-sm resize-none ${errors.blogDesc ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-primary'}`}
                                 placeholder="Write an engaging blog description..."
                             />
+                            {errors.blogDesc && <p className="text-xs text-red-500 mt-1">{errors.blogDesc}</p>}
                         </div>
 
                         {/* Hero Image */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Hero Image {!isEditing && <span className="text-red-500">*</span>}
-                                {isEditing && <span className="text-gray-400 text-xs ml-1">(Leave empty to keep existing)</span>}
+                                Hero Image <span className="text-red-500">*</span>
                             </label>
                             {heroPreview && !heroImage && (
-                                <div className="mb-2">
-                                    <img src={heroPreview} alt="Current" className="h-40 rounded-[4px] object-cover border border-gray-100" />
+                                <div className="mb-2 relative inline-block group rounded-lg overflow-hidden border border-gray-100">
+                                    <img src={heroPreview} alt="Current" className="h-40 rounded-lg object-cover" />
+                                    <button
+                                        type="button"
+                                        onClick={() => setHeroPreview(null)}
+                                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-sm"
+                                        title="Remove Image"
+                                    >
+                                        <FiX size={14} />
+                                    </button>
                                     <p className="text-xs text-gray-400 mt-1">Current hero image</p>
                                 </div>
                             )}
                             {heroImage && (
-                                <div className="mb-2">
-                                    <img src={URL.createObjectURL(heroImage)} alt="Preview" className="h-40 rounded-[4px] object-cover border border-gray-200" />
-                                    <p className="text-xs text-green-600 mt-1">New image selected: {heroImage.name}</p>
+                                <div className="mb-2 relative inline-block group rounded-lg overflow-hidden border border-gray-100">
+                                    <img src={URL.createObjectURL(heroImage)} alt="Preview" className="h-40 rounded-lg object-cover" />
+                                    <button
+                                        type="button"
+                                        onClick={() => setHeroImage(null)}
+                                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-sm"
+                                        title="Remove Selection"
+                                    >
+                                        <FiX size={14} />
+                                    </button>
+                                   
                                 </div>
                             )}
-                            <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-dashed border-gray-300 rounded-[4px] hover:border-primary transition-colors cursor-pointer relative bg-gray-50">
+                            <div className={`flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-[4px] hover:border-primary transition-colors cursor-pointer relative bg-gray-50 ${errors.heroImage ? 'border-red-500 bg-red-50/10' : 'border-gray-300'}`}>
                                 <input
+                                    name="heroImage"
                                     type="file" accept="image/*"
-                                    onChange={(e) => setHeroImage(e.target.files[0])}
+                                    onChange={(e) => {
+                                        setHeroImage(e.target.files[0]);
+                                        if (errors.heroImage) setErrors({ ...errors, heroImage: null });
+                                    }}
                                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                 />
                                 <div className="text-center">
-                                    <FiImage className="mx-auto h-10 w-10 text-gray-400 mb-2" />
-                                    <p className="text-sm text-primary font-medium">Click to upload hero image</p>
+                                    <FiImage className={`mx-auto h-10 w-10 mb-2 ${errors.heroImage ? 'text-red-400' : 'text-gray-400'}`} />
+                                    <p className={`text-sm font-medium ${errors.heroImage ? 'text-red-500' : 'text-primary'}`}>Click to upload hero image</p>
                                     <p className="text-xs text-gray-500 mt-1">PNG, JPG, WEBP up to 5MB</p>
                                 </div>
                             </div>
+                            {errors.heroImage && <p className="text-xs text-red-500 mt-1">{errors.heroImage}</p>}
                         </div>
 
                         {/* Sections */}
@@ -505,13 +559,21 @@ const BlogAdmin = () => {
                                                 {/* Section Images */}
                                                 <div>
                                                     <label className="block text-xs font-semibold text-gray-600 mb-1">Section Images</label>
-                                                    {/* Show existing images when editing */}
                                                     {sec.existingImages?.length > 0 && (
-                                                        <div className="flex flex-wrap gap-2 mb-2">
+                                                        <div className="flex flex-wrap gap-3 mb-3">
                                                             {sec.existingImages.map((img, j) => (
-                                                                <img key={j} src={img} alt="" className="h-20 w-20 object-cover rounded-[4px] border border-gray-200" />
+                                                                <div key={j} className="relative aspect-square w-20 h-20 rounded-lg overflow-hidden border group">
+                                                                    <img src={img} alt="" className="w-full h-full object-cover" />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleRemoveExistingImage(index, j)}
+                                                                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-sm"
+                                                                        title="Remove Image"
+                                                                    >
+                                                                        <FiX size={10} />
+                                                                    </button>
+                                                                </div>
                                                             ))}
-                                                            <p className="text-xs text-gray-400 self-end">Existing images. Upload new to replace.</p>
                                                         </div>
                                                     )}
                                                     <input

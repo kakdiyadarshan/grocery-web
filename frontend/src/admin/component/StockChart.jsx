@@ -26,12 +26,21 @@ const StockChart = ({ products }) => {
         products.flatMap(p => p.weighstWise.map(w => `${w.weight} ${w.unit}`))
     )).sort((a, b) => getWeightInGrams(a) - getWeightInGrams(b));
 
+    const chartColors = ['#4ade80', '#22c55e', '#16a34a', '#15803d', '#14532d', '#0b4121', '#052110'];
+
     // Create a series for each unique variation (now sorted)
-    const series = uniqueVariations.map(variation => ({
+    const series = uniqueVariations.map((variation, vIndex) => ({
         name: variation,
         data: products.map(p => {
             const v = p.weighstWise.find(w => `${w.weight} ${w.unit}` === variation);
-            return v ? v.stock : 0;
+            const stock = v ? v.stock : 0;
+            const isLowStock = stock > 0 && stock <= 10;
+
+            return {
+                x: p.name,
+                y: stock,
+                fillColor: isLowStock ? '#ff7675' : chartColors[vIndex % chartColors.length]
+            };
         })
     }));
 
@@ -114,7 +123,7 @@ const StockChart = ({ products }) => {
             }
         },
         // Mid-Light to Dark Green Theme (Ordered for increasing weights)
-        colors: ['#4ade80', '#22c55e', '#16a34a', '#15803d', '#14532d', '#0b4121', '#052110']
+        colors: chartColors
     };
 
     return (
