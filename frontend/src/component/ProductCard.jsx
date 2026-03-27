@@ -102,7 +102,7 @@ const ProductCard = ({ product }) => {
 
             {/* Product Info */}
             <div className="flex flex-col flex-grow space-y-1 sm:space-y-2">
-                <span className="text-[10px] sm:text-sm text-[#8D949C] uppercase tracking-wider font-medium">
+                <span className="text-[10px] sm:text-sm text-[#8D949C] capitalize tracking-wider font-medium">
                     {brand}
                 </span>
 

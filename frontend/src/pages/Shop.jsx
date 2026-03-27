@@ -1,22 +1,85 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { ChevronDown, ChevronRight, Eye, Grid, Heart, List, ShoppingCart, SlidersHorizontal, Star, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getAllProducts } from '../redux/slice/product.slice';
+import { getAllCategories } from '../redux/slice/category.slice';
 import { addToCart } from '../redux/slice/cart.slice';
 import { addToWishlist } from '../redux/slice/wishlist.slice';
 
 const Shop = () => {
     const dispatch = useDispatch();
     const { products = [], loading = false } = useSelector((state) => state.product || {});
+    const { categories: apiCategories = [] } = useSelector((state) => state.category || {});
+
+    const [searchParams, setSearchParams] = useSearchParams();
+    const categoryParam = searchParams.get('category');
 
     const [viewType, setViewType] = useState('grid');
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [sortBy, setSortBy] = useState('alphabetical-az');
+    const [selectedCategories, setSelectedCategories] = useState(categoryParam ? [categoryParam] : []);
 
     useEffect(() => {
         dispatch(getAllProducts());
+        dispatch(getAllCategories());
     }, [dispatch]);
+
+    useEffect(() => {
+        if (categoryParam) {
+            setSelectedCategories([categoryParam]);
+        }
+    }, [categoryParam]);
+
+    const handleCategoryToggle = (categoryName) => {
+        setSelectedCategories(prev => {
+            const newSelection = prev.includes(categoryName)
+                ? prev.filter(c => c !== categoryName)
+                : [...prev, categoryName];
+
+            // Sync with URL if only one is selected or clear if none
+            if (newSelection.length === 1) {
+                setSearchParams({ category: newSelection[0] });
+            } else if (newSelection.length === 0) {
+                searchParams.delete('category');
+                setSearchParams(searchParams);
+            }
+            return newSelection;
+        });
+    };
+
+    const filteredAndSortedProducts = useMemo(() => {
+        let result = [...products];
+
+        // 1. Category Filtering
+        if (selectedCategories.length > 0) {
+            result = result.filter(product => {
+                const catName = typeof product.category === 'object' ? product.category?.categoryName : product.category;
+                return selectedCategories.includes(catName);
+            });
+        }
+
+        // 2. Sorting
+        switch (sortBy) {
+            case 'alphabetical-az':
+                result.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                break;
+            case 'alphabetical-za':
+                result.sort((a, b) => (b.name || '').localeCompare(a.name || ''));
+                break;
+            case 'price-low-high':
+                result.sort((a, b) => (a.discountPrice || a.weighstWise?.[0]?.price || 0) - (b.discountPrice || b.weighstWise?.[0]?.price || 0));
+                break;
+            case 'price-high-low':
+                result.sort((a, b) => (b.discountPrice || b.weighstWise?.[0]?.price || 0) - (a.discountPrice || a.weighstWise?.[0]?.price || 0));
+                break;
+            default:
+                break;
+        }
+
+        return result;
+    }, [products, selectedCategories, sortBy]);
 
 
     // Placeholder data for filters based on image
@@ -36,13 +99,11 @@ const Shop = () => {
             { id: '750gm', label: '750gm', count: 1 },
             { id: '1kg', label: '1kg', count: 2 }
         ],
-        productTypes: [
-            { id: 'dry-fruits', label: 'Dry Fruits', count: 4 },
-            { id: 'grocery', label: 'Grocery', count: 2 },
-            { id: 'nuts', label: 'Nuts', count: 1 },
-            { id: 'organics', label: 'Organics', count: 2 },
-            { id: 'vegies', label: 'Vegies', count: 4 }
-        ],
+        productTypes: apiCategories.map(cat => ({
+            id: cat._id,
+            label: cat.categoryName,
+            count: products.filter(p => (p.category?.categoryName || p.category) === cat.categoryName).length
+        })),
         brands: [
             { id: 'bright-fruit', label: 'Bright Fruit', count: 4 },
             { id: 'fruity-liscious', label: 'Fruity-Liscious', count: 8 },
@@ -146,7 +207,12 @@ const Shop = () => {
                                 <div className="space-y-3">
                                     {filters.productTypes.map(item => (
                                         <label key={item.id} className="flex items-center group cursor-pointer">
-                                            <input type="checkbox" className="w-4 h-4 rounded border-gray-300 transition-all text-[var(--primary)] focus:ring-[var(--primary)]" />
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedCategories.includes(item.label)}
+                                                onChange={() => handleCategoryToggle(item.label)}
+                                                className="w-4 h-4 rounded border-gray-300 transition-all text-[var(--primary)] focus:ring-[var(--primary)] cursor-pointer"
+                                            />
                                             <span className="ml-3 text-[14px] text-gray-600 group-hover:text-[var(--primary)] font-medium">{item.label} ({item.count})</span>
                                         </label>
                                     ))}
@@ -197,7 +263,7 @@ const Shop = () => {
                             </div>
 
                             <div className="flex items-center gap-6 lg:gap-8">
-                                <span className="text-sm font-bold text-[#1a1a1a]">18 Products</span>
+                                <span className="text-sm font-bold text-[#1a1a1a]">{filteredAndSortedProducts.length} Products</span>
                                 <div className="flex items-center gap-1.5 border-l border-gray-100 pl-6 lg:pl-8">
                                     <button
                                         onClick={() => setViewType('grid')}
@@ -226,12 +292,32 @@ const Shop = () => {
                                     </div>
                                 ))}
                             </div>
+                        ) : filteredAndSortedProducts.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 animate-fadeIn">
+                                <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-full flex items-center justify-center shadow-sm mb-6">
+                                    <ShoppingCart size={40} className="text-gray-200" />
+                                </div>
+                                <h3 className="text-xl sm:text-2xl font-bold text-[#1a1a1a] mb-2">No Products Found</h3>
+                                <p className="text-gray-500 max-w-xs mx-auto mb-8 text-sm sm:text-base">
+                                    We couldn't find any products matching your current filters. Try adjusting your selection.
+                                </p>
+                                <button
+                                    onClick={() => {
+                                        setSelectedCategories([]);
+                                        searchParams.delete('category');
+                                        setSearchParams(searchParams);
+                                    }}
+                                    className="bg-[var(--primary)] text-white px-8 py-3 rounded-md font-bold hover:bg-[var(--primary-hover)] transition-all shadow-lg active:scale-95"
+                                >
+                                    Clear All Filters
+                                </button>
+                            </div>
                         ) : (
                             <div className={viewType === 'grid'
                                 ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
                                 : "flex flex-col gap-6"
                             }>
-                                {products.map((product) => {
+                                {filteredAndSortedProducts.map((product) => {
                                     const minPrice = product.weighstWise?.length > 0
                                         ? Math.min(...product.weighstWise.map(w => Number(w.price) || 0))
                                         : 0;
@@ -327,7 +413,7 @@ const Shop = () => {
                         )}
 
                         {/* Pagination Placeholder */}
-                        {!loading && products.length > 0 && (
+                        {!loading && filteredAndSortedProducts.length > 0 && (
                             <div className="mt-12 flex justify-center items-center gap-2">
                                 <button className="w-10 h-10 rounded border border-gray-200 flex items-center justify-center text-sm font-bold text-[#1a1a1a] hover:bg-[var(--primary)] hover:text-white transition-all">1</button>
                                 <button className="w-10 h-10 rounded border border-gray-100 flex items-center justify-center text-sm font-bold text-gray-400 hover:text-[var(--primary)] transition-all">2</button>

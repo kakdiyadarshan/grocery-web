@@ -111,8 +111,8 @@ const ProductSlider = ({ title, products, className = '' }) => {
           className="flex overflow-x-auto no-scrollbar scroll-smooth gap-3 sm:gap-6 pb-4 cursor-grab"
         >
           {products.map((product) => (
-            <div 
-              key={product.id} 
+            <div
+              key={product._id || product.id}
               className="w-full min-[425px]:w-[calc(50%-0.375rem)] sm:w-[calc(50%-0.75rem)] md:w-[calc(33.333%-1rem)] lg:w-[calc(25%-1.125rem)] xl:w-[calc(20%-1.2rem)] flex-shrink-0"
             >
               <ProductCard product={product} />
