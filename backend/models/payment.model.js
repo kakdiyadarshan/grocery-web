@@ -13,7 +13,7 @@ const paymentSchema = new mongoose.Schema({
     },
     paymentMethod: {
         type: String,
-        enum: ["COD", "UPI", "Bank"],
+        enum: ["COD", "UPI", "Bank", "Stripe"],
         required: true
     },
     upiDetails: {

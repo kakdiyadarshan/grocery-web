@@ -2,12 +2,42 @@ import React, { useState } from 'react';
 import Header from '../component/Header';
 import Footer from '../component/Footer';
 import { ChevronRight, Banknote, ChevronDown } from 'lucide-react';
-import { FaCcMastercard, FaCcAmex } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { FaCcMastercard, FaCcAmex, FaStripe } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { BASE_URL } from '../utils/baseUrl';
+import { toast } from 'sonner';
+import { createOrder as triggerCreateOrder } from '../redux/slice/order.slice';
+import { clearCart } from '../redux/slice/cart.slice';
+
+
+
 
 const CheckOut = () => {
   const [paymentMethod, setPaymentMethod] = useState('cod');
   const [isBankDropdownOpen, setIsBankDropdownOpen] = useState(false);
+  const { loading: orderLoading } = useSelector(state => state.order);
+  const dispatch = useDispatch();
+
+  const navigate = useNavigate();
+  const { user } = useSelector(state => state.auth);
+  const { cart } = useSelector(state => state.cart);
+  const items = cart?.items || [];
+  
+  // Calculate totals
+  const subtotal = items.reduce((acc, item) => {
+    const variant = item.selectedVariant;
+    const price = variant?.price || 0;
+    return acc + (price * item.quantity);
+  }, 0);
+
+
+  const shipping = items.length > 0 ? (subtotal >= 50 ? 0 : 5.99) : 0;
+  const tax = items.length > 0 ? (subtotal * 0.08) : 0;
+  const totalAmount = parseFloat((subtotal + shipping + tax).toFixed(2));
+
+
+
   const banks = [
     "State Bank of India",
     "HDFC Bank",
@@ -49,7 +79,7 @@ const CheckOut = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     const newErrors = {};
     if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
     if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
@@ -79,10 +109,65 @@ const CheckOut = () => {
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      alert("Order placed successfully!");
+      return;
+    }
+
+    try {
+      const currentUserId = user?._id || localStorage.getItem('userId');
+      
+      if (!currentUserId) {
+        toast.error("Please login to place an order");
+        return;
+      }
+
+      if (items.length === 0 || totalAmount === 0) {
+        toast.error("Your cart is empty");
+        return;
+      }
+
+      const orderData = {
+        userId: currentUserId,
+        items: items.map(item => ({ 
+          productId: item.productId._id || item.productId, 
+          variantId: item.variantId, 
+          quantity: item.quantity 
+        })),
+
+        totalAmount: totalAmount,
+        paymentMethod: paymentMethod === 'cod' ? 'COD' : paymentMethod === 'upi' ? 'UPI' : paymentMethod === 'netbanking' ? 'Bank' : 'Stripe',
+        upiDetails: paymentMethod === 'upi' ? { upiId: formData.upiId } : undefined,
+        bankDetails: paymentMethod === 'netbanking' ? { bankName: formData.selectedBank } : undefined
+      };
+
+      console.log("Placing Order with data:", orderData);
+
+
+      const resultAction = await dispatch(triggerCreateOrder(orderData));
+
+      if (triggerCreateOrder.fulfilled.match(resultAction)) {
+        const data = resultAction.payload.data;
+        const newOrderId = data.orderId || data.order?._id;
+        if (data.paymentUrl) {
+          // Clear cart before stripe redirect
+          dispatch(clearCart());
+          // Stripe Redirect
+          window.location.href = data.paymentUrl;
+        } else {
+          // COD/UPI/Bank Success
+          dispatch(clearCart());
+          toast.success("Order placed successfully!");
+          navigate(`/order-completed?order_id=${newOrderId}`);
+        }
+
+
+
+      }
+    } catch (error) {
+      console.error("Order Error:", error);
     }
   };
+
+
 
   return (
     <div className="flex flex-col min-h-screen bg-[#fafafa]">
@@ -189,42 +274,58 @@ const CheckOut = () => {
                 <h2 className="text-[18px] sm:text-[20px] font-bold text-[var(--text-gray)] mb-6 border-b border-gray-100 pb-4">Your Order</h2>
 
                 {/* Items */}
-                <div className="space-y-5 mb-6 border-b border-gray-100 pb-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex gap-4">
-                      <div className="w-14 h-14 bg-white rounded border border-gray-100 flex items-center justify-center p-1.5 shrink-0 overflow-hidden">
-                        <img src={require("../Image/mango.jpg")} alt="Product" className="w-full h-full object-contain" />
+                <div className="space-y-5 mb-6 border-b border-gray-100 pb-6 max-h-[300px] overflow-y-auto pr-2">
+                  {items.map((item) => {
+                    const product = item.productId;
+                    if (!product) return null;
+                    const variant = item.selectedVariant;
+                    const price = variant?.price || 0;
+                    return (
+                      <div key={item._id} className="flex items-start justify-between gap-4">
+                        <div className="flex gap-4">
+                          <div className="w-14 h-14 bg-white rounded border border-gray-100 flex items-center justify-center p-1.5 shrink-0 overflow-hidden text-[10px]">
+                            <img src={product.images?.[0]?.url || product.images?.[0] || 'https://via.placeholder.com/50'} alt="Product" className="w-full h-full object-contain" />
+                          </div>
+                          <div className="flex flex-col">
+                            <h4 className="text-[14px] sm:text-[14.5px] font-bold text-[var(--text-gray)] line-clamp-2 leading-snug">{product.name || product.productName}</h4>
+                            <p className="text-[13px] text-gray-500 mt-1">
+                                {variant && <span>{variant.weight} {variant.unit} | </span>}
+                                Qty: {item.quantity}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-[15px] font-bold text-[var(--text-gray)] shrink-0">₹{(price * item.quantity).toFixed(2)}</span>
                       </div>
-                      <div className="flex flex-col">
-                        <h4 className="text-[14px] sm:text-[14.5px] font-bold text-[var(--text-gray)] line-clamp-2 leading-snug">Curate Mango Mallika Large Premium</h4>
-                        <p className="text-[13px] text-gray-500 mt-1">Qty: 1</p>
-                      </div>
-                    </div>
-                    <span className="text-[15px] font-bold text-[var(--text-gray)] shrink-0">$32.00</span>
-                  </div>
+                    );
+                  })}
+
+                  {items.length === 0 && <p className="text-center text-gray-500 font-medium py-4">No items in cart</p>}
                 </div>
+
 
                 {/* Subtotals */}
                 <div className="space-y-4 mb-6 border-b border-gray-100 pb-6">
                   <div className="flex items-center justify-between">
                     <span className="text-[14px] font-bold text-gray-500">Subtotal</span>
-                    <span className="text-[15px] font-bold text-[var(--text-gray)]">$32.00</span>
+                    <span className="text-[15px] font-bold text-[var(--text-gray)]">₹{subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[14px] font-bold text-gray-500">Shipping</span>
-                    <span className="text-[14.5px] font-bold text-[var(--primary)]">Free shipping</span>
+                    <span className="text-[14.5px] font-bold text-[var(--primary)]">{shipping === 0 ? "Free" : `₹${shipping.toFixed(2)}`}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[14px] font-bold text-gray-500">Tax</span>
-                    <span className="text-[15px] font-bold text-[var(--text-gray)]">$0.00</span>
+                    <span className="text-[15px] font-bold text-[var(--text-gray)]">₹{tax.toFixed(2)}</span>
                   </div>
+
                 </div>
 
                 {/* Total */}
                 <div className="flex items-center justify-between mb-8 pb-3 border-b border-gray-100">
                   <span className="text-[17px] font-bold text-[var(--text-gray)]">Total</span>
-                  <span className="text-[22px] font-bold text-[var(--primary)]">$32.00 <span className="text-sm font-bold text-gray-500">USD</span></span>
+                  <span className="text-[22px] font-bold text-[var(--primary)]">₹{totalAmount.toFixed(2)} <span className="text-sm font-bold text-gray-500">INR</span></span>
                 </div>
+
 
                 {/* Payment Methods */}
                 <h3 className="text-[15px] font-bold text-[var(--text-gray)] mb-4">Payment Method</h3>
@@ -241,6 +342,19 @@ const CheckOut = () => {
                     </div>
                     <Banknote className="w-6 h-6 text-green-600 opacity-90" />
                   </label>
+
+                  {/* Stripe Payment */}
+                  <label className={`flex items-center justify-between border rounded-md p-4 cursor-pointer transition-all ${paymentMethod === 'stripe' ? 'border-[var(--primary)] bg-blue-50/30 shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300'}`}>
+                    <div className="flex items-center gap-3">
+                      <input type="radio" name="payment" value="stripe" checked={paymentMethod === 'stripe'} onChange={() => setPaymentMethod('stripe')} className="sr-only" />
+                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors shrink-0 ${paymentMethod === 'stripe' ? 'border-[var(--primary)]' : 'border-gray-400'}`}>
+                        {paymentMethod === 'stripe' && <div className="w-2 h-2 rounded-full bg-[var(--primary)]" />}
+                      </div>
+                      <span className="text-[14.5px] font-bold text-[#1e5066]">Stripe (Card/UPI)</span>
+                    </div>
+                    <FaStripe className="w-8 h-8 text-[#635BFF] opacity-90" />
+                  </label>
+
 
                   {/* UPI */}
                   <div className={`border rounded-md p-4 transition-all ${paymentMethod === 'upi' ? 'border-[var(--primary)] bg-blue-50/10 shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300'}`}>
@@ -328,9 +442,13 @@ const CheckOut = () => {
                   Your personal data will be used to process your order, support your experience throughout this website, and for other purposes described in our privacy policy.
                 </p>
 
-                <button onClick={handlePlaceOrder} className="w-full bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors text-white py-4 rounded font-bold text-[16px] shadow-md flex justify-center items-center">
-                  Place Order
+                <button onClick={handlePlaceOrder} disabled={orderLoading} className="w-full bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors text-white py-4 rounded font-bold text-[16px] shadow-md flex justify-center items-center disabled:opacity-50">
+                  {orderLoading ? (
+                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : "Place Order"}
                 </button>
+
+
 
               </div>
             </div>

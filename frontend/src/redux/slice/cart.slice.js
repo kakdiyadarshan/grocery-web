@@ -34,10 +34,10 @@ export const getCart = createAsyncThunk(
 
 export const addToCart = createAsyncThunk(
     'cart/addToCart',
-    async ({ productId, quantity }, { dispatch, rejectWithValue }) => {
+    async ({ productId,variantId, quantity }, { dispatch, rejectWithValue }) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.post(`${BASE_URL}/cart/add`, { productId, quantity }, {
+            const response = await axios.post(`${BASE_URL}/cart/add`, { productId, variantId, quantity }, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -52,10 +52,10 @@ export const addToCart = createAsyncThunk(
 
 export const updateCartQuantity = createAsyncThunk(
     'cart/updateCartQuantity',
-    async ({ productId, quantity }, { dispatch, rejectWithValue }) => {
+    async ({ productId, variantId, quantity }, { dispatch, rejectWithValue }) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.put(`${BASE_URL}/cart/update`, { productId, quantity }, {
+            const response = await axios.put(`${BASE_URL}/cart/update`, { productId, variantId, quantity }, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -69,10 +69,10 @@ export const updateCartQuantity = createAsyncThunk(
 
 export const removeFromCart = createAsyncThunk(
     'cart/removeFromCart',
-    async (productId, { dispatch, rejectWithValue }) => {
+    async ({ productId, variantId }, { dispatch, rejectWithValue }) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.delete(`${BASE_URL}/cart/remove/${productId}`, {
+            const response = await axios.delete(`${BASE_URL}/cart/remove/${productId}${variantId ? `?variantId=${variantId}` : ''}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -84,6 +84,25 @@ export const removeFromCart = createAsyncThunk(
         }
     }
 );
+
+export const clearCart = createAsyncThunk(
+    'cart/clearCart',
+    async (_, { dispatch, rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.delete(`${BASE_URL}/cart/clear`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            return response.data.cart;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
+
 
 const cartSlice = createSlice({
     name: 'cart',
@@ -108,7 +127,11 @@ const cartSlice = createSlice({
             })
             .addCase(removeFromCart.fulfilled, (state, action) => {
                 state.cart = action.payload;
+            })
+            .addCase(clearCart.fulfilled, (state, action) => {
+                state.cart = action.payload;
             });
+
     }
 });
 

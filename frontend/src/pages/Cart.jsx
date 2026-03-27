@@ -1,25 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { Trash2, ShoppingBag, ArrowRight, Minus, Plus, Home, ChevronRight, ShieldCheck, Truck, ArrowLeft, Tag, X, CheckCircle2, Ticket } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getCart, removeFromCart, updateCartQuantity } from '../redux/slice/cart.slice';
 
 const Cart = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { cart, loading } = useSelector((state) => state.cart);
 
     useEffect(() => {
         dispatch(getCart());
     }, [dispatch]);
 
-    const handleRemoveFromCart = (productId) => {
-        dispatch(removeFromCart(productId));
+    const handleRemoveFromCart = (productId, variantId) => {
+        dispatch(removeFromCart({ productId, variantId }));
     };
 
-    const handleUpdateQuantity = (productId, newQuantity) => {
+    const handleUpdateQuantity = (productId, variantId, newQuantity) => {
         if (newQuantity < 1) return;
-        dispatch(updateCartQuantity({ productId, quantity: newQuantity }));
+        dispatch(updateCartQuantity({ productId, variantId, quantity: newQuantity }));
     };
+
 
     const cartItems = cart?.items || [];
 
@@ -60,14 +62,17 @@ const Cart = () => {
     // Calculations
     const subtotal = cartItems.reduce((acc, item) => {
         const prod = item.productId;
-        const price = prod?.discountPrice || prod?.weighstWise?.[0]?.price || prod?.price || 0;
+        const variant = item.selectedVariant || prod?.weighstWise?.find(v => v._id === item.variantId) || prod?.weighstWise?.[0];
+        const price = variant?.price || prod?.price || 0;
         return acc + (price * item.quantity);
     }, 0);
+
     const shippingBase = cartItems.length > 0 ? (subtotal >= 50 ? 0 : 5.99) : 0;
     const shipping = (appliedCoupon?.type === 'shipping') ? 0 : shippingBase;
     const tax = cartItems.length > 0 ? (subtotal * 0.08) : 0; // 8% tax
     const couponDiscount = appliedCoupon?.type === 'percent' ? (subtotal * appliedCoupon.value) / 100 : 0;
     const total = subtotal + shipping + tax - couponDiscount;
+
 
     if (loading && !cart) {
         return (
@@ -75,6 +80,10 @@ const Cart = () => {
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)]"></div>
             </div>
         );
+    }
+
+    const handleclick = () => {
+        navigate('/checkout');
     }
 
     return (
@@ -124,26 +133,35 @@ const Cart = () => {
                                             <div className="flex justify-between items-start gap-4">
                                                 <div>
                                                     <span className="text-[10px] font-bold text-[var(--primary)] uppercase tracking-wider bg-[var(--primary-light)] px-2.5 py-1 rounded-sm mb-2 inline-block">
-                                                        {item.category?.categoryName || (typeof item.category === 'string' ? item.category : 'General')}
+                                                        {wish.categoryName || item.category?.categoryName || "Grocery"}
                                                     </span>
                                                     <h3 className="font-bold text-[var(--text-primary)] text-lg mb-1 leading-tight"><Link to={`/product/${item._id}`} className="hover:text-[var(--primary)] transition-colors">{item.name || item.productName}</Link></h3>
-                                                    <p className="text-[var(--text-secondary)] font-medium">₹{item.discountPrice || item.weighstWise?.[0]?.price || item.price || 0} each</p>
+                                                    {wish.variantId && wish.selectedVariant && (
+                                                        <p className="text-xs font-bold text-gray-500 mb-1">
+                                                            Weight: {wish.selectedVariant.weight} {wish.selectedVariant.unit}
+                                                        </p>
+                                                    )}
+                                                    <p className="text-[var(--text-secondary)] font-medium">₹{wish.selectedVariant?.price || 0} each</p>
+
                                                 </div>
-                                                <span className="font-bold text-xl text-[var(--text-primary)]">₹{((item.discountPrice || item.weighstWise?.[0]?.price || item.price || 0) * wish.quantity).toFixed(2)}</span>
+                                                <span className="font-bold text-xl text-[var(--text-primary)]">
+                                                    ₹{((wish.selectedVariant?.price || 0) * wish.quantity).toFixed(2)}
+                                                </span>
+
                                             </div>
 
                                             <div className="flex items-center justify-between mt-5 pt-4 border-t border-[var(--border)] border-dashed">
                                                 <div className="flex items-center border border-gray-200 rounded-sm overflow-hidden">
-                                                    <button onClick={() => handleUpdateQuantity(prodId, wish.quantity - 1)} className="w-9 h-9 flex items-center justify-center text-gray-500 hover:bg-white hover:text-[var(--primary)] transition-colors">
+                                                    <button onClick={() => handleUpdateQuantity(prodId, wish.variantId, wish.quantity - 1)} className="w-9 h-9 flex items-center justify-center text-gray-500 hover:bg-white hover:text-[var(--primary)] transition-colors">
                                                         <Minus size={14} strokeWidth={2.5} />
                                                     </button>
                                                     <input type="text" readOnly value={wish.quantity} className="w-10 h-9 bg-transparent text-center font-bold text-[var(--text-primary)] text-sm focus:outline-none" />
-                                                    <button onClick={() => handleUpdateQuantity(prodId, wish.quantity + 1)} className="w-9 h-9 flex items-center justify-center text-gray-500 hover:bg-white hover:text-[var(--primary)] transition-colors">
+                                                    <button onClick={() => handleUpdateQuantity(prodId, wish.variantId, wish.quantity + 1)} className="w-9 h-9 flex items-center justify-center text-gray-500 hover:bg-white hover:text-[var(--primary)] transition-colors">
                                                         <Plus size={14} strokeWidth={2.5} />
                                                     </button>
                                                 </div>
 
-                                                <button onClick={() => handleRemoveFromCart(prodId)} className="flex items-center gap-1.5 text-sm font-[500] text-red-500 hover:text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors">
+                                                <button onClick={() => handleRemoveFromCart(prodId, wish.variantId)} className="flex items-center gap-1.5 text-sm font-[500] text-red-500 hover:text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors">
                                                     <Trash2 size={16} /> <span className="hidden sm:inline">Remove</span>
                                                 </button>
                                             </div>
@@ -287,9 +305,10 @@ const Cart = () => {
                                     <p className="text-xs text-[var(--text-secondary)] mt-1.5 text-right">Pre-tax currency INR</p>
                                 </div>
 
-                                <button className="w-full flex items-center justify-center gap-2 py-4 bg-[var(--primary)] text-white rounded-md font-[500] text-lg hover:bg-[var(--primary-hover)] transition-all duration-300 shadow-md shadow-[var(--primary)]/20 active:scale-95 mb-4 border border-transparent">
+                                <button onClick={handleclick} className="w-full flex items-center justify-center gap-2 py-4 bg-[var(--primary)] text-white rounded-md font-[500] text-lg hover:bg-[var(--primary-hover)] transition-all duration-300 shadow-md shadow-[var(--primary)]/20 active:scale-95 mb-4 border border-transparent">
                                     Proceed to Checkout <ArrowRight size={20} />
                                 </button>
+
 
                                 <div className="flex items-center justify-center gap-4 text-[var(--text-secondary)] mt-6 border-t border-[var(--border)] pt-6">
                                     <div className="flex flex-col items-center gap-1.5">

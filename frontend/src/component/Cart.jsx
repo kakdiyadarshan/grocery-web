@@ -13,19 +13,21 @@ const Cart = ({ isOpen, onClose }) => {
 
     const cartItems = cart?.items || [];
     const subtotal = cartItems.reduce((acc, item) => {
-        const prod = item.productId;
-        const price = prod?.discountPrice || prod?.weighstWise?.[0]?.price || prod?.price || 0;
+        const variant = item.selectedVariant;
+        const price = variant?.price || 0;
         return acc + (price * item.quantity);
     }, 0);
 
-    const handleUpdateQuantity = (productId, newQuantity) => {
+
+    const handleUpdateQuantity = (productId, variantId, newQuantity) => {
         if (newQuantity < 1) return;
-        dispatch(updateCartQuantity({ productId, quantity: newQuantity }));
+        dispatch(updateCartQuantity({ productId, variantId, quantity: newQuantity }));
     };
 
-    const handleRemove = (productId) => {
-        dispatch(removeFromCart(productId));
+    const handleRemove = (productId, variantId) => {
+        dispatch(removeFromCart({ productId, variantId }));
     };
+
 
     const handleCheckout = () => {
         onClose();
@@ -86,32 +88,43 @@ const Cart = ({ isOpen, onClose }) => {
 
                                         <div className="flex flex-col gap-0.5 flex-1 min-w-0">
                                             <span className="text-[12px] sm:text-[13px] text-gray-400 tracking-wide truncate">
-                                                {item.category?.categoryName || (typeof item.category === 'string' ? item.category : 'General')}
+                                                {wish.categoryName || item.category?.categoryName || "Grocery"}
                                             </span>
+
                                             <span className="text-[14px] sm:text-[15px] font-medium leading-snug text-[var(--text-gray)] mt-0.5 break-words line-clamp-2">
-                                                {item.name || item.productName}
+                                                {item.name || item.productName} 
+                                                {(wish.selectedVariant || item.weighstWise?.[0]) && (
+                                                    <span className="text-xs font-bold text-[var(--primary)] ml-1">
+                                                        ({(wish.selectedVariant || item.weighstWise?.[0])?.weight} {(wish.selectedVariant || item.weighstWise?.[0])?.unit})
+                                                    </span>
+                                                )}
                                             </span>
-                                            <span className="text-[12px] sm:text-[13px] text-gray-500 mt-1 truncate">₹{item.discountPrice || item.weighstWise?.[0]?.price || item.price || 0}</span>
+                                            <span className="text-[12px] sm:text-[13px] text-gray-500 mt-1 truncate">₹{wish.selectedVariant?.price || 0} each</span>
+
+
 
                                             {/* Controls */}
                                             <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-3 sm:mt-4">
                                                 <div className="flex items-center border border-gray-200 rounded px-2 w-[75px] sm:w-[85px] h-8 sm:h-9 justify-between">
-                                                    <button onClick={() => handleUpdateQuantity(prodId, wish.quantity - 1)} className="text-gray-400 hover:text-[var(--primary)] shrink-0 transition-colors">
+                                                    <button onClick={() => handleUpdateQuantity(prodId, wish.variantId, wish.quantity - 1)} className="text-gray-400 hover:text-[var(--primary)] shrink-0 transition-colors">
                                                         <Minus className="w-3.5 h-3.5" />
                                                     </button>
                                                     <span className="text-[14px] sm:text-[15px] font-medium shrink-0">{wish.quantity}</span>
-                                                    <button onClick={() => handleUpdateQuantity(prodId, wish.quantity + 1)} className="text-gray-400 hover:text-[var(--primary)] shrink-0 transition-colors">
+                                                    <button onClick={() => handleUpdateQuantity(prodId, wish.variantId, wish.quantity + 1)} className="text-gray-400 hover:text-[var(--primary)] shrink-0 transition-colors">
                                                         <Plus className="w-3.5 h-3.5" />
                                                     </button>
                                                 </div>
 
-                                                <button onClick={() => handleRemove(prodId)} className="bg-[var(--primary)] text-white w-8 h-8 sm:w-9 sm:h-9 rounded flex items-center justify-center hover:bg-[var(--primary-hover)] transition-colors shrink-0">
+                                                <button onClick={() => handleRemove(prodId, wish.variantId)} className="bg-[var(--primary)] text-white w-8 h-8 sm:w-9 sm:h-9 rounded flex items-center justify-center hover:bg-[var(--primary-hover)] transition-colors shrink-0">
                                                     <Trash2 className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]" />
                                                 </button>
+
                                             </div>
                                         </div>
                                     </div>
-                                    <span className="font-bold text-[var(--primary)] text-[14px] sm:text-[16px] shrink-0 whitespace-nowrap">₹{((item.discountPrice || item.weighstWise?.[0]?.price || item.price || 0) * wish.quantity).toFixed(2)}</span>
+                                    <span className="font-bold text-[var(--primary)] text-[14px] sm:text-[16px] shrink-0 whitespace-nowrap">₹{((wish.selectedVariant?.price || 0) * wish.quantity).toFixed(2)}</span>
+
+
                                 </div>
                             );
                         })
@@ -150,7 +163,7 @@ const Cart = ({ isOpen, onClose }) => {
 
                         <div className="flex items-center justify-between mb-2">
                             <span className="font-bold text-[var(--text-gray)] text-[15px] sm:text-[17px] tracking-wide shrink-0">Subtotal</span>
-                            <span className="font-bold text-[var(--primary)] text-[15px] sm:text-[17px] tracking-wide shrink-0 whitespace-nowrap">₹{subtotal.toFixed(2)} USD</span>
+                            <span className="font-bold text-[var(--primary)] text-[15px] sm:text-[17px] tracking-wide shrink-0 whitespace-nowrap">₹{subtotal.toFixed(2)}</span>
                         </div>
 
                         <p className="text-[12px] sm:text-[13px] text-[var(--text-gray)] mb-6 opacity-80 break-words">Taxes and shipping calculated at checkout</p>

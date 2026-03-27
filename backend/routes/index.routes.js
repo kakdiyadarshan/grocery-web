@@ -5,7 +5,8 @@ const s3Service = require('../utils/s3Service');
 const { createUser, verifyOtp, resendOtp, userLogin, forgotPassword, forgotVerifyOtp, resetPassword, logout } = require('../controllers/auth.controller');
 const { getAllUsers, getUserById, updateUser, changePassword } = require('../controllers/user.controller');
 const { createCategory, getAllCategories, getCategoryById, updateCategory, deleteCategory } = require('../controllers/category.controller');
-const { getCart, addToCart, updateCartQuantity, removeFromCart } = require('../controllers/cart.controller');
+const { getCart, addToCart, updateCartQuantity, removeFromCart, clearCart } = require('../controllers/cart.controller');
+
 const { getWishlist, addToWishlist, removeFromWishlist } = require('../controllers/wishlist.controller');
 const { createProduct, getAllProducts, getProductById, updateProduct, deleteProduct } = require('../controllers/product.controller');
 const { auth, authorizeRoles } = require('../middleware/auth.middleware');
@@ -19,7 +20,7 @@ const { createOffer, getAllOffers, getOfferById, updateOffer, deleteOffer } = re
 const { createFAQ, getAllFAQs, getFAQById, updateFAQ, deleteFAQ } = require('../controllers/faq.controller');
 const { createReview, getReviewById, getAllReviews, deleteReview } = require('../controllers/review.controller');
 const { createCoupon, getAllCoupons, deleteCoupon, getCouponById, updateCoupon } = require('../controllers/coupon.controller');
-const { createOrder, getAllOrders, getOrderById, updateOrderStatus, deleteOrder, getUserOrders, cancelOrder, trackOrder } = require('../controllers/order.controller');
+const { createOrder, getAllOrders, getOrderById, updateOrderStatus, deleteOrder, getUserOrders, cancelOrder, trackOrder, handleStripeWebhook } = require('../controllers/order.controller');
 const { createPayment, getPaymentById, getAllPayments, deletePayment, getPaymentByUserId, getPaymentByOrderId } = require('../controllers/payment.controller');
 const { addAddress, getAddresses, updateAddress, deleteAddress, setDefaultAddress } = require('../controllers/address.controller');
 const { createOfferBanner, getAllOfferBanners, updateOfferBanner, deleteOfferBanner } = require('../controllers/offerbanner.controller');
@@ -62,6 +63,8 @@ indexRoutes.get('/cart', auth, getCart);
 indexRoutes.post('/cart/add', auth, addToCart);
 indexRoutes.put('/cart/update', auth, updateCartQuantity);
 indexRoutes.delete('/cart/remove/:productId', auth, removeFromCart);
+indexRoutes.delete('/cart/clear', auth, clearCart);
+
 
 // Wishlist routes
 indexRoutes.get('/wishlist', auth, getWishlist);
@@ -185,4 +188,8 @@ indexRoutes.put('/address/:addressId', auth, updateAddress);
 indexRoutes.delete('/address/:addressId', auth, deleteAddress);
 indexRoutes.put('/address-default/:addressId', auth, setDefaultAddress);
 
+// Stripe Webhook
+indexRoutes.post('/stripe-webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
+
 module.exports = indexRoutes;
+

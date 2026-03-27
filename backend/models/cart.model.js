@@ -12,6 +12,10 @@ const cartSchema = new mongoose.Schema({
             ref: 'Product',
             required: true
         },
+        variantId: {
+            type: String, // Or ObjectId if you prefer
+            required: false // Optional for products without variants
+        },
         quantity: {
             type: Number,
             required: true,
@@ -19,6 +23,7 @@ const cartSchema = new mongoose.Schema({
             min: 1
         }
     }]
+
 }, { timestamps: true });
 
 module.exports = mongoose.model('Cart', cartSchema);
