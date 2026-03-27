@@ -7,7 +7,7 @@ const { getAllUsers, getUserById, updateUser, changePassword } = require('../con
 const { createCategory, getAllCategories, getCategoryById, updateCategory, deleteCategory } = require('../controllers/category.controller');
 const { getCart, addToCart, updateCartQuantity, removeFromCart } = require('../controllers/cart.controller');
 const { getWishlist, addToWishlist, removeFromWishlist } = require('../controllers/wishlist.controller');
-const { createProduct, getAllProducts, getProductById, updateProduct, deleteProduct } = require('../controllers/product.controller');
+const { createProduct, getAllProducts, getProductById, updateProduct, deleteProduct, importProducts } = require('../controllers/product.controller');
 const { auth, authorizeRoles } = require('../middleware/auth.middleware');
 const { uploadPrivacyImage, saveAllPrivacyPolicies, getAllPrivacyPolicies, getPrivacyPolicyById } = require('../controllers/privacy.controller');
 const { addNewBlogCategoryController, getAllBlogCategoryController, getBlogCategoryByIdController, updateBlogCategoryController, deleteBlogCategoryController } = require('../controllers/blog.category.controller');
@@ -56,6 +56,7 @@ indexRoutes.get('/getAllProducts', getAllProducts);
 indexRoutes.get('/getProductById/:id', getProductById);
 indexRoutes.put('/updateProduct/:id', auth, authorizeRoles('admin'), upload.array('images', 10), updateProduct);
 indexRoutes.delete('/deleteProduct/:id', auth, authorizeRoles('admin'), deleteProduct);
+indexRoutes.post('/importProducts', auth, authorizeRoles('admin'), upload.any(), importProducts);
 
 // Cart routes
 indexRoutes.get('/cart', auth, getCart);
@@ -155,24 +156,24 @@ indexRoutes.delete('/contacts/:id', auth, authorizeRoles('admin'), deleteContact
 
 // Coupon Routes
 indexRoutes.post('/createCoupon', auth, authorizeRoles('admin'), createCoupon);
-indexRoutes.get('/getAllCoupons', auth, authorizeRoles('admin','user'), getAllCoupons);
+indexRoutes.get('/getAllCoupons', auth, authorizeRoles('admin', 'user'), getAllCoupons);
 indexRoutes.delete('/deleteCoupon/:id', auth, authorizeRoles('admin'), deleteCoupon);
-indexRoutes.get('/getCoupon/:id', auth, authorizeRoles('admin','user'), getCouponById);
+indexRoutes.get('/getCoupon/:id', auth, authorizeRoles('admin', 'user'), getCouponById);
 indexRoutes.put('/updateCoupon/:id', auth, authorizeRoles('admin'), updateCoupon);
 
 // Order Routes
 indexRoutes.post('/createOrder', auth, createOrder);
 indexRoutes.get('/getAllOrders', auth, authorizeRoles('admin'), getAllOrders);
-indexRoutes.get('/getOrder/:id', auth, authorizeRoles('admin','user'), getOrderById);
+indexRoutes.get('/getOrder/:id', auth, authorizeRoles('admin', 'user'), getOrderById);
 indexRoutes.put('/updateOrderStatus/:id', auth, authorizeRoles('admin'), updateOrderStatus);
-indexRoutes.delete('/deleteOrder/:id', auth, authorizeRoles('admin'), deleteOrder); 
+indexRoutes.delete('/deleteOrder/:id', auth, authorizeRoles('admin'), deleteOrder);
 indexRoutes.get('/getUserOrders', auth, getUserOrders);
 indexRoutes.put('/cancelOrder/:id', auth, cancelOrder);
 indexRoutes.get('/trackOrder/:id', auth, trackOrder);
 
 // Payment Routes
 indexRoutes.post('/createPayment', auth, createPayment);
-indexRoutes.get('/getPayment/:id', auth,authorizeRoles('admin'), getPaymentById);
+indexRoutes.get('/getPayment/:id', auth, authorizeRoles('admin'), getPaymentById);
 indexRoutes.get('/getAllPayments', auth, authorizeRoles('admin'), getAllPayments);
 indexRoutes.delete('/deletePayment/:id', auth, authorizeRoles('admin'), deletePayment);
 indexRoutes.get('/getPaymentByUserId/:userId', auth, authorizeRoles('admin'), getPaymentByUserId);

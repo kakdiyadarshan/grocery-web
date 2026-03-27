@@ -14,6 +14,7 @@ export const fetchBanners = createAsyncThunk(
     async (_, { dispatch, rejectWithValue }) => {
         try {
             const response = await axios.get(`${BASE_URL}/getbanners`);
+            console.log("_______",response.data);
             return response.data;
         } catch (error) {
             return handleError(error, dispatch, rejectWithValue);

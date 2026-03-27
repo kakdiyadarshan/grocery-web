@@ -37,12 +37,14 @@ const BlogCategoryAdmin = () => {
         {
             header: '#',
             accessor: '_id',
+            hideInExport: true,
             render: (_, idx) => <span className="text-gray-400 text-xs font-mono">{idx + 1}</span>
         },
         { header: 'Category Name', accessor: 'blogCategoryName' },
         {
             header: 'Created',
             accessor: 'createdAt',
+            exportValue: (item) => new Date(item.createdAt).toLocaleString(),
             render: (item) => new Date(item.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })
         },
     ];
@@ -130,6 +132,8 @@ const BlogCategoryAdmin = () => {
                     onEdit={handleEdit}
                     onDelete={promptDelete}
                     itemsPerPage={10}
+                    exportFileName="Blog_Categories"
+                    allowExport={false}
                 />
             )}
 

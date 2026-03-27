@@ -20,6 +20,54 @@ module.exports.uploadToS3 = async (file, folder) => {
   };
 };
 
+module.exports.uploadUrlToS3 = async (url, folder) => {
+  if (!url) return null;
+
+  try {
+    const protocol = url.startsWith('https') ? require('https') : require('http');
+    const path = require('path');
+
+    return new Promise((resolve, reject) => {
+      protocol.get(url, (res) => {
+        if (res.statusCode !== 200) {
+          reject(new Error(`Failed to fetch image: ${res.statusCode}`));
+          return;
+        }
+
+        const chunks = [];
+        res.on('data', (chunk) => chunks.push(chunk));
+        res.on('end', async () => {
+          try {
+            const buffer = Buffer.concat(chunks);
+            const fileName = path.basename(url) || `imported-image-${Date.now()}`;
+            const mimetype = res.headers['content-type'] || 'image/jpeg';
+
+            const fileKey = `${folder}/import-${Date.now()}-${uuid()}-${fileName.replace(/\s/g, "")}`;
+
+            const params = {
+              Bucket: process.env.AWS_BUCKET_NAME,
+              Key: fileKey,
+              Body: buffer,
+              ContentType: mimetype,
+            };
+
+            const upload = await s3.upload(params).promise();
+            resolve({
+              url: upload.Location,
+              public_id: upload.Key
+            });
+          } catch (err) {
+            reject(err);
+          }
+        });
+      }).on('error', reject);
+    });
+  } catch (error) {
+    console.error("uploadUrlToS3 Error:", error);
+    return null;
+  }
+};
+
 module.exports.updateS3 = async (oldKey, newFile, folder) => {
   console.log("oldKey", oldKey);
   console.log("newFile", newFile);

@@ -1,6 +1,8 @@
 const { default: mongoose } = require("mongoose");
 const Product = require("../models/product.model");
-const { uploadToS3, updateS3, deleteFromS3, deleteManyFromS3 } = require("../utils/s3Service");
+const Category = require("../models/category.model");
+const xlsx = require("xlsx");
+const { uploadToS3, uploadUrlToS3, updateS3, deleteFromS3, deleteManyFromS3 } = require("../utils/s3Service");
 
 // Create Product
 exports.createProduct = async (req, res) => {
@@ -289,6 +291,197 @@ exports.deleteProduct = async (req, res) => {
         res.status(200).json({ success: true, message: "Product deleted successfully" });
     } catch (error) {
         console.error("Delete Product Error:", error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+exports.importProducts = async (req, res) => {
+    try {
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ success: false, message: "No files uploaded" });
+        }
+
+        const excelFile = req.files.find(f => f.fieldname === "excel");
+        const imageFiles = req.files.filter(f => f.fieldname === "images");
+
+        if (!excelFile) {
+            return res.status(400).json({ success: false, message: "Please upload an Excel file" });
+        }
+
+        const imageFileMap = new Map();
+        imageFiles.forEach(file => {
+            imageFileMap.set(file.originalname.toLowerCase(), file);
+        });
+
+        let workbook;
+        if (excelFile.buffer) {
+            workbook = xlsx.read(excelFile.buffer, { type: 'buffer' });
+        } else if (excelFile.path) {
+            workbook = xlsx.readFile(excelFile.path);
+        } else {
+            return res.status(400).json({ success: false, message: "Invalid Excel file payload" });
+        }
+
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const data = xlsx.utils.sheet_to_json(sheet);
+
+        const normalizedData = data.map(row => {
+            const newRow = {};
+            Object.keys(row).forEach(key => {
+                newRow[key.toLowerCase()] = row[key];
+            });
+            return newRow;
+        });
+
+        let importedCount = 0;
+        let errors = [];
+
+        const productsToProcess = new Map();
+
+        // Group rows by product name
+        for (const [index, row] of normalizedData.entries()) {
+            const productName = (row.name || "").trim();
+            if (!productName) {
+                errors.push(`Row ${index + 2}: Missing product name. Skipped.`);
+                continue;
+            }
+
+            if (!productsToProcess.has(productName)) {
+                productsToProcess.set(productName, {
+                    name: productName,
+                    category: row.category,
+                    description: row.description || "",
+                    images: row.images || "",
+                    variants: [],
+                    rowIndex: index + 2
+                });
+            }
+
+            // Extract variant from this row
+            let rowVariants = [];
+            const variantsData = row.variants || row.weighstwise;
+
+            if (variantsData) {
+                try {
+                    let parsed;
+                    if (typeof variantsData === 'string') {
+                        // Handle potential single quotes from Excel or manual entry
+                        const sanitizedJson = variantsData.trim().replace(/'/g, '"');
+                        parsed = JSON.parse(sanitizedJson);
+                    } else {
+                        parsed = variantsData;
+                    }
+
+                    rowVariants = (Array.isArray(parsed) ? parsed : [parsed]).map(w => ({
+                        weight: String(w.weight || "1"),
+                        unit: w.unit || 'Kilogram',
+                        price: Number(w.price) || 0,
+                        stock: Number(w.stock) || 0
+                    }));
+                } catch (e) {
+                    errors.push(`Row ${index + 2}: Invalid variants format for '${productName}'. Error: ${e.message}`);
+                }
+            } else if (row.weight || row.price || row.stock) {
+                rowVariants = [{
+                    weight: String(row.weight || "1"),
+                    unit: row.unit || "Kilogram",
+                    price: Number(row.price) || 0,
+                    stock: Number(row.stock) || 0
+                }];
+            }
+
+            if (rowVariants.length > 0) {
+                productsToProcess.get(productName).variants.push(...rowVariants);
+            }
+
+            // Merge details if they are provided in subsequent rows but missing in the first
+            const current = productsToProcess.get(productName);
+            if (!current.description && row.description) current.description = row.description;
+            if (!current.category && row.category) current.category = row.category;
+            if (!current.images && row.images) current.images = row.images;
+        }
+
+        // Process unique products
+        for (const [name, productInfo] of productsToProcess.entries()) {
+            try {
+                // Parse Category
+                let categoryId = null;
+                if (productInfo.category) {
+                    if (mongoose.Types.ObjectId.isValid(productInfo.category)) {
+                        categoryId = productInfo.category;
+                    } else {
+                        // Look up by categoryName (ignore case)
+                        const categoryName = typeof productInfo.category === 'string'
+                            ? productInfo.category
+                            : (productInfo.category.name || String(productInfo.category));
+                        const category = await Category.findOne({
+                            categoryName: { $regex: new RegExp('^' + categoryName + '$', 'i') }
+                        });
+                        if (category) {
+                            categoryId = category._id;
+                        }
+                    }
+                }
+
+                if (!categoryId) {
+                    errors.push(`Product '${name}': Category '${productInfo.category}' not found. Skipped.`);
+                    continue;
+                }
+
+                // Parse images
+                let images = [];
+                if (productInfo.images && typeof productInfo.images === 'string') {
+                    const imageList = productInfo.images.split(',').map(img => img.trim()).filter(img => img);
+                    const uniqueImages = [...new Set(imageList)];
+
+                    for (const imgIdentifier of uniqueImages) {
+                        try {
+                            if (imgIdentifier.startsWith('http')) {
+                                // Case A: External URL
+                                const uploaded = await uploadUrlToS3(imgIdentifier, "products");
+                                if (uploaded) images.push(uploaded);
+                            } else {
+                                // Case B: Filename - Look for matched uploaded file
+                                const matchedFile = imageFileMap.get(imgIdentifier.toLowerCase());
+                                if (matchedFile) {
+                                    const uploaded = await uploadToS3(matchedFile, "products");
+                                    if (uploaded) images.push(uploaded);
+                                } else {
+                                    console.log(`Image not found in batch: ${imgIdentifier}`);
+                                }
+                            }
+                        } catch (imgErr) {
+                            console.error(`Error uploading image ${imgIdentifier}:`, imgErr.message);
+                        }
+                    }
+                }
+
+                // Create Product
+                const productToCreate = {
+                    name: name,
+                    category: categoryId,
+                    description: productInfo.description,
+                    weighstWise: productInfo.variants,
+                    images
+                };
+
+                await Product.create(productToCreate);
+                importedCount++;
+
+            } catch (err) {
+                errors.push(`Product '${name}': ${err.message}`);
+            }
+        }
+
+        res.status(200).json({
+            success: true,
+            message: `Successfully imported ${importedCount} products.`,
+            errors: errors.length > 0 ? errors : undefined
+        });
+
+    } catch (error) {
+        console.error("Import Products Error:", error.message);
         res.status(500).json({ success: false, message: error.message });
     }
 };
