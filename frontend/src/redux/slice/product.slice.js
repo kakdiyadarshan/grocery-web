@@ -11,6 +11,7 @@ const handleErrors = (error, dispatch, rejectWithValue) => {
 
 const initialState = {
     products: [],
+    featuredProducts: [],
     product: null,
     loading: false,
     error: null,
@@ -96,6 +97,18 @@ export const deleteProduct = createAsyncThunk(
     }
 );
 
+export const getFeaturedProducts = createAsyncThunk(
+    'product/getFeaturedProducts',
+    async (_, { dispatch, rejectWithValue }) => {
+        try {
+            const response = await axios.get(`${BASE_URL}/getFeaturedProducts`);
+            return response.data.products;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
 const productSlice = createSlice({
     name: 'product',
     initialState,
@@ -129,7 +142,13 @@ const productSlice = createSlice({
             .addCase(updateProduct.rejected, (state) => { state.loading = false; })
             .addCase(deleteProduct.fulfilled, (state, action) => {
                 state.products = state.products.filter(p => p._id !== action.payload);
-            });
+            })
+            .addCase(getFeaturedProducts.pending, (state) => { state.loading = true; })
+            .addCase(getFeaturedProducts.fulfilled, (state, action) => {
+                state.loading = false;
+                state.featuredProducts = action.payload;
+            })
+            .addCase(getFeaturedProducts.rejected, (state) => { state.loading = false; });
     }
 });
 

@@ -5,7 +5,7 @@ const { uploadToS3, updateS3, deleteFromS3, deleteManyFromS3 } = require("../uti
 // Create Product
 exports.createProduct = async (req, res) => {
     try {
-        const { name, category, description, weighstWise } = req.body;
+        const { name, category, description, weighstWise, tags, sku } = req.body;
 
         // Check for images
         const uploadedFiles = req.files || [];
@@ -36,11 +36,27 @@ exports.createProduct = async (req, res) => {
             }
         }
 
+        // Robust tags parsing
+        let parsedTags = [];
+        if (tags) {
+            if (Array.isArray(tags)) {
+                parsedTags = tags;
+            } else if (typeof tags === 'string') {
+                try {
+                    parsedTags = tags === '[]' ? [] : (tags.startsWith('[') ? JSON.parse(tags) : [tags]);
+                } catch (e) {
+                    parsedTags = [tags];
+                }
+            }
+        }
+
         const product = await Product.create({
             name,
             category,
             description,
             weighstWise: parsedWeights,
+            tags: parsedTags,
+            sku: sku || "",
             images
         });
 
@@ -199,7 +215,7 @@ exports.getProductById = async (req, res) => {
 // Update Product
 exports.updateProduct = async (req, res) => {
     try {
-        const { name, category, description, weighstWise, oldImages } = req.body;
+        const { name, category, description, weighstWise, oldImages, tags, sku } = req.body;
         let product = await Product.findById(req.params.id);
 
         if (!product) {
@@ -241,12 +257,26 @@ exports.updateProduct = async (req, res) => {
         product.name = name || product.name;
         product.category = category || product.category;
         product.description = description || product.description;
+        product.sku = sku || product.sku;
         if (weighstWise) {
             try {
                 product.weighstWise = typeof weighstWise === 'string' ? JSON.parse(weighstWise) : weighstWise;
             } catch (e) { }
         }
         product.images = productsImages;
+
+        // Enhanced tag update logic
+        if (tags !== undefined) {
+            if (Array.isArray(tags)) {
+                product.tags = tags;
+            } else if (typeof tags === 'string') {
+                try {
+                    product.tags = tags === '[]' ? [] : (tags.startsWith('[') ? JSON.parse(tags) : [tags]);
+                } catch (e) {
+                    product.tags = tags ? [tags] : [];
+                }
+            }
+        }
 
         await product.save();
 
@@ -265,6 +295,71 @@ exports.updateProduct = async (req, res) => {
         });
     } catch (error) {
         console.error("Update Product Error:", error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Get Featured Products (only products with 'featured' tag)
+exports.getFeaturedProducts = async (req, res) => {
+    try {
+        const today = new Date();
+
+        const products = await Product.aggregate([
+            {
+                $match: { tags: { $in: ['featured'] } }
+            },
+            {
+                $lookup: {
+                    from: 'offers',
+                    let: { productId: '$_id' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $in: ['$$productId', '$product_id'] },
+                                        { $lte: ['$offer_start_date', today] },
+                                        { $gte: ['$offer_end_date', today] }
+                                    ]
+                                }
+                            }
+                        }
+                    ],
+                    as: 'offer'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'categories',
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$category',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'reviews',
+                    localField: '_id',
+                    foreignField: 'productId',
+                    as: 'reviews'
+                }
+            },
+            {
+                $addFields: {
+                    avgRating: { $avg: '$reviews.rating' },
+                    reviewCount: { $size: '$reviews' }
+                }
+            }
+        ]);
+
+        res.status(200).json({ success: true, products });
+    } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 };

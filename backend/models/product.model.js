@@ -38,6 +38,15 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    tags: {
+        type: [String],
+        enum: ['featured', 'best_selling'],
+        default: []
+    },
+    sku: {
+        type: String,
+        default: ""
+    },
     reviews: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Review'
