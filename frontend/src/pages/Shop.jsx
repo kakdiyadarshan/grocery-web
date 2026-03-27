@@ -1,55 +1,160 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { ChevronDown, ChevronRight, Eye, Grid, Heart, List, ShoppingCart, SlidersHorizontal, Star, X } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { getAllProducts } from '../redux/slice/product.slice';
 import { addToCart } from '../redux/slice/cart.slice';
 import { addToWishlist } from '../redux/slice/wishlist.slice';
 
 const Shop = () => {
     const dispatch = useDispatch();
+    const location = useLocation();
     const { products = [], loading = false } = useSelector((state) => state.product || {});
+    const searchQuery = new URLSearchParams(location.search).get('search')?.trim().toLowerCase() || '';
 
     const [viewType, setViewType] = useState('grid');
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [sortBy, setSortBy] = useState('alphabetical-az');
 
+    // Filter states
+    const [selectedAvailability, setSelectedAvailability] = useState([]);
+    const [priceRange, setPriceRange] = useState({ min: '', max: '' });
+    const [selectedWeights, setSelectedWeights] = useState([]);
+    const [selectedCategories, setSelectedCategories] = useState([]);
+
     useEffect(() => {
         dispatch(getAllProducts());
     }, [dispatch]);
 
+    // Compute dynamic filter options from products
+    const filterOptions = React.useMemo(() => {
+        const weightsMap = new Map();
+        const categoriesMap = new Map();
+        let maxProductPrice = 0;
+        let inStockCount = 0;
+        let outOfStockCount = 0;
 
-    // Placeholder data for filters based on image
-    const filters = {
-        availability: [
-            { id: 'in-stock', label: 'In stock', count: 17 },
-            { id: 'out-of-stock', label: 'Out of stock', count: 1 }
-        ],
-        colors: [
-            { id: 'green', color: '#4ade80' },
-            { id: 'yellow', color: '#facc15' },
-            { id: 'red', color: '#ef4444' }
-        ],
-        weights: [
-            { id: '250gm', label: '250gm', count: 8 },
-            { id: '500gm', label: '500gm', count: 4 },
-            { id: '750gm', label: '750gm', count: 1 },
-            { id: '1kg', label: '1kg', count: 2 }
-        ],
-        productTypes: [
-            { id: 'dry-fruits', label: 'Dry Fruits', count: 4 },
-            { id: 'grocery', label: 'Grocery', count: 2 },
-            { id: 'nuts', label: 'Nuts', count: 1 },
-            { id: 'organics', label: 'Organics', count: 2 },
-            { id: 'vegies', label: 'Vegies', count: 4 }
-        ],
-        brands: [
-            { id: 'bright-fruit', label: 'Bright Fruit', count: 4 },
-            { id: 'fruity-liscious', label: 'Fruity-Liscious', count: 8 },
-            { id: 'fruitvilla', label: 'Fruitvilla', count: 2 },
-            { id: 'omni-sort', label: 'Omni-Sort', count: 5 },
-            { id: 'patagonia', label: 'Patagonia', count: 2 }
-        ]
+        products.forEach(product => {
+            // Price
+            if (product.weighstWise) {
+                product.weighstWise.forEach(w => {
+                    if (w.price > maxProductPrice) maxProductPrice = w.price;
+                });
+            }
+
+            // Availability
+            const isInStock = product.weighstWise?.some(w => w.stock > 0);
+            if (isInStock) inStockCount++;
+            else outOfStockCount++;
+
+            // Weights
+            const productWeights = new Set(product.weighstWise?.map(w => w.weight) || []);
+            productWeights.forEach(weight => {
+                weightsMap.set(weight, (weightsMap.get(weight) || 0) + 1);
+            });
+
+            // Categories
+            const catName = product.category?.categoryName || 'General';
+            categoriesMap.set(catName, (categoriesMap.get(catName) || 0) + 1);
+        });
+
+        return {
+            weights: Array.from(weightsMap.entries()).map(([label, count]) => ({ label, count })).sort((a, b) => a.label.localeCompare(b.label)),
+            categories: Array.from(categoriesMap.entries()).map(([label, count]) => ({ label, count })).sort((a, b) => a.label.localeCompare(b.label)),
+            maxPrice: maxProductPrice,
+            availability: [
+                { id: 'in-stock', label: 'In stock', count: inStockCount },
+                { id: 'out-of-stock', label: 'Out of stock', count: outOfStockCount }
+            ]
+        };
+    }, [products]);
+
+    // Filtering and Sorting Logic
+    const filteredProducts = React.useMemo(() => {
+        let result = [...products];
+
+        // 1. Filter by search query from header
+        if (searchQuery) {
+            result = result.filter((product) => {
+                const name = (product.name || '').toLowerCase();
+                const description = (product.description || '').toLowerCase();
+                const category = (product.category?.categoryName || '').toLowerCase();
+                return name.includes(searchQuery) || description.includes(searchQuery) || category.includes(searchQuery);
+            });
+        }
+
+        // 2. Filter by Availability
+        if (selectedAvailability.length > 0) {
+            result = result.filter(product => {
+                const inStock = product.weighstWise?.some(w => w.stock > 0);
+                if (selectedAvailability.includes('in-stock') && inStock) return true;
+                if (selectedAvailability.includes('out-of-stock') && !inStock) return true;
+                return false;
+            });
+        }
+
+        // 3. Filter by Price
+        if (priceRange.min !== '' || priceRange.max !== '') {
+            result = result.filter(product => {
+                const productMinPrice = product.weighstWise?.length > 0
+                    ? Math.min(...product.weighstWise.map(w => w.price))
+                    : 0;
+                const min = priceRange.min === '' ? 0 : Number(priceRange.min);
+                const max = priceRange.max === '' ? Infinity : Number(priceRange.max);
+                return productMinPrice >= min && productMinPrice <= max;
+            });
+        }
+
+        // 4. Filter by Weight
+        if (selectedWeights.length > 0) {
+            result = result.filter(product =>
+                product.weighstWise?.some(w => selectedWeights.includes(w.weight))
+            );
+        }
+
+        // 5. Filter by Category
+        if (selectedCategories.length > 0) {
+            result = result.filter(product =>
+                selectedCategories.includes(product.category?.categoryName)
+            );
+        }
+
+        // 6. Sorting
+        result.sort((a, b) => {
+            const getMinPrice = (p) => p.weighstWise?.length > 0 ? Math.min(...p.weighstWise.map(w => w.price)) : 0;
+            switch (sortBy) {
+                case 'alphabetical-az':
+                    return (a.name || '').localeCompare(b.name || '');
+                case 'alphabetical-za':
+                    return (b.name || '').localeCompare(a.name || '');
+                case 'price-low-high':
+                    return getMinPrice(a) - getMinPrice(b);
+                case 'price-high-low':
+                    return getMinPrice(b) - getMinPrice(a);
+                default:
+                    return 0;
+            }
+        });
+
+        return result;
+    }, [products, searchQuery, selectedAvailability, priceRange, selectedWeights, selectedCategories, sortBy]);
+
+    const handleAvailabilityChange = (id) => {
+        setSelectedAvailability(prev =>
+            prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+        );
+    };
+
+    const handleWeightChange = (weight) => {
+        setSelectedWeights(prev =>
+            prev.includes(weight) ? prev.filter(item => item !== weight) : [...prev, weight]
+        );
+    };
+
+    const handleCategoryChange = (category) => {
+        setSelectedCategories(prev =>
+            prev.includes(category) ? prev.filter(item => item !== category) : [...prev, category]
+        );
     };
 
     return (
@@ -78,94 +183,125 @@ const Shop = () => {
                         </div>
 
                         <div className="space-y-8 sticky top-6">
+                            {/* Availability Section */}
                             <section>
                                 <h3 className="text-[15px] font-bold text-[#1a1a1a] mb-4 flex items-center justify-between uppercase tracking-wider">
                                     Availability <ChevronDown size={14} />
                                 </h3>
                                 <div className="space-y-3">
-                                    {filters.availability.map(item => (
+                                    {filterOptions.availability.map(item => (
                                         <label key={item.id} className="flex items-center group cursor-pointer">
                                             <div className="relative flex items-center">
-                                                <input type="checkbox" className="peer appearance-none w-4 h-4 border border-gray-300 rounded checked:bg-[var(--primary)] checked:border-[var(--primary)] transition-all" />
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedAvailability.includes(item.id)}
+                                                    onChange={() => handleAvailabilityChange(item.id)}
+                                                    className="peer appearance-none w-4 h-4 border border-gray-300 rounded checked:bg-[var(--primary)] checked:border-[var(--primary)] transition-all"
+                                                />
                                                 <div className="absolute opacity-0 peer-checked:opacity-100 text-white pointer-events-none left-0.5 top-0.5">
                                                     <svg size={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" className="w-3 h-3"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                                 </div>
                                             </div>
-                                            <span className="ml-3 text-[14px] text-gray-600 group-hover:text-[var(--primary)] transition-colors">{item.label} ({item.count})</span>
+                                            <span className="ml-3 text-[14px] text-gray-600 group-hover:text-[var(--primary)] transition-colors">
+                                                {item.label} ({item.count})
+                                            </span>
                                         </label>
                                     ))}
                                 </div>
                             </section>
 
+                            {/* Price Section */}
                             <section>
                                 <h3 className="text-[15px] font-bold text-[#1a1a1a] mb-4 flex items-center justify-between uppercase tracking-wider">
                                     Price <ChevronDown size={14} />
                                 </h3>
-                                <p className="text-[13px] text-gray-500 mb-4 font-medium italic">The highest price is $50.00</p>
+                                <p className="text-[13px] text-gray-500 mb-4 font-medium italic">The highest price is ₹{filterOptions.maxPrice.toFixed(2)}</p>
                                 <div className="flex items-center gap-2">
                                     <div className="relative flex-1">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
-                                        <input type="number" placeholder="From" className="w-full pl-6 pr-3 py-2 text-sm border border-gray-200 rounded outline-none focus:border-[var(--primary)] transition-colors" />
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₹</span>
+                                        <input
+                                            type="number"
+                                            placeholder="From"
+                                            value={priceRange.min}
+                                            onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
+                                            className="w-full pl-6 pr-3 py-2 text-sm border border-gray-200 rounded outline-none focus:border-[var(--primary)] transition-colors"
+                                        />
                                     </div>
                                     <div className="relative flex-1">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
-                                        <input type="number" placeholder="To" className="w-full pl-6 pr-3 py-2 text-sm border border-gray-200 rounded outline-none focus:border-[var(--primary)] transition-colors" />
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₹</span>
+                                        <input
+                                            type="number"
+                                            placeholder="To"
+                                            value={priceRange.max}
+                                            onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
+                                            className="w-full pl-6 pr-3 py-2 text-sm border border-gray-200 rounded outline-none focus:border-[var(--primary)] transition-colors"
+                                        />
                                     </div>
                                 </div>
                             </section>
 
-                            {/* <section>
-                                <h3 className="text-[15px] font-bold text-[#1a1a1a] mb-4 flex items-center justify-between uppercase tracking-wider">
-                                    Color <ChevronDown size={14} />
-                                </h3>
-                                <div className="flex flex-wrap gap-2.5">
-                                    {filters.colors.map(c => (
-                                        <button key={c.id} className="w-6 h-6 rounded-full border border-gray-200 shadow-sm transition-transform hover:scale-110 active:scale-90 ring-offset-2 hover:ring-1 hover:ring-gray-300" style={{ backgroundColor: c.color }} />
-                                    ))}
-                                </div>
-                            </section> */}
+                            {/* Weight Section */}
+                            {filterOptions.weights.length > 0 && (
+                                <section>
+                                    <h3 className="text-[15px] font-bold text-[#1a1a1a] mb-4 flex items-center justify-between uppercase tracking-wider">
+                                        Weight <ChevronDown size={14} />
+                                    </h3>
+                                    <div className="space-y-3">
+                                        {filterOptions.weights.map(item => (
+                                            <label key={item.label} className="flex items-center group cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedWeights.includes(item.label)}
+                                                    onChange={() => handleWeightChange(item.label)}
+                                                    className="w-4 h-4 rounded border-gray-300 transition-all text-[var(--primary)] focus:ring-[var(--primary)]"
+                                                />
+                                                <span className="ml-3 text-[14px] text-gray-600 group-hover:text-[var(--primary)] font-medium">
+                                                    {item.label} ({item.count})
+                                                </span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
 
-                            <section>
-                                <h3 className="text-[15px] font-bold text-[#1a1a1a] mb-4 flex items-center justify-between uppercase tracking-wider">
-                                    Weight <ChevronDown size={14} />
-                                </h3>
-                                <div className="space-y-3">
-                                    {filters.weights.map(item => (
-                                        <label key={item.id} className="flex items-center group cursor-pointer">
-                                            <input type="checkbox" className="w-4 h-4 rounded border-gray-300 transition-all text-[var(--primary)] focus:ring-[var(--primary)]" />
-                                            <span className="ml-3 text-[14px] text-gray-600 group-hover:text-[var(--primary)] font-medium">{item.label} ({item.count})</span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </section>
+                            {/* Category Section */}
+                            {filterOptions.categories.length > 0 && (
+                                <section>
+                                    <h3 className="text-[15px] font-bold text-[#1a1a1a] mb-4 flex items-center justify-between uppercase tracking-wider">
+                                        Product type <ChevronDown size={14} />
+                                    </h3>
+                                    <div className="space-y-3">
+                                        {filterOptions.categories.map(item => (
+                                            <label key={item.label} className="flex items-center group cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedCategories.includes(item.label)}
+                                                    onChange={() => handleCategoryChange(item.label)}
+                                                    className="w-4 h-4 rounded border-gray-300 transition-all text-[var(--primary)] focus:ring-[var(--primary)]"
+                                                />
+                                                <span className="ml-3 text-[14px] text-gray-600 group-hover:text-[var(--primary)] font-medium">
+                                                    {item.label} ({item.count})
+                                                </span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
 
-                            <section>
-                                <h3 className="text-[15px] font-bold text-[#1a1a1a] mb-4 flex items-center justify-between uppercase tracking-wider">
-                                    Product type <ChevronDown size={14} />
-                                </h3>
-                                <div className="space-y-3">
-                                    {filters.productTypes.map(item => (
-                                        <label key={item.id} className="flex items-center group cursor-pointer">
-                                            <input type="checkbox" className="w-4 h-4 rounded border-gray-300 transition-all text-[var(--primary)] focus:ring-[var(--primary)]" />
-                                            <span className="ml-3 text-[14px] text-gray-600 group-hover:text-[var(--primary)] font-medium">{item.label} ({item.count})</span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </section>
-
-                            <section>
-                                <h3 className="text-[15px] font-bold text-[#1a1a1a] mb-4 flex items-center justify-between uppercase tracking-wider">
-                                    Brand <ChevronDown size={14} />
-                                </h3>
-                                <div className="space-y-3">
-                                    {filters.brands.map(item => (
-                                        <label key={item.id} className="flex items-center group cursor-pointer">
-                                            <input type="checkbox" className="w-4 h-4 rounded border-gray-300 transition-all text-[var(--primary)] focus:ring-[var(--primary)]" />
-                                            <span className="ml-3 text-[14px] text-gray-600 group-hover:text-[var(--primary)] font-medium">{item.label} ({item.count})</span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </section>
+                            {/* Clear All Filters Button */}
+                            {(selectedAvailability.length > 0 || priceRange.min !== '' || priceRange.max !== '' || selectedWeights.length > 0 || selectedCategories.length > 0) && (
+                                <button
+                                    onClick={() => {
+                                        setSelectedAvailability([]);
+                                        setPriceRange({ min: '', max: '' });
+                                        setSelectedWeights([]);
+                                        setSelectedCategories([]);
+                                    }}
+                                    className="w-full py-2.5 text-sm font-bold text-red-500 bg-red-50 rounded-lg hover:bg-red-100 transition-colors border border-red-100"
+                                >
+                                    Clear All Filters
+                                </button>
+                            )}
                         </div>
                     </aside>
 
@@ -197,7 +333,7 @@ const Shop = () => {
                             </div>
 
                             <div className="flex items-center gap-6 lg:gap-8">
-                                <span className="text-sm font-bold text-[#1a1a1a]">18 Products</span>
+                                <span className="text-sm font-bold text-[#1a1a1a]">{filteredProducts.length} {filteredProducts.length === 1 ? 'Product' : 'Products'}</span>
                                 <div className="flex items-center gap-1.5 border-l border-gray-100 pl-6 lg:pl-8">
                                     <button
                                         onClick={() => setViewType('grid')}
@@ -226,12 +362,27 @@ const Shop = () => {
                                     </div>
                                 ))}
                             </div>
+                        ) : filteredProducts.length === 0 ? (
+                            <div className="text-center py-20 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                                <span className="text-lg font-medium text-gray-400">No products found matching your filters.</span>
+                                <button
+                                    onClick={() => {
+                                        setSelectedAvailability([]);
+                                        setPriceRange({ min: '', max: '' });
+                                        setSelectedWeights([]);
+                                        setSelectedCategories([]);
+                                    }}
+                                    className="mt-4 block mx-auto text-[var(--primary)] font-bold hover:underline"
+                                >
+                                    Clear all filters
+                                </button>
+                            </div>
                         ) : (
                             <div className={viewType === 'grid'
                                 ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
                                 : "flex flex-col gap-6"
                             }>
-                                {products.map((product) => {
+                                {filteredProducts.map((product) => {
                                     const minPrice = product.weighstWise?.length > 0
                                         ? Math.min(...product.weighstWise.map(w => Number(w.price) || 0))
                                         : 0;
@@ -327,7 +478,7 @@ const Shop = () => {
                         )}
 
                         {/* Pagination Placeholder */}
-                        {!loading && products.length > 0 && (
+                        {!loading && filteredProducts.length > 0 && (
                             <div className="mt-12 flex justify-center items-center gap-2">
                                 <button className="w-10 h-10 rounded border border-gray-200 flex items-center justify-center text-sm font-bold text-[#1a1a1a] hover:bg-[var(--primary)] hover:text-white transition-all">1</button>
                                 <button className="w-10 h-10 rounded border border-gray-100 flex items-center justify-center text-sm font-bold text-gray-400 hover:text-[var(--primary)] transition-all">2</button>

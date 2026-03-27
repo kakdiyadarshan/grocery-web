@@ -3,10 +3,13 @@ const mongoose = require('mongoose');
 const bannerSchema = new mongoose.Schema({
     title: { type: String, required: true },
     subtitle: { type: String, required: false },
+    description: { type: String, required: false },
     image: {
         url: { type: String, required: true },
         public_id: { type: String, required: true }
     },
+    buttonText: { type: String, default: 'Shop Now' },
+    bgColor: { type: String, default: 'bg-[#f1fcf1]' },
     link: { type: String, default: '/shop' },
     isActive: { type: Boolean, default: true },
     order: { type: Number, default: 0 },
