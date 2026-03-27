@@ -6,6 +6,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAddresses, addAddress, updateAddress, deleteAddress, setDefaultAddress } from '../redux/slice/address.slice';
+import { fetchUserProfile as fetchAuthUserProfile } from '../redux/slice/auth.slice';
 import { FiUser, FiSettings, FiLock, FiCheckCircle, FiCamera, FiEye, FiEyeOff, FiChevronRight, FiHome, FiMail, FiPhone, FiList, FiPlus, FiTrash2, FiEdit2, FiMapPin, FiMoreVertical } from 'react-icons/fi';
 import { BASE_URL } from '../utils/baseUrl';
 import CustomSelect from '../admin/component/CustomSelect';
@@ -117,6 +118,8 @@ const UserProfile = () => {
                 }
             });
             setUser(response.data.data);
+            // Refresh redux auth user so the header avatar updates immediately.
+            dispatch(fetchAuthUserProfile());
             toast.success("Profile photo updated!");
         } catch (error) {
             toast.error(error.response?.data?.message || "Photo upload failed");
@@ -181,9 +184,9 @@ const UserProfile = () => {
     ];
 
     return (
-        <div className=" bg-[#F8F9FA] pb-12">
+        <div className="container pb-12">
             {/* Header / Breadcrumb Area */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="px-4 sm:px-6 lg:px-8 py-8">
                 <div className="flex flex-col gap-2">
                     <h1 className="text-2xl font-bold text-textPrimary">My Profile</h1>
                     <nav className="flex items-center gap-2 text-xs text-gray-400 font-medium">
@@ -195,12 +198,12 @@ const UserProfile = () => {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col md:flex-row gap-8">
 
                     {/* Left Sidebar Card */}
                     <div className="w-full md:w-[320px] flex-shrink-0">
-                        <div className="bg-white rounded-[4px] shadow-sm overflow-hidden p-5 sm:p-8 border border-gray-100">
+                        <div className="bg-white rounded-[4px] overflow-hidden p-5 sm:p-8 border border-gray-100">
                             <div className="flex flex-col items-center">
                                 {/* Profile Image Container */}
                                 <div className="relative group mb-6">
@@ -264,7 +267,7 @@ const UserProfile = () => {
 
                     {/* Right Content Area */}
                     <div className="flex-grow">
-                        <div className="bg-white rounded-[4px] shadow-sm border border-gray-100 p-5 sm:p-8 min-h-[500px]">
+                        <div className="bg-white rounded-[4px] border border-gray-100 p-5 sm:p-8 min-h-[500px]">
 
                             {/* OVERVIEW / EDIT TAB */}
                             {activeTab === 'Overview' && (
@@ -327,7 +330,7 @@ const UserProfile = () => {
                                                                 name="firstname"
                                                                 readOnly={!isEditing}
                                                                 placeholder="Enter first name"
-                                                                className={`block w-full pl-10 pr-3 py-3 border rounded-[4px] outline-none transition-all text-sm font-medium bg-gray-50 text-textPrimary shadow-sm ${!isEditing
+                                                                className={`block w-full pl-10 pr-3 py-3 border rounded-[4px] outline-none transition-all text-sm font-medium text-textPrimary ${!isEditing
                                                                     ? 'border-gray-200 cursor-default'
                                                                     : (errors.firstname && touched.firstname
                                                                         ? 'border-red-500 bg-red-50/50 text-red-900'
@@ -350,7 +353,7 @@ const UserProfile = () => {
                                                                 name="lastname"
                                                                 readOnly={!isEditing}
                                                                 placeholder="Enter last name"
-                                                                className={`block w-full pl-10 pr-3 py-3 border rounded-[4px] outline-none transition-all text-sm font-medium bg-gray-50 text-textPrimary shadow-sm ${!isEditing
+                                                                className={`block w-full pl-10 pr-3 py-3 border rounded-[4px] outline-none transition-all text-sm font-medium text-textPrimary ${!isEditing
                                                                     ? 'border-gray-200 cursor-default'
                                                                     : (errors.lastname && touched.lastname
                                                                         ? 'border-red-500 bg-red-50/50 text-red-900'
@@ -373,7 +376,7 @@ const UserProfile = () => {
                                                                 name="email"
                                                                 readOnly={!isEditing}
                                                                 placeholder="Email address"
-                                                                className={`block w-full pl-10 pr-3 py-3 border rounded-[4px] outline-none transition-all text-sm font-medium bg-gray-50 text-textPrimary shadow-sm ${!isEditing
+                                                                className={`block w-full pl-10 pr-3 py-3 border rounded-[4px] outline-none transition-all text-sm font-medium text-textPrimary ${!isEditing
                                                                     ? 'border-gray-200 cursor-default'
                                                                     : (errors.email && touched.email
                                                                         ? 'border-red-500 bg-red-50/50 text-red-900'
@@ -396,7 +399,7 @@ const UserProfile = () => {
                                                                 name="mobileno"
                                                                 readOnly={!isEditing}
                                                                 placeholder="Mobile number"
-                                                                className={`block w-full pl-10 pr-3 py-3 border rounded-[4px] outline-none transition-all text-sm font-medium bg-gray-50 text-textPrimary shadow-sm ${!isEditing
+                                                                className={`block w-full pl-10 pr-3 py-3 border rounded-[4px] outline-none transition-all text-sm font-medium text-textPrimary ${!isEditing
                                                                     ? 'border-gray-200 cursor-default'
                                                                     : (errors.mobileno && touched.mobileno
                                                                         ? 'border-red-500 bg-red-50/50 text-red-900'
@@ -419,7 +422,7 @@ const UserProfile = () => {
                                                                 <input
                                                                     value={values.gender}
                                                                     readOnly
-                                                                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-[4px] outline-none text-sm font-medium bg-gray-50 text-textPrimary cursor-default shadow-sm"
+                                                                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-[4px] outline-none text-sm font-medium text-textPrimary cursor-default"
                                                                 />
                                                             ) : (
                                                                 <CustomSelect

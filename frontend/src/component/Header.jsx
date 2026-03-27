@@ -1,33 +1,82 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { User, Heart, ShoppingBag, Menu, ChevronDown, ChevronUp, AlignLeft, X } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import logo from '../Image/logo.png';
 import Cart from './Cart';
 import { getCart } from '../redux/slice/cart.slice';
 import { getWishlist } from '../redux/slice/wishlist.slice';
-import { logout } from '../redux/slice/auth.slice';
+import { logout, fetchUserProfile } from '../redux/slice/auth.slice';
+import { getAllProducts } from '../redux/slice/product.slice';
 
 import { getAllCategories } from '../redux/slice/category.slice';
 
 const Header = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { cart } = useSelector((state) => state.cart);
   const { wishlist } = useSelector((state) => state.wishlist);
   const { categories } = useSelector((state) => state.category);
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { products = [] } = useSelector((state) => state.product || {});
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
+  const [recentSearches, setRecentSearches] = useState([]);
   const userMenuRef = useRef(null);
   const categoryMenuRef = useRef(null);
+  const desktopSearchRef = useRef(null);
+  const mobileSearchRef = useRef(null);
+  const lastProfileFetchAtRef = useRef(0);
 
   useEffect(() => {
     dispatch(getCart());
     dispatch(getWishlist());
     dispatch(getAllCategories());
   }, [dispatch]);
+
+  useEffect(() => {
+    // Keep header avatar in sync with server updates (e.g., photo upload on profile page).
+    if (!isAuthenticated) return;
+    const now = Date.now();
+    if (now - lastProfileFetchAtRef.current < 10_000) return; // throttle
+    lastProfileFetchAtRef.current = now;
+    dispatch(fetchUserProfile());
+  }, [dispatch, isAuthenticated, location.pathname]);
+
+  useEffect(() => {
+    if (!products.length) {
+      dispatch(getAllProducts());
+    }
+  }, [dispatch, products.length]);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('recentSearches');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          setRecentSearches(parsed.slice(0, 5));
+        }
+      }
+    } catch (error) {
+      setRecentSearches([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm.trim());
+    }, 180);
+
+    return () => clearTimeout(debounceTimer);
+  }, [searchTerm]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -37,17 +86,203 @@ const Header = () => {
       if (categoryMenuRef.current && !categoryMenuRef.current.contains(event.target)) {
         setIsCategoryMenuOpen(false);
       }
+      const clickedInsideDesktop = desktopSearchRef.current?.contains(event.target);
+      const clickedInsideMobile = mobileSearchRef.current?.contains(event.target);
+      if (!clickedInsideDesktop && !clickedInsideMobile) {
+        setIsSuggestionsOpen(false);
+        setActiveSuggestionIndex(-1);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    const query = new URLSearchParams(location.search).get('search') || '';
+    if (location.pathname === '/shop' || location.pathname === '/category') {
+      setSearchTerm(query);
+    }
+  }, [location.pathname, location.search]);
+
   const cartCount = cart?.items?.filter(item => item?.productId).length || 0;
   const wishlistCount = wishlist?.items?.filter(item => item?.productId).length || 0;
+
+  const userPhotoUrl = user?.photo?.url || '';
+  const userFullName = `${user?.firstname || ''} ${user?.lastname || ''}`.trim() || user?.name || '';
+  const userInitials = userFullName
+    ? userFullName
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => (part[0] ? part[0].toUpperCase() : ''))
+      .join('')
+    : 'U';
 
   const handleLogout = () => {
     dispatch(logout());
     setIsUserMenuOpen(false);
+  };
+
+  const handleSearch = (event) => {
+    event.preventDefault();
+    const trimmedSearch = searchTerm.trim();
+    setIsSuggestionsOpen(false);
+    setActiveSuggestionIndex(-1);
+    if (trimmedSearch) {
+      const nextRecentSearches = [trimmedSearch, ...recentSearches.filter((item) => item.toLowerCase() !== trimmedSearch.toLowerCase())].slice(0, 5);
+      setRecentSearches(nextRecentSearches);
+      localStorage.setItem('recentSearches', JSON.stringify(nextRecentSearches));
+    }
+    navigate(trimmedSearch ? `/shop?search=${encodeURIComponent(trimmedSearch)}` : '/shop');
+  };
+
+  const suggestionProducts = useMemo(() => {
+    const searchValue = debouncedSearchTerm.toLowerCase();
+    if (!searchValue) return [];
+
+    return [...products]
+      .map((product) => {
+        const name = (product.name || '').toLowerCase();
+        const category = (product.category?.categoryName || '').toLowerCase();
+        const description = (product.description || '').toLowerCase();
+
+        let score = 0;
+        if (name.startsWith(searchValue)) score += 6;
+        if (name.includes(searchValue)) score += 4;
+        if (category.startsWith(searchValue)) score += 3;
+        if (category.includes(searchValue)) score += 2;
+        if (description.includes(searchValue)) score += 1;
+
+        return { product, score };
+      })
+      .filter((item) => item.score > 0)
+      .sort((a, b) => b.score - a.score || (a.product.name || '').localeCompare(b.product.name || ''))
+      .slice(0, 8)
+      .map((item) => item.product);
+  }, [products, debouncedSearchTerm]);
+
+  const handleSuggestionSelect = (product) => {
+    setSearchTerm(product.name || '');
+    setIsSuggestionsOpen(false);
+    setActiveSuggestionIndex(-1);
+    navigate(`/product-details/${product._id}`);
+  };
+
+  const handleRecentSearchSelect = (value) => {
+    setSearchTerm(value);
+    setIsSuggestionsOpen(false);
+    setActiveSuggestionIndex(-1);
+    navigate(`/shop?search=${encodeURIComponent(value)}`);
+  };
+
+  const clearRecentSearches = () => {
+    setRecentSearches([]);
+    localStorage.removeItem('recentSearches');
+  };
+
+  const handleSuggestionKeyDown = (event) => {
+    if (!isSuggestionsOpen) return;
+
+    const optionsCount = suggestionProducts.length + (debouncedSearchTerm ? 1 : 0);
+    if (!optionsCount) return;
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setActiveSuggestionIndex((prev) => (prev + 1) % optionsCount);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setActiveSuggestionIndex((prev) => (prev <= 0 ? optionsCount - 1 : prev - 1));
+    } else if (event.key === 'Escape') {
+      setIsSuggestionsOpen(false);
+      setActiveSuggestionIndex(-1);
+    } else if (event.key === 'Enter' && activeSuggestionIndex >= 0) {
+      event.preventDefault();
+      if (activeSuggestionIndex < suggestionProducts.length) {
+        handleSuggestionSelect(suggestionProducts[activeSuggestionIndex]);
+      } else {
+        handleSearch(event);
+      }
+    }
+  };
+
+  const highlightMatch = (text, query) => {
+    if (!text || !query) return text;
+    const lowerText = text.toLowerCase();
+    const lowerQuery = query.toLowerCase();
+    const matchIndex = lowerText.indexOf(lowerQuery);
+    if (matchIndex === -1) return text;
+
+    return (
+      <>
+        {text.slice(0, matchIndex)}
+        <span className="text-[var(--primary)] font-semibold">{text.slice(matchIndex, matchIndex + query.length)}</span>
+        {text.slice(matchIndex + query.length)}
+      </>
+    );
+  };
+
+  const renderSuggestions = () => {
+    if (!isSuggestionsOpen) return null;
+
+    return (
+      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded z-[70] max-h-80 overflow-y-auto">
+        {debouncedSearchTerm && suggestionProducts.length > 0 ? (
+          <ul className="py-1">
+            {suggestionProducts.map((product, index) => (
+              <li key={product._id}>
+                <button
+                  type="button"
+                  onClick={() => handleSuggestionSelect(product)}
+                  className={`w-full text-left px-3 py-2 transition-colors flex items-center gap-3 ${activeSuggestionIndex === index ? 'bg-gray-50' : 'hover:bg-gray-50'}`}
+                >
+                  <img
+                    src={product.images?.[0]?.url || 'https://via.placeholder.com/80?text=No+Image'}
+                    alt={product.name}
+                    className="w-9 h-9 rounded object-cover border border-gray-100"
+                  />
+                  <span className="min-w-0">
+                    <span className="block text-sm text-[var(--text-gray)] truncate">{highlightMatch(product.name, debouncedSearchTerm)}</span>
+                    <span className="block text-xs text-gray-400 truncate">{highlightMatch(product.category?.categoryName || 'General', debouncedSearchTerm)}</span>
+                  </span>
+                </button>
+              </li>
+            ))}
+            <li>
+              <button
+                type="button"
+                onClick={() => navigate(`/shop?search=${encodeURIComponent(debouncedSearchTerm)}`)}
+                className={`w-full text-left px-3 py-2 text-sm border-t border-gray-100 transition-colors ${activeSuggestionIndex === suggestionProducts.length ? 'bg-gray-50' : 'hover:bg-gray-50'}`}
+              >
+                View all results for "<span className="font-semibold">{debouncedSearchTerm}</span>"
+              </button>
+            </li>
+          </ul>
+        ) : debouncedSearchTerm ? (
+          <p className="px-3 py-2 text-sm text-gray-400">No matching products found.</p>
+        ) : recentSearches.length > 0 ? (
+          <div className="py-1">
+            <div className="px-3 py-2 flex items-center justify-between border-b border-gray-100">
+              <span className="text-xs uppercase tracking-wide text-gray-400">Recent searches</span>
+              <button type="button" onClick={clearRecentSearches} className="text-xs text-[var(--primary)] hover:underline">
+                Clear
+              </button>
+            </div>
+            {recentSearches.map((item) => (
+              <button
+                key={item}
+                type="button"
+                onClick={() => handleRecentSearchSelect(item)}
+                className="w-full text-left px-3 py-2 text-sm text-[var(--text-gray)] hover:bg-gray-50 transition-colors"
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="px-3 py-2 text-sm text-gray-400">Type to search products by name, category, or description.</p>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -70,18 +305,32 @@ const Header = () => {
             </div>
 
             {/* Search Bar - Desktop */}
-            <div className="hidden md:flex flex-1 justify-center mx-6 lg:mx-12">
-              <div className="flex items-center w-full max-w-2xl border border-[var(--primary)] rounded p-[2px]">
+            <form className="hidden md:flex flex-1 justify-center mx-6 lg:mx-12" onSubmit={handleSearch}>
+              <div className="relative w-full max-w-2xl" ref={desktopSearchRef}>
+                <div className="flex items-center border border-[var(--primary)] rounded p-[2px]">
                 <input
                   type="text"
                   placeholder="Search"
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setIsSuggestionsOpen(true);
+                    setActiveSuggestionIndex(-1);
+                  }}
+                  onFocus={() => setIsSuggestionsOpen(true)}
+                  onKeyDown={handleSuggestionKeyDown}
                   className="w-full px-4 py-2 outline-none text-[var(--text-gray)] bg-transparent text-sm sm:text-base"
                 />
-                <button className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors text-white px-6 lg:px-8 py-2 rounded text-sm sm:text-base font-medium">
+                <button
+                  type="submit"
+                  className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors text-white px-6 lg:px-8 py-2 rounded text-sm sm:text-base font-medium"
+                >
                   Search
                 </button>
               </div>
-            </div>
+                {renderSuggestions()}
+              </div>
+            </form>
 
             {/* Icons */}
             <div className="flex items-center gap-4 sm:gap-6">
@@ -91,7 +340,21 @@ const Header = () => {
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   className="text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors flex items-center"
                 >
-                  <User className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.5]" />
+                  {isAuthenticated ? (
+                    userPhotoUrl ? (
+                      <img
+                        src={userPhotoUrl}
+                        alt={userFullName || 'User'}
+                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border border-gray-200"
+                      />
+                    ) : (
+                      <span className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[var(--primary)] text-white text-xs sm:text-sm font-semibold flex items-center justify-center border border-[var(--primary)]">
+                        {userInitials}
+                      </span>
+                    )
+                  ) : (
+                    <User className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.5]" />
+                  )}
                 </button>
 
                 {/* Dropdown Menu */}
@@ -162,16 +425,29 @@ const Header = () => {
           </div>
 
           {/* Search Bar - Mobile (Hidden on md and up) */}
-          <div className="flex md:hidden mt-4 items-center border border-[var(--primary)] rounded p-[2px]">
-            <input
-              type="text"
-              placeholder="Search"
-              className="w-full px-3 py-2 outline-none text-[var(--text-gray)] bg-transparent text-sm"
-            />
-            <button className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors text-white px-5 py-2 rounded text-sm font-medium">
-              Search
-            </button>
-          </div>
+          <form className="flex md:hidden mt-4" onSubmit={handleSearch}>
+            <div className="relative w-full" ref={mobileSearchRef}>
+              <div className="flex items-center border border-[var(--primary)] rounded p-[2px]">
+                <input
+                  type="text"
+                  placeholder="Search"
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setIsSuggestionsOpen(true);
+                    setActiveSuggestionIndex(-1);
+                  }}
+                  onFocus={() => setIsSuggestionsOpen(true)}
+                  onKeyDown={handleSuggestionKeyDown}
+                  className="w-full px-3 py-2 outline-none text-[var(--text-gray)] bg-transparent text-sm"
+                />
+                <button type="submit" className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors text-white px-5 py-2 rounded text-sm font-medium">
+                  Search
+                </button>
+              </div>
+              {renderSuggestions()}
+            </div>
+          </form>
         </div>
       </div>
 

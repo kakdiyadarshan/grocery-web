@@ -3,7 +3,7 @@ const { deleteFromS3, uploadToS3 } = require('../utils/s3Service');
 
 exports.createBanner = async (req, res) => {
     try {
-        const { title, subtitle, link, isActive, order } = req.body;
+        const { title, subtitle, description, buttonText, bgColor, link, isActive, order } = req.body;
 
         if (!title) {
             return res.status(400).json({ message: "Banner title is required" });
@@ -18,6 +18,9 @@ exports.createBanner = async (req, res) => {
         const newBanner = await Banner.create({
             title,
             subtitle,
+            description,
+            buttonText,
+            bgColor,
             link,
             isActive: isActive !== undefined ? isActive : true,
             order: order || 0,
@@ -62,7 +65,7 @@ exports.getAllBanners = async (req, res) => {
 exports.updateBanner = async (req, res) => {
     try {
         const { id } = req.params;
-        const { title, subtitle, link, isActive, order } = req.body;
+        const { title, subtitle, description, buttonText, bgColor, link, isActive, order } = req.body;
 
         const banner = await Banner.findById(id);
         if (!banner) {
@@ -85,6 +88,9 @@ exports.updateBanner = async (req, res) => {
             {
                 title: title || banner.title,
                 subtitle: subtitle || banner.subtitle,
+                description: description || banner.description,
+                buttonText: buttonText || banner.buttonText,
+                bgColor: bgColor || banner.bgColor,
                 link: link || banner.link,
                 isActive: isActive !== undefined ? isActive : banner.isActive,
                 order: order !== undefined ? order : banner.order,

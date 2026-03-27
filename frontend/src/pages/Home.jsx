@@ -16,6 +16,7 @@ import { getAllCategories } from '../redux/slice/category.slice';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { getAllProducts, getFeaturedProducts } from '../redux/slice/product.slice';
+import { fetchOfferBanners } from '../redux/slice/offerbanner.slice';
 
 
 function Home() {
@@ -23,11 +24,13 @@ function Home() {
   const navigate = useNavigate();
   const { categories: apiCategories } = useSelector((state) => state.category);
   const { products: apiProducts, featuredProducts } = useSelector((state) => state.product);
+  const { offerbanners } = useSelector((state) => state.offerbanner);
 
   useEffect(() => {
     dispatch(getAllCategories());
     dispatch(getAllProducts());
     dispatch(getFeaturedProducts());
+    dispatch(fetchOfferBanners());
   }, [dispatch]);
 
   const scrollRef = useRef(null);
@@ -166,21 +169,21 @@ function Home() {
 
           {/* 3. Sub Banners */}
           <div className='grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-8 mb-10'>
-            {[
-              { img: subbanner1, title: 'Fresh Organic Products', discount: '10% Discount', link: '/shop' },
-              { img: subbanner2, title: 'Strawberry & Lemon', discount: '20% Discount', link: '/shop' },
-              { img: subbanner3, title: 'Fresh Bilberry Products', discount: '30% Discount', link: '/shop' },
-            ].map((banner, index) => (
+            {(offerbanners?.length >= 3 ? offerbanners.slice(0, 3) : [
+              { image: { url: subbanner1 }, title: 'Fresh Organic Products', subtitle: '10% Discount', link: '/shop' },
+              { image: { url: subbanner2 }, title: 'Strawberry & Lemon', subtitle: '20% Discount', link: '/shop' },
+              { image: { url: subbanner3 }, title: 'Fresh Bilberry Products', subtitle: '30% Discount', link: '/shop' },
+            ]).map((banner, index) => (
               <div key={index} className='group relative rounded-lg overflow-hidden cursor-pointer h-64 w-full'>
                 {/* Image background with zoom effect */}
                 <div className='absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-105'>
-                  <img src={banner.img} alt={banner.title} className='w-full h-full object-cover' />
+                  <img src={banner.image?.url} alt={banner.title} className='w-full h-full object-cover' />
                 </div>
 
                 {/* Content Overlay */}
                 <div className='relative h-full flex flex-col justify-center p-8 z-10'>
                   <span className='text-lg text-gray-700 mb-2 block'>
-                    {banner.discount}
+                    {banner.subtitle}
                   </span>
                   <h3 className='text-2xl font-semibold text-[#2e3d30] mb-4 max-w-[180px] leading-tight'>
                     {banner.title}
@@ -224,30 +227,35 @@ function Home() {
 
           {/* 5. Save Banners */}
           <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mb-16'>
-            {[
+            {(offerbanners?.length >= 5 ? offerbanners.slice(3, 5) : [
               {
-                img: cmsbanner1,
+                image: { url: cmsbanner1 },
                 title: 'Enjoy 15% OFF For All Gegetable And Fruit',
-                accentColor: 'text-[#253D4E]'
+                titleStyle: { color: '#253D4E' },
+                link: '/shop'
               },
               {
-                img: cmsbanner2,
+                image: { url: cmsbanner2 },
                 title: 'Organic Save 17% On Organic Juice',
-                accentColor: 'text-[#253D4E]'
+                titleStyle: { color: '#253D4E' },
+                link: '/shop'
               },
-            ].map((banner, index) => (
+            ]).map((banner, index) => (
               <div
                 key={index}
                 className='group relative rounded-lg overflow-hidden cursor-pointer h-[220px] sm:h-[280px] w-full shadow-sm'
               >
                 {/* Full Image Background */}
                 <div className='absolute inset-0 transition-transform duration-1000 ease-out group-hover:scale-105'>
-                  <img src={banner.img} alt="" className='w-full h-full object-cover' />
+                  <img src={banner.image?.url} alt="" className='w-full h-full object-cover' />
                 </div>
 
                 {/* Text Content - Positioned Left */}
                 <div className='relative h-full flex flex-col justify-center items-start p-8 sm:p-12 z-10 w-full sm:w-2/3'>
-                  <h3 className={`text-xl sm:text-2xl lg:text-2xl font-semibold ${banner.accentColor} mb-6 sm:mb-8 max-w-[180px] sm:max-w-[280px] leading-tight`}>
+                  <h3
+                    className='text-xl sm:text-2xl lg:text-2xl font-semibold mb-6 sm:mb-8 max-w-[180px] sm:max-w-[280px] leading-tight'
+                    style={{ color: banner.titleStyle?.color }}
+                  >
                     {banner.title}
                   </h3>
                   <button className='bg-[var(--primary)] text-white px-5 py-2.5 sm:py-2.5 rounded-md font-medium text-sm sm:text-base transition-all duration-300 hover:bg-[var(--primary-hover)] transform active:scale-95 shadow-md'>
