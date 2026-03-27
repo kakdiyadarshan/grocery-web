@@ -854,15 +854,6 @@ const Product = () => {
                     z-index: 9999 !important;
                 }
             `}} />
-            {/* Delete Confirmation Modal */}
-            <DeleteModal
-                isOpen={isDeleteModalOpen}
-                onClose={() => setIsDeleteModalOpen(false)}
-                onConfirm={confirmDelete}
-                title="Delete Product"
-                message={`Are you sure you want to delete "${itemToDelete?.name}"? All associated data and variations will be permanently removed.`}
-                isLoading={loading}
-            />
 
             {/* Bulk Import Modal */}
             {isImportModalOpen && (
