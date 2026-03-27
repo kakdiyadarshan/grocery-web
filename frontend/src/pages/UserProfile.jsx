@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
@@ -31,11 +32,20 @@ const UserProfile = () => {
     const [editingAddress, setEditingAddress] = useState(null);
 
     const token = localStorage.getItem('token');
+    const location = useLocation();
 
     useEffect(() => {
         fetchUserProfile();
         dispatch(fetchAddresses());
-    }, []);
+    }, [dispatch]);
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const tab = params.get('tab');
+        if (tab) {
+            setActiveTab(tab);
+        }
+    }, [location.search]);
 
     const fetchUserProfile = async () => {
         try {

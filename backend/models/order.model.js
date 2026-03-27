@@ -37,7 +37,12 @@ const orderSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Coupon",
         default: null
+    },
+    paymentMethod: {
+        type: String,
+        default: "COD"
     }
 }, { timestamps: true });
+
 
 module.exports = mongoose.model("Order", orderSchema);

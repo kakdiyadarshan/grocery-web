@@ -1,46 +1,57 @@
-import React, { useState } from 'react';
-import { ChevronRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ChevronRight, Package, Calendar, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { getUserOrders } from '../redux/slice/order.slice';
 
 const MyOrder = ({ isEmbedded = false }) => {
+    const dispatch = useDispatch();
+    const { orders: rawOrders, loading } = useSelector((state) => state.order);
     const [activeTab, setActiveTab] = useState('All');
+
+    useEffect(() => {
+        dispatch(getUserOrders());
+    }, [dispatch]);
 
     const tabs = ['All', 'In Progress', 'Delivered', 'Cancelled'];
 
-    const orders = [
-        {
-            id: "ABC-6457321",
-            status: "In progress",
-            date: "10 May 2021",
-            image: "https://doughandcream.com/cdn/shop/files/Chocolate_Truffle_Pastry_1080x.jpg?v=1732651787",
-            title: "pastry - 1 pc , Chocolate Truffle Cake - 1 pc",
-            price: "50",
-        },
-        {
-            id: "ABC-6457322",
-            status: "Delivered",
-            date: "10 May 2021",
-            image: "https://nomoneynotime.com.au/imager/uploads/articles/21698/shutterstock_2096143354-1_374635aacd4cafccef5bb0653ee5dedb.jpeg",
-            title: "Watermelon - 1 pc ",
-            price: "70",
-        },
-        {
-            id: "ABC-6457323",
-            status: "Delivered",
-            date: "10 May 2021",
-            image: "https://t3.ftcdn.net/jpg/03/18/95/26/360_F_318952671_NFmUcJX4ukGb1a2kgtTak6PcFHjDmaOz.jpg",
-            title: "pineapple - 1 pc ",
-            price: "100",
-        },
-        {
-            id: "ABC-6457325",
-            status: "Cancelled",
-            date: "10 May 2021",
-            image: "https://images-cdn.ubuy.com.sa/6932d2c1b7e76cab500b4ea5-lays-potato-chip-variety-pack-snack.jpg",
-            title: "Lays Chips - 10 Packet ",
-            price: "120",
+    const getDisplayStatus = (status) => {
+        switch (status?.toLowerCase()) {
+            case 'pending':
+            case 'processing':
+            case 'order placed':
+                return 'In Progress';
+            case 'out for delivery':
+                return 'Out for Delivery';
+            case 'completed':
+            case 'delivered':
+                return 'Delivered';
+            case 'cancelled':
+                return 'Cancelled';
+            default:
+                return status || 'In Progress';
         }
-    ];
+    };
+
+    const orders = (rawOrders || []).map(order => {
+        const firstItem = order.items?.[0] || {};
+        const product = firstItem.productId || {};
+        
+        return {
+            id: order._id,
+            displayId: `#${(order._id || "").toString().slice(-8).toUpperCase()}`,
+            status: getDisplayStatus(order.displayStatus || order.status),
+            date: new Date(order.createdAt).toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            }),
+            image: product.images?.[0]?.url || product.image || "https://via.placeholder.com/150",
+            title: order.items?.map(item => item.productId?.name || 'Product').join(', '),
+            price: order.totalAmount?.toFixed(2),
+            rawOrder: order 
+        };
+    });
 
     const filteredOrders = activeTab === 'All'
         ? orders
@@ -51,7 +62,7 @@ const MyOrder = ({ isEmbedded = false }) => {
             {!isEmbedded && (
                 <div className=" py-8">
                     <div className=" mx-auto px-4 lg:px-6">
-                        <h1 className="text-[28px] sm:text-[32px] font-bold text-[#1e5066] mb-3">My Orders</h1>
+                        <h1 className="text-[28px] sm:text-[32px] font-bold text-[#1e5066] mb-3 text-left">My Orders</h1>
                         <div className="flex items-center gap-1 text-[14px] text-gray-500 font-medium">
                             <Link to="/" className="hover:text-[var(--primary)] transition-colors">Home</Link>
                             <ChevronRight className="w-4 h-4 text-gray-400" />
@@ -64,7 +75,6 @@ const MyOrder = ({ isEmbedded = false }) => {
             )}
 
             <div className={`flex flex-col gap-4 ${isEmbedded ? 'mb-5' : 'mb-8'}`}>
-                {/* Tabs */}
                 <div className="flex space-x-2 overflow-x-auto pb-1 scrollbar-hide">
                     {tabs.map(tab => (
                         <button
@@ -81,63 +91,77 @@ const MyOrder = ({ isEmbedded = false }) => {
                 </div>
             </div>
 
-            {/* Orders List */}
             <div className="space-y-4">
-                {filteredOrders.map((order, index) => (
-                    <Link
-                        to="/order-tracking"
-                        state={{ order }}
-                        key={index}
-                        className="border border-gray-200 rounded-2xl p-4 md:p-6 bg-white hover:shadow-md transition-shadow cursor-pointer flex items-center justify-between gap-2 md:gap-4 w-full block"
-                    >
-                        <div className="flex-1 min-w-0">
-                            {/* Header Info */}
-                            <div className="flex flex-wrap items-center gap-2 mb-4 text-sm">
-                                <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full font-medium text-xs sm:text-sm ${order.status.toLowerCase() === 'in progress' ? 'bg-orange-50 text-orange-600' :
-                                    order.status.toLowerCase() === 'delivered' ? 'bg-[#f4f8ec] text-[#6b9b3e]' :
-                                        'bg-red-50 text-red-600'
-                                    }`}>
-                                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${order.status.toLowerCase() === 'in progress' ? 'bg-orange-500' :
-                                        order.status.toLowerCase() === 'delivered' ? 'bg-[#6b9b3e]' :
-                                            'bg-red-500'
-                                        }`}></span>
-                                    {order.status}
-                                </span>
-                                {order.status.toLowerCase() === 'in progress' && (
-                                    <span className="bg-[var(--primary-light)] text-[var(--primary)] px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter shadow-sm border border-[var(--primary)]/10">
-                                        2hr Express
+                {loading ? (
+                    <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                        <div className="w-12 h-12 border-4 border-[var(--primary-light)] border-t-[var(--primary)] rounded-full animate-spin mb-4"></div>
+                        <p className="text-gray-500 font-medium">Fetching your orders...</p>
+                    </div>
+                ) : filteredOrders.length > 0 ? (
+                    filteredOrders.map((order, index) => (
+                        <Link
+                            to={`/order-tracking/${order.id}`}
+                            state={{ order: order.rawOrder }}
+                            key={index}
+                            className="border border-gray-200 rounded-2xl p-4 md:p-6 bg-white hover:shadow-md transition-shadow cursor-pointer flex items-center justify-between gap-2 md:gap-4 w-full block text-left"
+                        >
+                            <div className="flex-1 min-w-0">
+                                <div className="flex flex-wrap items-center gap-2 mb-4 text-sm">
+                                    <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full font-medium text-xs sm:text-sm ${order.status.toLowerCase() !== 'delivered' && order.status.toLowerCase() !== 'cancelled' ? 'bg-orange-50 text-orange-600' :
+                                        order.status.toLowerCase() === 'delivered' ? 'bg-[#f4f8ec] text-[#6b9b3e]' :
+                                            'bg-red-50 text-red-600'
+                                        }`}>
+                                        <span className={`w-2 h-2 rounded-full flex-shrink-0 ${order.status.toLowerCase() === 'in progress' ? 'bg-orange-500' :
+                                            order.status.toLowerCase() === 'delivered' ? 'bg-[#6b9b3e]' :
+                                                'bg-red-500'
+                                            }`}></span>
+                                        {order.status}
                                     </span>
-                                )}
-                                <span className="text-gray-400 text-xs font-medium">{order.date}</span>
-                            </div>
+                                    {order.status.toLowerCase() === 'in progress' && (
+                                        <span className="bg-[var(--primary-light)] text-[var(--primary)] px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter shadow-sm border border-[var(--primary)]/10">
+                                            2hr Express
+                                        </span>
+                                    )}
+                                    <span className="text-gray-400 text-xs font-medium flex items-center gap-1">
+                                        <Calendar className="w-3 h-3" /> {order.date}
+                                    </span>
+                                </div>
 
-                            {/* Order Details */}
-                            <div className="flex gap-4 items-start md:items-center">
-                                <div className="relative shrink-0 mt-1 md:mt-0">
-                                    <div className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden border border-gray-100">
-                                        <img src={order.image} alt={order.title} className="w-full h-full object-cover" />
+                                <div className="flex gap-4 items-start md:items-center">
+                                    <div className="relative shrink-0 mt-1 md:mt-0">
+                                        <div className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden border border-gray-100 flex items-center justify-center">
+                                            {order.image ? (
+                                                <img src={order.image} alt={order.title} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <Package className="w-8 h-8 text-gray-300" />
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="text-[var(--primary)] font-bold text-sm mb-1 truncate">Order ID: {order.displayId}</h4>
+                                        <p className="text-gray-600 text-sm mb-2 md:mb-1 line-clamp-1">
+                                            {order.title}
+                                        </p>
+                                        <p className="font-bold text-gray-900 text-[16px]">₹{order.price}</p>
                                     </div>
                                 </div>
-
-                                <div className="flex-1 min-w-0">
-                                    <h4 className="text-[var(--primary)] font-bold text-sm mb-1">Order ID: {order.id}</h4>
-                                    <p className="text-gray-600 text-sm mb-2 md:mb-1 break-words">
-                                        {order.title}
-                                    </p>
-                                    <p className="font-bold text-gray-900 text-sm">$ {order.price}</p>
-                                </div>
                             </div>
+                            <div className="flex shrink-0 ml-2 md:ml-4 items-center justify-center">
+                                <ChevronRight className="text-[var(--primary)] w-5 h-5" />
+                            </div>
+                        </Link>
+                    ))
+                ) : (
+                    <div className="text-center py-20 bg-white border border-gray-200 rounded-2xl shadow-sm">
+                        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <ShoppingBag className="w-10 h-10 text-gray-300" />
                         </div>
-
-                        <div className="flex shrink-0 ml-2 md:ml-4 items-center justify-center">
-                            <ChevronRight className="text-[var(--primary)] w-5 h-5" />
-                        </div>
-                    </Link>
-                ))}
-
-                {filteredOrders.length === 0 && (
-                    <div className="text-center py-12 text-gray-500 border border-gray-200 rounded-2xl bg-gray-50">
-                        No orders found for this status.
+                        <h3 className="text-gray-900 font-bold text-lg mb-1">No Orders Found</h3>
+                        <p className="text-gray-500 mb-6">Looks like you haven't placed any orders yet.</p>
+                        <Link to="/category" className="inline-flex items-center justify-center px-6 py-2 bg-[var(--primary)] text-white font-bold rounded-lg hover:bg-[var(--primary-hover)] transition-all">
+                            Start Shopping
+                        </Link>
                     </div>
                 )}
             </div>
