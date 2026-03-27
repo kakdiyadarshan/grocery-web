@@ -75,7 +75,7 @@ function FAQs() {
         </div>
       </div>
       <div className="w-full bg-white font-jost min-h-screen">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-16 pb-20">
+        <div className="max-w-[1440px] mx-auto px-4 pt-10 sm:pt-16">
 
           <div className="mb-10 sm:mb-16">
             <p className="text-textSecondary text-[15px] sm:text-[16px] leading-[1.7] max-w-[900px] font-medium">

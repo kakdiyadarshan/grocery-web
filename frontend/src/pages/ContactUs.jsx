@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createContact } from '../redux/slice/contact.slice';
 import { setAlert } from '../redux/slice/alert.slice';
 import Newsletter from '../component/Newsletter';
+import { Link } from 'react-router-dom';
 
 function ContactUs() {
     const dispatch = useDispatch();
@@ -37,12 +38,20 @@ function ContactUs() {
     };
 
     return (
-        <div className="w-full max-w-[1440px]  space-y-8  mx-auto p-4 sm:p-6 lg:p-8 mt-10">
+        <div className="w-full">
 
+            <div className="bg-[#f8f9fa] border-b border-gray-100 py-10 md:py-14 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-[1440px] mx-auto px-2 md:px-0 lg:px-4">
+                    <h1 className="text-3xl md:text-[40px] font-bold text-[#1a1a1a] mb-3 tracking-tight">Contact Us</h1>
+                    <div className="flex items-center gap-2 text-[13px] md:text-sm text-gray-400 font-medium">
+                        <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+                        <span className="text-gray-300 font-light">&gt;</span>
+                        <span className="text-gray-600">Contact Us</span>
+                    </div>
+                </div>
+            </div>
 
-
-
-            <main className="container mx-auto py-0">
+            <main className="container w-full max-w-[1440px] space-y-8 px-4 py-12">
 
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Left Section - Contact Form */}
@@ -190,7 +199,7 @@ function ContactUs() {
                 {/* <Subscribe /> */}
 
                 {/* Newsletter */}
-                <Newsletter className="w-full pt-6 mt-8" />
+                <Newsletter className="w-full pt-10 mt-8" />
 
             </main>
 
