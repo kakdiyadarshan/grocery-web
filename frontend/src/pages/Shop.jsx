@@ -17,7 +17,7 @@ const Shop = () => {
     const [viewType, setViewType] = useState('grid');
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [sortBy, setSortBy] = useState('alphabetical-az');
-    const [selectedCategories, setSelectedCategories] = useState(categoryParam ? [categoryParam] : []);
+    // const [selectedCategories, setSelectedCategories] = useState(categoryParam ? [categoryParam] : []);
 
     // Filter states
     const [selectedAvailability, setSelectedAvailability] = useState([]);
