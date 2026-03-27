@@ -51,7 +51,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white">
+    <header className="bg-white sticky top-0 z-50">
       {/* Main Header */}
       <div className="border-b border-gray-100 py-4">
         <div className="container mx-auto px-4 lg:px-6">
