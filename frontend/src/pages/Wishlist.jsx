@@ -22,7 +22,7 @@ const Wishlist = () => {
         dispatch(addToCart({ productId, quantity: 1 }));
     };
 
-    const wishlistItems = wishlist?.items || [];
+    const wishlistItems = wishlist?.items?.filter(item => item?.productId) || [];
 
     if (wishlistLoading) {
         return (

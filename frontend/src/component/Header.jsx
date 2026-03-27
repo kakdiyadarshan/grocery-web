@@ -6,11 +6,13 @@ import logo from '../Image/logo.png';
 import Cart from './Cart';
 import { getCart } from '../redux/slice/cart.slice';
 import { getWishlist } from '../redux/slice/wishlist.slice';
+import { logout } from '../redux/slice/auth.slice';
 
 const Header = () => {
   const dispatch = useDispatch();
   const { cart } = useSelector((state) => state.cart);
   const { wishlist } = useSelector((state) => state.wishlist);
+  const { isAuthenticated } = useSelector((state) => state.auth);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
@@ -36,8 +38,13 @@ const Header = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const cartCount = cart?.items?.length || 0;
-  const wishlistCount = wishlist?.items?.length || 0;
+  const cartCount = cart?.items?.filter(item => item?.productId).length || 0;
+  const wishlistCount = wishlist?.items?.filter(item => item?.productId).length || 0;
+
+  const handleLogout = () => {
+    dispatch(logout());
+    setIsUserMenuOpen(false);
+  };
 
   return (
     <header className="bg-white">
@@ -87,21 +94,36 @@ const Header = () => {
                 {isUserMenuOpen && (
                   <div className="absolute -right-2 top-full mt-4 w-40 bg-white border border-gray-100 shadow-md z-50 py-3 rounded-sm">
                     <ul className="flex flex-col gap-1">
-                      <li>
-                        <Link to="/login" className="block px-5 py-1.5 text-[15px] text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors">
-                          Login
-                        </Link>
-                      </li>
-                      <li>
-                        <Link to="/register" className="block px-5 py-1.5 text-[15px] text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors">
-                          Register
-                        </Link>
-                      </li>
-                      <li>
-                        <Link to="/logout" className="block px-5 py-1.5 text-[15px] text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors">
-                          Logout
-                        </Link>
-                      </li>
+                      {isAuthenticated ? (
+                        <>
+                          <li>
+                            <Link to="/my-order" className="block px-5 py-1.5 text-[15px] text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors">
+                              My Orders
+                            </Link>
+                          </li>
+                          <li>
+                            <button
+                              onClick={handleLogout}
+                              className="w-full text-left block px-5 py-1.5 text-[15px] text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors"
+                            >
+                              Logout
+                            </button>
+                          </li>
+                        </>
+                      ) : (
+                        <>
+                          <li>
+                            <Link to="/login" className="block px-5 py-1.5 text-[15px] text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors">
+                              Login
+                            </Link>
+                          </li>
+                          <li>
+                            <Link to="/register" className="block px-5 py-1.5 text-[15px] text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors">
+                              Register
+                            </Link>
+                          </li>
+                        </>
+                      )}
                     </ul>
                   </div>
                 )}
@@ -111,9 +133,11 @@ const Header = () => {
               <Link to="/wishlist" className="relative text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors flex items-center gap-2">
                 <div className="relative">
                   <Heart className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.5]" />
-                  <span className="absolute -top-1.5 -right-2 sm:-top-2 sm:-right-2 bg-[var(--primary)] text-white text-[10px] sm:text-xs font-bold rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center border border-white">
-                    {wishlistCount}
-                  </span>
+                  {wishlistCount > 0 && (
+                    <span className="absolute -top-1.5 -right-2 sm:-top-2 sm:-right-2 bg-[var(--primary)] text-white text-[10px] sm:text-xs font-bold rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center border border-white">
+                      {wishlistCount}
+                    </span>
+                  )}
                 </div>
               </Link>
 
@@ -124,9 +148,11 @@ const Header = () => {
               >
                 <div className="relative">
                   <ShoppingBag className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.5]" />
-                  <span className="absolute -top-1.5 -right-2 sm:-top-2 sm:-right-2 bg-[var(--primary)] text-white text-[10px] sm:text-xs font-bold rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center border border-white">
-                    {cartCount}
-                  </span>
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1.5 -right-2 sm:-top-2 sm:-right-2 bg-[var(--primary)] text-white text-[10px] sm:text-xs font-bold rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center border border-white">
+                      {cartCount}
+                    </span>
+                  )}
                 </div>
                 <span className="hidden md:block font-medium text-[var(--text-gray)] ml-1">My Cart</span>
               </button>

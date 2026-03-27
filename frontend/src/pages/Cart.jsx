@@ -21,7 +21,7 @@ const Cart = () => {
         dispatch(updateCartQuantity({ productId, quantity: newQuantity }));
     };
 
-    const cartItems = cart?.items || [];
+    const cartItems = cart?.items?.filter(item => item?.productId) || [];
 
     // Coupon state
     const [couponCode, setCouponCode] = useState('');
