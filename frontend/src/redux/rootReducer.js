@@ -16,6 +16,7 @@ import wishlistSlice from "./slice/wishlist.slice";
 import addressSlice from "./slice/address.slice";
 import offerbannerSlice from "./slice/offerbanner.slice";
 import bannerSlice from "./slice/banner.slice";
+import orderSlice from "./slice/order.slice";
 
 export const rootReducer = combineReducers({
     alert: alertSlice,
@@ -35,5 +36,5 @@ export const rootReducer = combineReducers({
     address: addressSlice,
     banner: bannerSlice,
     offerbanner: offerbannerSlice,
+    order: orderSlice,
 });
-

@@ -8,6 +8,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getProductById, getAllProducts } from '../redux/slice/product.slice';
 import { addToCart } from '../redux/slice/cart.slice';
 import { addToWishlist } from '../redux/slice/wishlist.slice';
+import Newsletter from '../component/Newsletter';
+import ProductSlider from '../component/ProductSlider';
 
 import NewsletterImage from '../Image/newsletter.png';
 
@@ -28,12 +30,16 @@ function ProductDetail() {
     const images = product?.images?.map(img => img.url) || [];
     const [selectedImage, setSelectedImage] = useState(null);
     const [quantity, setQuantity] = useState(1);
+    const [selectedVariant, setSelectedVariant] = useState(null);
     const [startIndex, setStartIndex] = useState(0);
     const [activeTab, setActiveTab] = useState('description');
 
     useEffect(() => {
         if (product?.images?.length > 0) {
             setSelectedImage(product.images[0].url);
+        }
+        if (product?.weighstWise?.length > 0) {
+            setSelectedVariant(product.weighstWise[0]);
         }
     }, [product]);
 
@@ -42,9 +48,14 @@ function ProductDetail() {
 
     const handleAddToCart = () => {
         if (product) {
-            dispatch(addToCart({ productId: product._id, quantity }));
+            dispatch(addToCart({
+                productId: product._id,
+                variantId: selectedVariant?._id,
+                quantity
+            }));
         }
     };
+
 
     const handleAddToWishlist = () => {
         if (product) {
@@ -165,15 +176,16 @@ function ProductDetail() {
                             <div className="flex items-center gap-3">
                                 {/* Discounted Price */}
                                 <span className="text-2xl md:text-3xl font-bold text-[#00B880]">
-                                    ₹{product.discountPrice || (product.weighstWise?.[0]?.price || 0)}
+                                    ₹{product.discountPrice || (selectedVariant?.price || 0)}
                                 </span>
 
                                 {/* Original Price */}
                                 {product.discountPrice && (
                                     <span className="text-sm md:text-base text-gray-400 line-through">
-                                        ₹{product.weighstWise?.[0]?.price}
+                                        ₹{selectedVariant?.price}
                                     </span>
                                 )}
+
 
                                 {/* Discount Badge */}
                                 {product.discountPrice && (
@@ -229,23 +241,25 @@ function ProductDetail() {
                         {/* Subtotal */}
                         <div className="flex items-center gap-2 mt-6">
                             <span className="text-base font-semibold text-[#333333]">Subtotal:</span>
-                            <span className="text-gray-500 text-base">₹{(quantity * (product.discountPrice || (product.weighstWise?.[0]?.price || 0))).toFixed(2)}</span>
+                            <span className="text-gray-500 text-base">₹{(quantity * (product.discountPrice || (selectedVariant?.price || 0))).toFixed(2)}</span>
                         </div>
 
-                        {/* Size Selection */}
+
                         <div className="flex items-center gap-4 mt-6">
                             <span className="text-base font-semibold text-[#333333]">Size:</span>
                             <div className="flex gap-3">
-                                {['500g', '01 Kg', '02 Kg'].map((size) => (
+                                {product.weighstWise?.map((variant) => (
                                     <button
-                                        key={size}
-                                        className={`px-4 py-1 border rounded-md text-sm sm:text-base font-semibold transition ${size === '500g' ? 'border-black text-black bg-white' : 'border-gray-200 text-gray-600 hover:border-gray-400'}`}
+                                        key={variant._id}
+                                        onClick={() => setSelectedVariant(variant)}
+                                        className={`px-4 py-1 border rounded-md text-sm sm:text-base font-semibold transition ${selectedVariant?._id === variant._id ? 'border-black text-black bg-white' : 'border-gray-200 text-gray-600 hover:border-gray-400'}`}
                                     >
-                                        {size}
+                                        {variant.weight} {variant.unit}
                                     </button>
                                 ))}
                             </div>
                         </div>
+
 
                         {/* Main Action Buttons */}
                         <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
@@ -410,123 +424,19 @@ function ProductDetail() {
                 </div>
 
                 {/* Related Products */}
-                <div className='mt-8 pt-4'>
-                    <h2 className="text-3xl font-semibold text-[#31353C] mb-8 border-b border-gray-200 pb-5">Related Products</h2>
-
-                    <div className="grid grid-cols-1 min-[425px]:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
-                        {products
-                            .filter(p => p._id !== id && p.category?._id === product.category?._id)
-                            .slice(0, 5)
-                            .map((p) => (
-                                <div key={p._id} className="group relative bg-white border border-gray-200 rounded-lg p-3 sm:p-4 flex flex-col cursor-pointer transition-all duration-300 hover:border-[#38b47e] hover:shadow-xl hover:shadow-green-50/50">
-                                    {/* Discount Badge */}
-                                    {p.discountPrice && (
-                                        <span className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 bg-[#FF4F4F] text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
-                                            -{Math.round(((p.weighstWise[0].price - p.discountPrice) / p.weighstWise[0].price) * 100)}%
-                                        </span>
-                                    )}
-
-                                    {/* Product Image */}
-                                    <div className="h-28 sm:h-44 flex items-center justify-center mb-3 sm:mb-4 overflow-hidden">
-                                        <img
-                                            src={p.images?.[0]?.url || 'https://via.placeholder.com/400'}
-                                            alt={p.name}
-                                            className="max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-110"
-                                        />
-                                    </div>
-
-                                    {/* Product Info */}
-                                    <div className="flex flex-col flex-grow space-y-1 sm:space-y-2">
-                                        <span className="text-[10px] sm:text-sm text-[#8D949C] uppercase tracking-wider font-medium">
-                                            {p.category?.categoryName}
-                                        </span>
-
-                                        <Link to={`/product-details/${p._id}`} onClick={() => window.scrollTo(0, 0)}>
-                                            <h3 className="text-sm sm:text-base font-semibold text-[#31353C] leading-tight line-clamp-1 group-hover:text-[#38b47e] transition-colors">
-                                                {p.name}
-                                            </h3>
-                                        </Link>
-
-                                        <div className="flex items-center gap-0.5 sm:gap-1">
-                                            {[...Array(5)].map((_, i) => (
-                                                <AiFillStar
-                                                    key={i}
-                                                    className={`text-[10px] sm:text-base ${i < 4 ? "text-[#FFB81C]" : "text-[#E6E8EA]"}`}
-                                                />
-                                            ))}
-                                        </div>
-
-                                        <div className="flex items-baseline gap-1.5 sm:gap-2 mt-auto">
-                                            <span className="text-sm sm:text-base font-semibold text-[#00B880]">
-                                                ₹{p.discountPrice || p.weighstWise?.[0]?.price}
-                                            </span>
-                                            {p.discountPrice && (
-                                                <span className="text-xs sm:text-base text-[#A2A9B1] line-through font-medium">
-                                                    ₹{p.weighstWise?.[0]?.price}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Vertical Action Buttons (Hover) */}
-                                    <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 z-10">
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); dispatch(addToWishlist(p._id)); }}
-                                            className="w-8 h-8 bg-white border border-gray-100 rounded-full flex items-center justify-center text-gray-400 hover:bg-[#38b47e] hover:text-white transition-all shadow-sm"
-                                        >
-                                            <AiOutlineHeart size={16} />
-                                        </button>
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); dispatch(addToCart({ productId: p._id, quantity: 1 })); }}
-                                            className="w-8 h-8 bg-white border border-gray-100 rounded-full flex items-center justify-center text-gray-400 hover:bg-[#38b47e] hover:text-white transition-all shadow-sm"
-                                        >
-                                            <FiShoppingCart size={16} />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                    </div>
-                </div>
+                <ProductSlider
+                    title="Related Products"
+                    products={products.filter(p => {
+                        if (p._id === id) return false;
+                        const cat1 = typeof p.category === 'object' ? p.category?.categoryName : p.category;
+                        const cat2 = typeof product.category === 'object' ? product.category?.categoryName : product.category;
+                        return cat1 && cat2 && cat1 === cat2;
+                    })}
+                    className="mt-8 pt-4"
+                />
 
                 {/* Newsletter */}
-                <div className="w-full py-6 mt-10">
-                    <div
-                        className="relative overflow-hidden rounded-md bg-[#DDEEE5] bg-no-repeat bg-cover bg-center sm:bg-right min-h-[380px] flex items-center"
-                        style={{ backgroundImage: `url(${NewsletterImage})` }}
-                    >
-                        <div className="relative z-10 p-6 md:p-10 lg:p-20 w-full lg:w-1/2">
-                            {/* LEFT CONTENT */}
-                            <div className="text-left">
-                                {/* Title */}
-                                <h2 className="text-[#253D4E] text-2xl sm:text-3xl font-medium leading-tight">
-                                    Stay Home & Get Your Daily <br className="hidden sm:block" />
-                                    Needs From Our Shop
-                                </h2>
-
-                                {/* Description */}
-                                <p className="text-[#7E7E7E] mt-4 text-sm">
-                                    Subscribe to our latest newsletter to get news about special discounts.
-                                </p>
-
-                                {/* Input + Button */}
-                                <form className="mt-8 flex flex-col sm:flex-row gap-2 sm:gap-0 w-full max-w-md mx-auto md:mx-0 " onSubmit={(e) => e.preventDefault()}>
-                                    <input
-                                        type="email"
-                                        placeholder="Email"
-                                        className="flex-grow px-5 py-3 sm:py-4 rounded-md sm:rounded-none sm:rounded-l-md focus:outline-none text-[var(--text-secondary)] w-full border-none"
-                                        required
-                                    />
-                                    <button
-                                        type="submit"
-                                        className=" cursor-pointer  bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition duration-300 text-[var(--btn-text)] font-semibold px-6 sm:px-8 py-3 sm:py-4 rounded-md sm:rounded-none sm:rounded-r-md whitespace-nowrap"
-                                    >
-                                        Subscribe
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <Newsletter className="w-full pt-6 mt-10" />
 
             </div>
         </div>
