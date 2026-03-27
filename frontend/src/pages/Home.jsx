@@ -1,8 +1,8 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import BannerSlider from '../component/BannerSlider';
 import ProductCard from '../component/ProductCard';
 import ProductSlider from '../component/ProductSlider';
-import { allProducts } from '../data/products';
 
 import subbanner1 from '../Image/sub-banner-1.png';
 import subbanner2 from '../Image/sub-banner-2.png';
@@ -15,17 +15,19 @@ import Newsletter from '../component/Newsletter';
 import { getAllCategories } from '../redux/slice/category.slice';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { getAllProducts } from '../redux/slice/product.slice';
+import { getAllProducts, getFeaturedProducts } from '../redux/slice/product.slice';
 
 
 function Home() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { categories: apiCategories } = useSelector((state) => state.category);
-  const { products: apiProducts } = useSelector((state) => state.product);
+  const { products: apiProducts, featuredProducts } = useSelector((state) => state.product);
 
   useEffect(() => {
     dispatch(getAllCategories());
     dispatch(getAllProducts());
+    dispatch(getFeaturedProducts());
   }, [dispatch]);
 
   const scrollRef = useRef(null);
@@ -147,7 +149,10 @@ function Home() {
               className='flex overflow-x-auto no-scrollbar pt-4 pb-6 gap-6 md:gap-10 lg:gap-14 px-5 sm:px-8 scroll-smooth w-full cursor-grab'
             >
               {apiCategories?.map((category, index) => (
-                <div key={category._id || index} className='group cursor-pointer text-center flex-shrink-0'>
+                <div key={category._id || index}
+                  className='group cursor-pointer text-center flex-shrink-0'
+                  onClick={() => navigate(`/shop?category=${encodeURIComponent(category.categoryName)}`)}
+                >
                   <div className='w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden shadow-sm transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl group-hover:shadow-green-100 mb-3'>
                     <img src={category.categoryImage?.url} alt={category.categoryName} className='w-full h-full object-cover transition-transform duration-500 group-hover:scale-110' />
                   </div>
@@ -254,7 +259,7 @@ function Home() {
           </div>
 
           {/* 6. Featured Products Slider (Responsive Grid UI) */}
-          <ProductSlider title="Featured Products" products={allProducts} className="mt-12 mb-4" />
+          <ProductSlider title="Featured Products" products={featuredProducts} className="mt-12 mb-4" />
         </main>
 
         {/* 7. Deal Banner */}
@@ -286,7 +291,7 @@ function Home() {
         <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-4 py-4 sm:py-6 md:py-8">
 
           {/* 8. Top Selling Products Slider (Responsive Grid UI) */}
-          <ProductSlider title="Top Selling Products" products={allProducts} className="mt-6" />
+          <ProductSlider title="Top Selling Products" products={apiProducts} className="mt-6" />
 
           {/* 9. Newsletter */}
           <Newsletter className="w-full pt-6 mt-8" />
