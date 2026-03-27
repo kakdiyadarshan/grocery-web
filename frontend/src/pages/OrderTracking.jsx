@@ -1,5 +1,7 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import axios from 'axios';
+import { BASE_URL } from '../utils/baseUrl';
 import {
   ChevronRight,
   Package,
@@ -11,190 +13,117 @@ import {
 } from 'lucide-react';
 
 const OrderTracking = () => {
-  const location = useLocation();
+  const { id } = useParams();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const status = location.state?.order?.status?.toLowerCase();
-
-  // ✅ Default fallback data
-  const defaultData = {
-    id: "ABC-6457321",
-    status: "In progress",
-    date: "10 May 2021",
-    deliveryDate: "15 May 2021",
-    price: 50,
-    address: "456 Residential Area, City Square",
-    items: [
-      { name: "Chocolate Truffle Pastry", qty: 1, price: 25 },
-      { name: "Chocolate Truffle Cake", qty: 1, price: 25 }
-    ],
-    trackingSteps: [
-      { title: "Order Placed", date: "Today, 10:30 AM", status: "completed", icon: CheckCircle2 },
-      { title: "Packed & Ready", date: "Today, 10:45 AM", status: "completed", icon: Package },
-      { title: "Out for Delivery", date: "Today, 11:15 AM", status: "current", icon: Truck },
-      { title: "Arrival (Estimated)", date: "By 12:30 PM", status: "upcoming", icon: Clock },
-    ]
-  };
-
-  // ✅ Build dynamic tracking steps
-  const getTrackingSteps = () => {
-    if (status === 'delivered') {
-      return [
-        { title: "Order Placed", date: location.state.order.date, status: "completed", icon: CheckCircle2 },
-        { title: "Packed & Ready", date: location.state.order.date, status: "completed", icon: Package },
-        { title: "Out for Delivery", date: location.state.order.date, status: "completed", icon: Truck },
-        { title: "Delivered", date: location.state.order.date, status: "completed", icon: CheckCircle2 },
-      ];
-    }
-
-    if (status === 'cancelled' || status === 'canceled') {
-      return [
-        { title: "Order Placed", date: location.state.order.date, status: "completed", icon: CheckCircle2 },
-        { title: "Cancelled", date: location.state.order.date, status: "completed", icon: CheckCircle2 },
-      ];
-    }
-
-    return defaultData.trackingSteps;
-  };
-
-  // ✅ Final order data
-  const orderData = location.state?.order
-    ? {
-        ...defaultData,
-        id: location.state.order.id,
-        status: location.state.order.status,
-        date: location.state.order.date,
-        title: location.state.order.title,
-        image: location.state.order.image,
-        price: Number(location.state.order.price) || 0,
-        address: location.state.order.address || defaultData.address,
-        items: [
-          {
-            name: location.state.order.title,
-            qty: 1,
-            price: Number(location.state.order.price) || 0
-          }
-        ],
-        trackingSteps: getTrackingSteps()
+  useEffect(() => {
+    const fetchTracking = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get(`${BASE_URL}/trackOrder/${id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        setData(res.data.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
-    : defaultData;
+    };
+    fetchTracking();
+    const timer = setInterval(fetchTracking, 30000); // Refresh every 30s
+    return () => clearInterval(timer);
+  }, [id]);
+
+  if (loading) return <div className="py-20 text-center text-gray-400 font-bold">Connecting to live tracking...</div>;
+  if (!data) return <div className="py-20 text-center text-red-500 font-bold">Order tracking currently unavailable.</div>;
+
+  const displayId = `#${(data._id || "").toString().slice(-8).toUpperCase()}`;
 
   return (
-    <div className=" bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="container mx-auto">
+    <div className=" bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 ">
+      <div className="container mx-auto max-w-6xl">
 
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
           <div>
-            <Link to="/my-order" className="flex items-center gap-2 text-gray-500 hover:text-[var(--primary)] mb-2">
+            <Link to="/my-order" className="flex items-center gap-2 text-gray-500 hover:text-[var(--primary)] mb-4 transition-colors">
               <ArrowLeft className="w-4 h-4" />
               Back to My Orders
             </Link>
 
             <h1 className="text-3xl font-extrabold text-gray-900">Express Delivery</h1>
 
-            <p className="text-[var(--primary)] font-bold flex items-center gap-1 mt-1">
+            <p className="text-[var(--primary)] font-bold flex items-center gap-1.5 mt-2">
               <Clock className="w-4 h-4" />
-              Guaranteed in 2 Hours
+              Guaranteed Delivery in 2 Hours
             </p>
           </div>
 
           <div className="text-left md:text-right">
-            <p className="text-sm text-gray-500">
-              Order ID: <span className="font-bold text-gray-900">{orderData.id}</span>
-            </p>
-
-            <div className="mt-2 inline-flex items-center gap-1.5 bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-bold">
-              <Truck className="w-3 h-3" />
+            <p className="text-sm text-gray-500 mb-1">Order ID: <span className="font-bold text-gray-900">{displayId}</span></p>
+            <div className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-700 px-3 py-1 rounded-full text-xs font-bold border border-orange-100">
+              <Truck className="w-3.5 h-3.5" />
               Flash Delivery
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-          {/* Tracking */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-3xl shadow-sm border p-6">
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+              <h3 className="text-xl font-bold mb-8 text-gray-900 border-b pb-4">Live Timeline</h3>
 
-              <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-                <Clock className="w-5 h-5 text-[var(--primary)]" />
-                Delivery Updates
-              </h3>
-
-              {orderData.trackingSteps.map((step, index) => (
-                <div key={step.title} className="flex gap-4 mb-6">
-
-                  <div className={`w-10 h-10 flex items-center justify-center rounded-xl
-                    ${step.status === 'completed' ? 'bg-[var(--primary)] text-white' :
-                      step.status === 'current' ? 'border-2 border-[var(--primary)] text-[var(--primary)]' :
-                      'bg-gray-200 text-gray-400'}`}>
-
-                    <step.icon className="w-5 h-5" />
-                  </div>
-
-                  <div>
-                    <p className={`font-bold ${step.status === 'upcoming' ? 'text-gray-400' : 'text-gray-900'}`}>
-                      {step.title}
-                    </p>
-                    <p className="text-sm text-gray-500">{step.date}</p>
-                  </div>
-                </div>
-              ))}
-
-              {/* Address */}
-              <div className="mt-6 flex items-center gap-3 bg-gray-50 p-4 rounded-xl">
-                <MapPin className="text-[var(--primary)]" />
-                <p className="text-sm font-medium">{orderData.address}</p>
+              <div className="relative">
+                {data.steps.map((step, index) => {
+                  const Icon = step.status === "Packed & Ready" || step.status === "Processing" ? Package :
+                    step.status === "Out for Delivery" ? Truck : CheckCircle2;
+                  return (
+                    <div key={index} className="flex gap-6 mb-10 relative">
+                      {index < data.steps.length - 1 && (
+                        <div className={`absolute left-5 top-10 w-0.5 h-10 -ml-[1px] ${step.isCompleted ? 'bg-[var(--primary)]' : 'bg-gray-100'}`} />
+                      )}
+                      <div className={`w-10 h-10 flex items-center justify-center rounded-2xl shrink-0 
+                            ${step.isCompleted ? 'bg-[var(--primary)] text-white shadow-lg shadow-green-100 font-bold' : 'bg-gray-100 text-gray-400'}`}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className={`font-bold text-[16px] ${step.isCompleted ? 'text-gray-900' : 'text-gray-300'}`}>{step.status}</p>
+                        <p className="text-xs text-gray-400">{new Date(step.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
 
-            </div>
-          </div>
+              <div className="mt-4 pt-8 border-t">
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 text-left">Delivery Address</p>
+                <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                  <MapPin className="text-[var(--primary)] w-5 h-5 shrink-0 mt-0.5" />
+                  {console.log("data", data)}
 
-          {/* Summary */}
-          <div>
-            <div className="bg-white rounded-3xl shadow-sm border p-6">
-
-              <h3 className="text-xl font-bold mb-4">Order Summary</h3>
-
-              {orderData.items.map((item, i) => (
-                <div key={i} className="flex justify-between mb-3">
-                  <div>
-                    <p className="font-bold">{item.name}</p>
-                    <p className="text-sm text-gray-500">Qty: {item.qty}</p>
-                  </div>
-                  <p className="font-bold">₹{item.price.toFixed(2)}</p>
-                </div>
-              ))}
-
-              <div className="border-t pt-4 mt-4">
-                <div className="flex justify-between">
-                  <span>Subtotal</span>
-                  <span>₹{orderData.price.toFixed(2)}</span>
-                </div>
-
-                <div className="flex justify-between text-[var(--primary)]">
-                  <span>Shipping</span>
-                  <span>FREE</span>
-                </div>
-
-                <div className="flex justify-between font-bold text-lg mt-2">
-                  <span>Total</span>
-                  <span>₹{orderData.price.toFixed(2)}</span>
+                  <p className="text-sm font-medium text-gray-700 leading-relaxed text-left">{data.address || "Your specified address"}</p>
                 </div>
               </div>
             </div>
-
-            {/* Help */}
-            <div className="mt-6 bg-[var(--primary)] text-white p-6 rounded-3xl">
-              <h4 className="font-bold text-lg mb-2">Need Help?</h4>
-              <p className="text-sm mb-4">Support team available 24/7</p>
-              <button className="bg-white text-[var(--primary)] px-4 py-2 rounded-lg font-bold w-full">
-                Contact Support
-              </button>
-            </div>
-
           </div>
 
+          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 h-fit">
+            <h3 className="text-xl font-bold mb-6 text-gray-900">Summary</h3>
+            <div className="space-y-4 mb-8">
+              {(data.items || []).map((item, i) => (
+                <div key={i} className="flex justify-between gap-4">
+                  <div className="text-left"><p className="font-bold text-gray-800 text-sm">{item.productId?.name || 'Item'}</p><p className="text-[12px] text-gray-500">Qty: {item.quantity}</p></div>
+                  <p className="font-bold text-gray-900 text-sm italic">₹{(item.selectedVariant?.price || 0) * item.quantity}</p>
+                </div>
+              ))}
+            </div>
+            <div className="pt-6 border-t border-dashed space-y-3">
+              <div className="flex justify-between text-sm"><span className="text-gray-500">Subtotal</span><span className="text-gray-900 font-bold">₹{data.totalAmount?.toFixed(2)}</span></div>
+              <div className="flex justify-between items-center pt-3 border-t"><span className="text-gray-900 font-black">Total</span><span className="text-xl font-black text-[var(--primary)]">₹{data.totalAmount?.toFixed(2)}</span></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

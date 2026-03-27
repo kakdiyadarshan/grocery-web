@@ -234,7 +234,7 @@ const OrderCompleted = () => {
                     <div className="flex flex-col">
                       <span className="text-gray-900 font-bold block line-clamp-1">{product.name}</span>
                       {item.selectedVariant && (
-                        <span className="text-[11px] font-bold text-[var(--primary)] uppercase tracking-tight">
+                        <span className="text-[10px] font-bold text-[var(--primary)]  tracking-tight">
                           Variant: {item.selectedVariant.weight} {item.selectedVariant.unit}
                         </span>
                       )}

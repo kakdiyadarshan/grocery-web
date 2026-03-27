@@ -9,6 +9,7 @@ import { BASE_URL } from '../utils/baseUrl';
 import { toast } from 'sonner';
 import { createOrder as triggerCreateOrder } from '../redux/slice/order.slice';
 import { clearCart } from '../redux/slice/cart.slice';
+import { fetchAddresses } from '../redux/slice/address.slice';
 
 
 
@@ -22,8 +23,10 @@ const CheckOut = () => {
   const navigate = useNavigate();
   const { user } = useSelector(state => state.auth);
   const { cart } = useSelector(state => state.cart);
+  console.log("Checkout Cart:", cart?.userId);
+  const { addresses } = useSelector(state => state.address);
   const items = cart?.items || [];
-  
+
   // Calculate totals
   const subtotal = items.reduce((acc, item) => {
     const variant = item.selectedVariant;
@@ -35,16 +38,6 @@ const CheckOut = () => {
   const shipping = items.length > 0 ? (subtotal >= 50 ? 0 : 5.99) : 0;
   const tax = items.length > 0 ? (subtotal * 0.08) : 0;
   const totalAmount = parseFloat((subtotal + shipping + tax).toFixed(2));
-
-
-
-  const banks = [
-    "State Bank of India",
-    "HDFC Bank",
-    "ICICI Bank",
-    "Axis Bank",
-    "Kotak Mahindra Bank"
-  ];
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -59,6 +52,47 @@ const CheckOut = () => {
     selectedBank: ''
   });
   const [errors, setErrors] = useState({});
+  const [useSavedAddress, setUseSavedAddress] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+
+  const defaultAddress = addresses?.find(addr => addr.isDefault) || addresses?.[0] || null;
+
+  React.useEffect(() => {
+    if (user) {
+      dispatch(fetchAddresses());
+    }
+  }, [dispatch, user]);
+
+  React.useEffect(() => {
+    if (defaultAddress) {
+      setSelectedAddress(defaultAddress);
+      setUseSavedAddress(true);
+    }
+  }, [defaultAddress]);
+
+  React.useEffect(() => {
+    if (useSavedAddress && selectedAddress) {
+      setFormData(prev => ({
+        ...prev,
+        firstName: selectedAddress.firstName || prev.firstName,
+        lastName: selectedAddress.lastName || prev.lastName,
+        email: selectedAddress.email || user?.email || prev.email,
+        phone: selectedAddress.phone || prev.phone,
+        address: selectedAddress.address || prev.address,
+        city: selectedAddress.city || prev.city,
+        country: selectedAddress.country || prev.country,
+        zip: selectedAddress.zip || prev.zip,
+      }));
+    }
+  }, [useSavedAddress, selectedAddress, user]);
+
+  const banks = [
+    "State Bank of India",
+    "HDFC Bank",
+    "ICICI Bank",
+    "Axis Bank",
+    "Kotak Mahindra Bank"
+  ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -97,11 +131,16 @@ const CheckOut = () => {
     if (!formData.country) newErrors.country = "Please select a country";
     if (!formData.city.trim()) newErrors.city = "Town / City is required";
     if (!formData.zip.trim()) newErrors.zip = "ZIP/Postcode is required";
-    
+
     // Payment specific validation
-    if (paymentMethod === 'upi' && !formData.upiId.trim()) {
-      newErrors.upiId = "UPI ID is required";
+    if (paymentMethod === 'upi') {
+      if (!formData.upiId.trim()) {
+        newErrors.upiId = "UPI ID is required";
+      } else if (!/^[a-zA-Z0-9.\-_]{3,}@[a-zA-Z]{3,}$/.test(formData.upiId.trim())) {
+        newErrors.upiId = "Enter a valid UPI ID (e.g., username@bank)";
+      }
     }
+
     if (paymentMethod === 'netbanking' && !formData.selectedBank) {
       newErrors.selectedBank = "Please select a bank";
     }
@@ -114,7 +153,7 @@ const CheckOut = () => {
 
     try {
       const currentUserId = user?._id || localStorage.getItem('userId');
-      
+
       if (!currentUserId) {
         toast.error("Please login to place an order");
         return;
@@ -127,10 +166,10 @@ const CheckOut = () => {
 
       const orderData = {
         userId: currentUserId,
-        items: items.map(item => ({ 
-          productId: item.productId._id || item.productId, 
-          variantId: item.variantId, 
-          quantity: item.quantity 
+        items: items.map(item => ({
+          productId: item.productId._id || item.productId,
+          variantId: item.variantId,
+          quantity: item.quantity
         })),
 
         totalAmount: totalAmount,
@@ -167,7 +206,9 @@ const CheckOut = () => {
     }
   };
 
-
+const handleNavigate = () => {
+    navigate('/profile?tab=Address');
+}
 
   return (
     <div className="flex flex-col min-h-screen bg-[#fafafa]">
@@ -194,8 +235,10 @@ const CheckOut = () => {
             {/* Left Column: Billing Details */}
             <div className="lg:col-span-8">
               <div className="bg-white rounded border border-gray-100 p-6 sm:p-8 shadow-sm">
-                <h2 className="text-[18px] sm:text-[20px] font-bold text-[var(--text-gray)] mb-6 border-b border-gray-100 pb-4">Billing Details</h2>
-
+                <div className='mb-6 border-b border-gray-100 pb-4 flex justify-between items-center'>
+                  <h2 className="text-[18px] sm:text-[20px] font-bold text-[var(--text-gray)] ">Billing Details</h2>
+                    <button className='bg-[var(--primary)] text-white py-2 px-5 rounded text-sm' onClick={handleNavigate}>Manage Addresses</button>
+                </div>
                 <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
                   {/* Name Fields */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -289,8 +332,8 @@ const CheckOut = () => {
                           <div className="flex flex-col">
                             <h4 className="text-[14px] sm:text-[14.5px] font-bold text-[var(--text-gray)] line-clamp-2 leading-snug">{product.name || product.productName}</h4>
                             <p className="text-[13px] text-gray-500 mt-1">
-                                {variant && <span>{variant.weight} {variant.unit} | </span>}
-                                Qty: {item.quantity}
+                              {variant && <span>{variant.weight} {variant.unit} | </span>}
+                              Qty: {item.quantity}
                             </p>
                           </div>
                         </div>
@@ -350,7 +393,8 @@ const CheckOut = () => {
                       <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors shrink-0 ${paymentMethod === 'stripe' ? 'border-[var(--primary)]' : 'border-gray-400'}`}>
                         {paymentMethod === 'stripe' && <div className="w-2 h-2 rounded-full bg-[var(--primary)]" />}
                       </div>
-                      <span className="text-[14.5px] font-bold text-[#1e5066]">Stripe (Card/UPI)</span>
+                      <span className="text-[14.5px] font-bold text-[#1e5066]">Stripe (Card Payment)</span>
+
                     </div>
                     <FaStripe className="w-8 h-8 text-[#635BFF] opacity-90" />
                   </label>
@@ -422,8 +466,8 @@ const CheckOut = () => {
                                     setErrors(prev => ({ ...prev, selectedBank: "" }));
                                   }}
                                   className={`px-4 py-2.5 text-[14px] cursor-pointer transition-colors ${formData.selectedBank === bank
-                                      ? 'bg-[var(--primary-light)] text-[var(--primary)] font-bold'
-                                      : 'text-gray-700 hover:bg-[var(--primary)] hover:text-white'
+                                    ? 'bg-[var(--primary-light)] text-[var(--primary)] font-bold'
+                                    : 'text-gray-700 hover:bg-[var(--primary)] hover:text-white'
                                     }`}
                                 >
                                   {bank}

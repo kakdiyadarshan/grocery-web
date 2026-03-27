@@ -70,6 +70,7 @@ export const getOrderById = createAsyncThunk(
 
 
 const orderSlice = createSlice({
+
     name: 'order',
     initialState,
     reducers: {
@@ -99,7 +100,8 @@ const orderSlice = createSlice({
                 state.loading = false;
                 state.currentOrder = action.payload;
             })
-            .addCase(getOrderById.rejected, (state) => { state.loading = false; });
+            .addCase(getOrderById.rejected, (state) => { state.loading = false; })
+
 
     }
 });
