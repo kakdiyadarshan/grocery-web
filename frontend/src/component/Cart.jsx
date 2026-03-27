@@ -11,7 +11,7 @@ const Cart = ({ isOpen, onClose }) => {
     const [showInstructions, setShowInstructions] = useState(false);
     const [instructions, setInstructions] = useState('');
 
-    const cartItems = cart?.items || [];
+    const cartItems = cart?.items?.filter(item => item?.productId) || [];
     const subtotal = cartItems.reduce((acc, item) => {
         const prod = item.productId;
         const price = prod?.discountPrice || prod?.weighstWise?.[0]?.price || prod?.price || 0;

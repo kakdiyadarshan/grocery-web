@@ -62,6 +62,9 @@ const Sidebar = ({ isOpen, onClose }) => {
                 { name: 'Terms & Conditions', icon: <FiFileText />, path: '/admin/terms-condition' },
             ]
         },
+        { name: 'Privacy Policy', icon: <FiFileText />, path: '/admin/privacy-policy' },
+        { name: 'Blogs', icon: <LuNotebookPen />, path: '/admin/blogs' },
+        { name: 'Blog Categories', icon: <LuNotebookTabs />, path: '/admin/blog-categories' },
         { name: 'Subscribe', icon: <FaRegBell />, path: '/admin/subscribe' },
         { name: 'Offers', icon: <FiGrid />, path: '/admin/offers' },
          { name: 'Contact Us', icon: <RiContactsBook3Line />, path: '/admin/contact-us' }
