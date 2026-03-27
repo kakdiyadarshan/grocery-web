@@ -31,9 +31,13 @@ function Home() {
   const scrollRef = useRef(null);
   const [isPending, setIsPending] = useState(false);
 
-  const categories = apiCategories?.length > 0
+  const categories = Array.isArray(apiCategories)
     ? apiCategories.slice(0, 3).map(c => c.categoryName)
-    : ['Fresh Fruits', 'Milk & Dairies', 'Vegetables'];
+    : [];
+
+  while (categories.length < 3) {
+    categories.push(''); // or any placeholder
+  }
 
   const [activeTab, setActiveTab] = useState(categories[0]);
 
@@ -56,7 +60,6 @@ function Home() {
     const catName = typeof product.category === 'object' ? product.category?.categoryName : product.category;
     return catName === activeTab;
   }) : [];
-  console.log("filteredProducts", filteredProducts);
 
   useEffect(() => {
     const setupDragScroll = (el) => {
@@ -148,7 +151,7 @@ function Home() {
                   <div className='w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden shadow-sm transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl group-hover:shadow-green-100 mb-3'>
                     <img src={category.categoryImage?.url} alt={category.categoryName} className='w-full h-full object-cover transition-transform duration-500 group-hover:scale-110' />
                   </div>
-                  <span className='text-sm sm:text-base font-semibold text-gray-700 group-hover:text-[#38b47e] transition-colors'>
+                  <span className='text-sm sm:text-base font-semibold text-gray-700 group-hover:text-[var(--primary)] transition-colors'>
                     {category.categoryName}
                   </span>
                 </div>
@@ -192,9 +195,9 @@ function Home() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-gray-200 pb-5 gap-4">
               <h2 className="text-2xl sm:text-3xl font-semibold text-[#31353C]">Popular Products</h2>
               <div className="flex flex-wrap gap-4 sm:gap-8">
-                {categories.map((category) => (
+                {categories.map((category, index) => (
                   <button
-                    key={category}
+                    key={`${category}-${index}`}
                     onClick={() => handleTabChange(category)}
                     className={`text-sm sm:text-base font-medium transition-all duration-300 relative pb-1 ${activeTab === category
                       ? "text-[var(--primary-hover)] after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-[var(--primary-hover)]"

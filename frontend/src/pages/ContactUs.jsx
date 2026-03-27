@@ -4,6 +4,7 @@ import Subscribe from './Subscribe';
 import { useDispatch, useSelector } from 'react-redux';
 import { createContact } from '../redux/slice/contact.slice';
 import { setAlert } from '../redux/slice/alert.slice';
+import Newsletter from '../component/Newsletter';
 
 function ContactUs() {
     const dispatch = useDispatch();
@@ -36,12 +37,12 @@ function ContactUs() {
     };
 
     return (
-        <div className="w-full max-w-[1440px]  space-y-8  mx-auto p-4 sm:p-6 lg:p-8 mt-10 mb-20">
+        <div className="w-full max-w-[1440px]  space-y-8  mx-auto p-4 sm:p-6 lg:p-8 mt-10">
 
 
-            
 
-            <main className="container mx-auto py-12">
+
+            <main className="container mx-auto py-0">
 
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Left Section - Contact Form */}
@@ -186,7 +187,11 @@ function ContactUs() {
                     ></iframe>
                 </div>
 
-                <Subscribe />
+                {/* <Subscribe /> */}
+
+                {/* Newsletter */}
+                <Newsletter className="w-full pt-6 mt-8" />
+
             </main>
 
         </div>
