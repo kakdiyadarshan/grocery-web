@@ -52,7 +52,7 @@ function BlogDetails() {
 
                 <div className="py-6 sm:py-8 md:py-12">
                     <div className="flex flex-wrap items-center gap-4 mb-6">
-                        <span className="bg-primary/10 text-primary px-4 py-1.5 rounded-full font-bold text-xs uppercase tracking-wider">
+                        <span className="bg-primary/10 text-primary py-1.5 rounded-full font-bold text-xs uppercase tracking-wider">
                             {post.blogCategoryId?.blogCategoryName || 'General'}
                         </span>
                         <span className="text-gray-400 font-medium text-sm">
@@ -60,7 +60,7 @@ function BlogDetails() {
                         </span>
                     </div>
 
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#1e5066] mb-8 leading-tight">
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-black/80 mb-8 leading-tight">
                         {post.blogTitle}
                     </h1>
 
@@ -73,7 +73,7 @@ function BlogDetails() {
                         {post.section?.map((sec, index) => (
                             <div key={index} className="mb-12 last:mb-0">
                                 {sec.sectionTitle && (
-                                    <h2 className="text-2xl sm:text-3xl font-bold text-[#1e5066] mb-4 mt-8">
+                                    <h2 className="text-2xl sm:text-3xl font-bold text-black/80 mb-4 mt-8">
                                         {sec.sectionTitle}
                                     </h2>
                                 )}
@@ -110,7 +110,7 @@ function BlogDetails() {
                         {/* Conclusion */}
                         {post.conclusion && (
                             <div className="mt-16 p-8 bg-gray-50 rounded-xl border border-gray-200">
-                                <h4 className="text-xl font-bold text-[#1e5066] mb-3">Conclusion</h4>
+                                <h4 className="text-xl font-bold text-black/80 mb-3">Conclusion</h4>
                                 <p className="text-gray-700 italic leading-relaxed">
                                     {post.conclusion}
                                 </p>

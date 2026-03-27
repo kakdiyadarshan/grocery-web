@@ -27,7 +27,7 @@ const PrivacyPolicy = () => {
                 </div>
             </div>
 
-            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 md:px-7 xl:px-0 py-10 md:py-16 mb-10">
+            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 md:px-7 xl:px-0 pt-10 md:pt-16">
                 <div className="max-w-[950px] mx-auto lg:mx-0 px-2 md:px-0 lg:px-4">
                     <div className="space-y-12 md:space-y-14">
                         {privacy?.map(section => (
@@ -45,7 +45,7 @@ const PrivacyPolicy = () => {
             {/* <Subscribe /> */}
 
             {/* Newsletter */}
-            <Newsletter className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-4 py-4 sm:py-6 md:py-8 pt-6 mt-8" />
+            <Newsletter className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-4 py-4 sm:py-6 pt-6 mt-8" />
         </div>
     );
 }

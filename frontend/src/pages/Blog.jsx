@@ -18,19 +18,19 @@ function Blog() {
 
     return (
         <div className="min-h-screen  px-4 sm:px-6 lg:px-8">
-            {/* Breadcrumb / Page Title */}
-            <div className="bg-gray-50 py-8 border-b border-gray-100">
-                <div className="container mx-auto">
-                    <h1 className="text-[28px] sm:text-[32px] font-bold text-[#1e5066] mb-3">Blog</h1>
-                    <div className="flex items-center gap-2 text-[14px] text-gray-500 font-medium">
-                        <Link to="/" className="hover:text-[var(--primary)] transition-colors">Home</Link>
-                        <ChevronRight className="w-4 h-4 text-gray-400" />
-                        <span className="text-[var(--primary)] font-bold">Blog</span>
+
+            <div className="bg-[#f8f9fa] border-b border-gray-100 py-10 md:py-14 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-[1440px] mx-auto px-2 md:px-0 lg:px-4">
+                    <h1 className="text-3xl md:text-[40px] font-bold text-[#1a1a1a] mb-3 tracking-tight">Blog</h1>
+                    <div className="flex items-center gap-2 text-[13px] md:text-sm text-gray-400 font-medium">
+                        <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+                        <span className="text-gray-300 font-light">&gt;</span>
+                        <span className="text-gray-600">Blog</span>
                     </div>
                 </div>
             </div>
 
-            <main className="container mx-auto py-12">
+            <main className="container mx-auto px-4 py-12">
                 {loading ? (
                     <div className="flex items-center justify-center py-20">
                         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--primary)]"></div>
@@ -41,7 +41,7 @@ function Blog() {
                             blogs.map((post) => (
                                 <div
                                     key={post._id}
-                                    className="flex flex-col group cursor-pointer border border-gray-100 rounded-lg overflow-hidden bg-white hover:shadow-xl transition-all duration-300"
+                                    className="flex flex-col group cursor-pointer border border-gray-100 rounded-lg overflow-hidden bg-white hover:shadow-md transition-all duration-300"
                                     onClick={() => navigate(`/blog/${post._id}`)}
                                 >
                                     <div className="overflow-hidden h-56 bg-gray-100">
@@ -53,14 +53,14 @@ function Blog() {
                                     </div>
                                     <div className="flex flex-col flex-grow p-5">
                                         <div className="flex items-center justify-between mb-3">
-                                            <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary rounded-full">
+                                            <span className="py-1 text-xs font-bold uppercase tracking-wider bg-primary/10 text-primary rounded-full">
                                                 {post.blogCategoryId?.blogCategoryName || 'Uncategorized'}
                                             </span>
                                             <span className="text-gray-400 text-xs font-medium">
                                                 {new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                             </span>
                                         </div>
-                                        <h3 className="text-xl font-bold text-[#1e5066] transition-colors mb-3 leading-snug group-hover:text-primary">
+                                        <h3 className="text-xl font-semibold text-black/80 transition-colors mb-3 leading-snug group-hover:text-primary">
                                             {post.blogTitle}
                                         </h3>
                                         <p className="text-gray-500 text-sm mb-5 leading-relaxed line-clamp-2">
