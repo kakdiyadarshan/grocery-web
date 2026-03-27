@@ -11,11 +11,12 @@ import {
 import { getAllCategories } from '../../redux/slice/category.slice';
 import Table from '../component/DataTable';
 import Breadcrumb from '../component/Breadcrumb';
-import { FiPlus, FiX, FiUpload, FiLoader, FiTrash2, FiPlusCircle, FiAlertTriangle, FiTag, FiCalendar } from 'react-icons/fi';
+import { FiPlus, FiX, FiUpload, FiLoader, FiTrash2, FiPlusCircle, FiAlertTriangle, FiTag, FiCalendar, FiStar, FiAward } from 'react-icons/fi';
 import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
 import DeleteModal from '../component/DeleteModal';
 import StockChart from '../component/StockChart';
 import CustomSelect from '../component/CustomSelect';
+import ReactQuill from 'react-quill-new';
 
 const Product = () => {
     const dispatch = useDispatch();
@@ -28,11 +29,18 @@ const Product = () => {
     const [imagePreviews, setImagePreviews] = useState([]);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [activeImageIndex, setActiveImageIndex] = useState(0);
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [itemToDelete, setItemToDelete] = useState(null);
     const fileInputRef = useRef(null);
 
     const [existingImagesToKeep, setExistingImagesToKeep] = useState([]);
+
+    const quillModules = {
+        toolbar: [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            ['clean']
+        ],
+    };
 
     useEffect(() => {
         dispatch(getAllProducts());
@@ -65,6 +73,8 @@ const Product = () => {
             description: '',
             weighstWise: [{ weight: '', unit: 'Kilogram', price: '', stock: '' }],
             images: [],
+            tags: [],
+            sku: '',
         },
         validationSchema,
         onSubmit: async (values) => {
@@ -73,6 +83,14 @@ const Product = () => {
             formData.append('category', values.category);
             formData.append('description', values.description);
             formData.append('weighstWise', JSON.stringify(values.weighstWise));
+            formData.append('sku', values.sku);
+
+            // Append tags individually for better compatibility
+            if (values.tags && values.tags.length > 0) {
+                values.tags.forEach(tag => formData.append('tags', tag));
+            } else {
+                formData.append('tags', '[]'); // Explicit empty array
+            }
 
             values.images.forEach((image) => {
                 if (image instanceof File) {
@@ -105,6 +123,8 @@ const Product = () => {
                     stock: w.stock
                 })),
                 images: [],
+                tags: product.tags || [],
+                sku: product.sku || '',
             });
             setExistingImagesToKeep(product.images.map(img => img.public_id));
             setImagePreviews(product.images.map(img => ({ url: img.url, public_id: img.public_id })));
@@ -166,16 +186,9 @@ const Product = () => {
         setImagePreviews(newPreviews);
     };
 
-    const handleDelete = (product) => {
-        setItemToDelete(product);
-        setIsDeleteModalOpen(true);
-    };
-
-    const confirmDelete = async () => {
-        if (itemToDelete) {
-            await dispatch(deleteProduct(itemToDelete._id));
-            setIsDeleteModalOpen(false);
-            setItemToDelete(null);
+    const handleDelete = async (product) => {
+        if (product && product._id) {
+            await dispatch(deleteProduct(product._id));
         }
     };
 
@@ -226,6 +239,12 @@ const Product = () => {
             )
         },
         { header: 'Product', accessor: 'name', sortable: true },
+        {
+            header: 'SKU',
+            accessor: 'sku',
+            render: (row) => <span className="text-[10px] font-mono font-bold text-gray-500 bg-gray-50 px-2 py-1 rounded border border-gray-100 uppercase">{row.sku || '-'}</span>,
+            sortable: true
+        },
         { header: 'Category', accessor: 'category.categoryName', render: (row) => row.category?.categoryName || '-' },
         {
             header: 'Price Range',
@@ -349,16 +368,49 @@ const Product = () => {
                                             <label className="text-sm font-semibold text-gray-700 block">
                                                 Description <span className="text-red-500 font-bold">*</span>
                                             </label>
-                                            <textarea
-                                                name="description"
-                                                placeholder="Product details..."
-                                                onChange={formik.handleChange}
-                                                onBlur={formik.handleBlur}
-                                                value={formik.values.description}
-                                                rows={4}
-                                                className={`w-full px-4 py-2.5 border rounded-[4px] outline-none transition-all bg-gray-50/50 focus:bg-white text-gray-900 text-sm ${formik.touched.description && formik.errors.description ? 'border-red-500' : 'border-gray-200 focus:border-primary'}`}
-                                            />
-                                            {formik.touched.description && formik.errors.description && <p className="text-xs text-red-500">{formik.errors.description}</p>}
+                                            <div className={`rounded-[4px] border ${formik.touched.description && formik.errors.description ? 'border-red-400' : 'border-gray-200 hover:border-gray-300'} focus-within:border-primary transition-all bg-white quill-wrapper-fix relative`}>
+                                                <ReactQuill
+                                                    theme="snow"
+                                                    value={formik.values.description}
+                                                    onChange={(val) => formik.setFieldValue('description', val)}
+                                                    onBlur={() => formik.setFieldTouched('description', true)}
+                                                    modules={quillModules}
+                                                    placeholder="Product details..."
+                                                    style={{ minHeight: '150px' }}
+                                                    className="quill-responsive bg-white"
+                                                />
+                                            </div>
+                                            {formik.touched.description && formik.errors.description && <p className="text-xs text-red-500 mt-1">{formik.errors.description}</p>}
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <label className="text-sm font-semibold text-gray-700 block">
+                                                SKU (Stock Keeping Unit) <span className="text-xs font-normal text-gray-400">(Optional)</span>
+                                            </label>
+                                            <div className="flex gap-2">
+                                                <input
+                                                    name="sku"
+                                                    type="text"
+                                                    placeholder="e.g. VEG-APPLE-8f3a"
+                                                    onChange={formik.handleChange}
+                                                    onBlur={formik.handleBlur}
+                                                    value={formik.values.sku}
+                                                    className="flex-grow px-4 py-2.5 border border-gray-200 rounded-[4px] outline-none transition-all bg-gray-50/50 focus:bg-white text-gray-900 text-sm focus:border-primary"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const category = categories.find(c => c._id === formik.values.category);
+                                                        const catPart = category ? category.categoryName.substring(0, 3).toUpperCase() : 'PRO';
+                                                        const namePart = formik.values.name ? formik.values.name.substring(0, 3).toUpperCase() : 'ITEM';
+                                                        const randomPart = Math.random().toString(36).substring(2, 6).toUpperCase();
+                                                        formik.setFieldValue('sku', `${catPart}-${namePart}-${randomPart}`);
+                                                    }}
+                                                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-[4px] text-xs transition-all border border-gray-200"
+                                                >
+                                                    Generate
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -492,6 +544,51 @@ const Product = () => {
                                     </div>
                                 </div>
 
+                                {/* Tags Section */}
+                                <div className="mt-6 pt-5 border-t border-gray-100">
+                                    <label className="text-sm font-semibold text-gray-700 block mb-3">Product Tags <span className="text-xs font-normal text-gray-400">(Optional)</span></label>
+                                    <div className="flex flex-wrap gap-3">
+                                        {[
+                                            { value: 'featured', label: 'Featured', icon: <FiStar size={13} />, color: 'emerald' },
+                                            { value: 'best_selling', label: 'Best Selling', icon: <FiAward size={13} />, color: 'green' }
+                                        ].map(tag => {
+                                            const isChecked = formik.values.tags.includes(tag.value);
+                                            return (
+                                                <label
+                                                    key={tag.value}
+                                                    className={`flex items-center gap-2 px-4 py-2.5 border-2 rounded-lg cursor-pointer transition-all select-none text-sm font-semibold ${isChecked
+                                                        ? tag.color === 'emerald'
+                                                            ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                                                            : 'border-green-500 bg-green-50 text-green-700'
+                                                        : 'border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-300'
+                                                        }`}
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        className="hidden"
+                                                        checked={isChecked}
+                                                        onChange={() => {
+                                                            const current = formik.values.tags;
+                                                            const updated = isChecked
+                                                                ? current.filter(t => t !== tag.value)
+                                                                : [...current, tag.value];
+                                                            formik.setFieldValue('tags', updated);
+                                                        }}
+                                                    />
+                                                    <span className={isChecked ? (tag.color === 'emerald' ? 'text-emerald-500' : 'text-green-500') : 'text-gray-400'}>
+                                                        {tag.icon}
+                                                    </span>
+                                                    {tag.label}
+                                                    {isChecked && (
+                                                        <span className={`ml-1 w-4 h-4 rounded-full flex items-center justify-center text-white text-[9px] font-black ${tag.color === 'emerald' ? 'bg-emerald-500' : 'bg-green-500'
+                                                            }`}>✓</span>
+                                                    )}
+                                                </label>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
                                 <div className="mt-8 border-t pt-6">
                                     <button
                                         type="submit"
@@ -526,6 +623,16 @@ const Product = () => {
                                     </span>
                                 </div>
                                 <h3 className="text-white font-extrabold text-3xl">{selectedProduct.name}</h3>
+                                {selectedProduct.tags && selectedProduct.tags.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                        {selectedProduct.tags.map(tag => (
+                                            <span key={tag} className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-white/30 backdrop-blur-md ${tag === 'featured' ? 'bg-emerald-400/20 text-emerald-200' : 'bg-green-400/20 text-green-200'
+                                                }`}>
+                                                {tag.replace('_', ' ')}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -535,16 +642,17 @@ const Product = () => {
                                     <h4 className="text-[10px] font-bold text-gray-900  tracking-widest mb-4 flex items-center gap-2">
                                         <div className="w-6 h-[2px] bg-primary" /> About Product
                                     </h4>
-                                    <p className="text-gray-600 text-sm leading-relaxed mb-6">{selectedProduct.description}</p>
+                                    <div
+                                        className="text-gray-600 text-sm leading-relaxed mb-8 quill-content-view"
+                                        dangerouslySetInnerHTML={{ __html: selectedProduct.description }}
+                                    />
 
-                                    {/* Detailed Ratings Section */}
-                                    <h4 className="text-[10px] font-bold text-gray-900  tracking-widest mb-4 flex items-center gap-2">
+                                    <h4 className="text-[10px] font-bold text-gray-900 tracking-widest mb-3 flex items-center gap-2">
                                         <div className="w-6 h-[2px] bg-primary" /> Customer Ratings
                                     </h4>
-                                    <div className="bg-gray-50/50 rounded-xl border border-gray-100 mb-6">
+                                    <div className="bg-gray-50/50 rounded-xl border border-gray-100 mb-6 p-2 inline-block">
                                         {renderStars(selectedProduct.reviews)}
                                     </div>
-
                                     {/* Active Offers Section */}
                                     {selectedProduct.offer && selectedProduct.offer.length > 0 && (
                                         <>
@@ -591,7 +699,7 @@ const Product = () => {
                                     <h4 className="text-[10px] font-bold text-gray-900  tracking-widest mb-4 flex items-center gap-2">
                                         <div className="w-6 h-[2px] bg-primary" /> Pricing & Stock
                                     </h4>
-                                    <div className="space-y-3">
+                                    <div className="space-y-3 mb-8">
                                         {selectedProduct.weighstWise.map((v, i) => {
                                             const isLowStock = v.stock <= 10;
                                             return (
@@ -609,6 +717,21 @@ const Product = () => {
                                             );
                                         })}
                                     </div>
+
+                                    {/* Move SKU and Ratings here */}
+                                    {selectedProduct.sku && (
+                                        <div className="mb-6">
+                                            <h4 className="text-[10px] font-bold text-gray-900 tracking-widest mb-3 flex items-center gap-2">
+                                                <div className="w-6 h-[2px] bg-primary" /> SKU
+                                            </h4>
+                                            <div className="inline-flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Code:</span>
+                                                <span className="text-xs font-mono font-bold text-gray-700">{selectedProduct.sku}</span>
+                                            </div>
+                                        </div>
+                                    )}
+
+
                                 </div>
                             </div>
 
@@ -637,15 +760,32 @@ const Product = () => {
                     </div>
                 </div>
             )}
-            {/* Delete Confirmation Modal */}
-            <DeleteModal
-                isOpen={isDeleteModalOpen}
-                onClose={() => setIsDeleteModalOpen(false)}
-                onConfirm={confirmDelete}
-                title="Delete Product"
-                message={`Are you sure you want to delete "${itemToDelete?.name}"? All associated data and variations will be permanently removed.`}
-                isLoading={loading}
-            />
+
+            {/* Global CSS injected to fix ReactQuill responsive toolbar and Link tooltip */}
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                .quill-wrapper-fix .ql-toolbar {
+                    border: none;
+                    border-bottom: 1px solid #e5e7eb;
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 4px;
+                    border-top-left-radius: 4px;
+                    border-top-right-radius: 4px;
+                    background-color: #f9fafb;
+                }
+                .quill-wrapper-fix .ql-toolbar .ql-formats {
+                    margin-right: 0 !important;
+                }
+                .quill-wrapper-fix .ql-container {
+                    border: none;
+                    border-bottom-left-radius: 4px;
+                    border-bottom-right-radius: 4px;
+                }
+                .quill-wrapper-fix .ql-tooltip {
+                    z-index: 9999 !important;
+                }
+            `}} />
         </>
     );
 };
