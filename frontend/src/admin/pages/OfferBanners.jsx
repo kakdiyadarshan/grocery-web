@@ -27,6 +27,7 @@ const OfferBanners = () => {
         {
             header: 'Image',
             accessor: 'image',
+            hideInExport: true,
             render: (item) => (
                 <div className="w-24 h-16 rounded overflow-hidden bg-gray-100 border border-gray-200">
                     <img
@@ -58,6 +59,7 @@ const OfferBanners = () => {
         {
             header: 'Status',
             accessor: 'isActive',
+            exportValue: (item) => item.isActive ? 'Active' : 'Inactive',
             render: (item) => (
                 <span
                     className={`px-2 py-1 rounded-[4px] text-xs font-bold uppercase ${item.isActive
@@ -113,6 +115,8 @@ const OfferBanners = () => {
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 itemsPerPage={5}
+                exportFileName="Offer_Banners"
+                allowExport={false}
             />
         </div>
     );

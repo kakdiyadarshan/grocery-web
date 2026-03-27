@@ -64,11 +64,13 @@ const BlogAdmin = () => {
         {
             header: '#',
             accessor: '_id',
+            hideInExport: true,
             render: (_, idx) => <span className="text-gray-400 text-xs font-mono">{idx + 1}</span>
         },
         {
             header: 'Hero Image',
             accessor: 'heroImage',
+            hideInExport: true,
             render: (item) => item.heroImage
                 ? <img src={item.heroImage} className="w-14 h-14 object-cover rounded-[4px] border border-gray-100" alt="" />
                 : <span className="text-xs text-gray-400">No Image</span>
@@ -77,6 +79,7 @@ const BlogAdmin = () => {
         {
             header: 'Category',
             accessor: 'blogCategoryId',
+            exportValue: (item) => item.blogCategoryId?.blogCategoryName || 'N/A',
             render: (item) => (
                 <span className="px-2 py-1 text-xs font-medium bg-primary/10 text-primary rounded-[4px]">
                     {item.blogCategoryId?.blogCategoryName || 'N/A'}
@@ -86,6 +89,7 @@ const BlogAdmin = () => {
         {
             header: 'Sections',
             accessor: 'section',
+            exportValue: (item) => `${item.section?.length || 0} sections`,
             render: (item) => (
                 <span className="font-semibold text-gray-700">{item.section?.length || 0} sections</span>
             )
@@ -93,6 +97,7 @@ const BlogAdmin = () => {
         {
             header: 'Created',
             accessor: 'createdAt',
+            exportValue: (item) => new Date(item.createdAt).toLocaleString(),
             render: (item) => new Date(item.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })
         },
     ];
@@ -312,6 +317,7 @@ const BlogAdmin = () => {
                             onView={handleView}
                             onDelete={promptDelete}
                             itemsPerPage={10}
+                            allowExport={false}
                         />
                     )}
                 </>

@@ -36,6 +36,25 @@ export const createProduct = createAsyncThunk(
     }
 );
 
+export const importProducts = createAsyncThunk(
+    'product/importProducts',
+    async (formData, { dispatch, rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.post(`${BASE_URL}/importProducts`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            dispatch(setAlert({ text: response.data.message, type: 'success' }));
+            return response.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
 export const getAllProducts = createAsyncThunk(
     'product/getAllProducts',
     async (_, { dispatch, rejectWithValue }) => {
@@ -121,6 +140,11 @@ const productSlice = createSlice({
                 state.products.push(action.payload);
             })
             .addCase(createProduct.rejected, (state) => { state.loading = false; })
+            .addCase(importProducts.pending, (state) => { state.loading = true; })
+            .addCase(importProducts.fulfilled, (state) => {
+                state.loading = false;
+            })
+            .addCase(importProducts.rejected, (state) => { state.loading = false; })
             .addCase(getAllProducts.pending, (state) => { state.loading = true; })
             .addCase(getAllProducts.fulfilled, (state, action) => {
                 state.loading = false;

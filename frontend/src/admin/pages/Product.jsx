@@ -6,7 +6,8 @@ import {
     getAllProducts,
     createProduct,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    importProducts
 } from '../../redux/slice/product.slice';
 import { getAllCategories } from '../../redux/slice/category.slice';
 import Table from '../component/DataTable';
@@ -30,6 +31,12 @@ const Product = () => {
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [activeImageIndex, setActiveImageIndex] = useState(0);
     const fileInputRef = useRef(null);
+    const excelInputRef = useRef(null);
+    const importImagesRef = useRef(null);
+
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+    const [importExcelFile, setImportExcelFile] = useState(null);
+    const [importImageFiles, setImportImageFiles] = useState([]);
 
     const [existingImagesToKeep, setExistingImagesToKeep] = useState([]);
 
@@ -192,6 +199,33 @@ const Product = () => {
         }
     };
 
+    const handleCloseImportModal = () => {
+        setIsImportModalOpen(false);
+        setImportExcelFile(null);
+        setImportImageFiles([]);
+        if (excelInputRef.current) excelInputRef.current.value = "";
+        if (importImagesRef.current) importImagesRef.current.value = "";
+    };
+
+    const handleBulkImport = async () => {
+        if (!importExcelFile) return;
+
+        const formData = new FormData();
+        formData.append('excel', importExcelFile);
+        
+        importImageFiles.forEach(file => {
+            formData.append('images', file);
+        });
+
+        try {
+            await dispatch(importProducts(formData)).unwrap();
+            dispatch(getAllProducts());
+            handleCloseImportModal();
+        } catch (error) {
+            console.error("Import failed:", error);
+        }
+    };
+
     const renderStars = (reviews) => {
         if (!reviews || reviews.length === 0) {
             return (
@@ -228,6 +262,8 @@ const Product = () => {
         {
             header: 'Image',
             accessor: 'images',
+            // hideInExport: true,
+            exportValue: (row) => `${row.images[0]?.url}`,
             render: (row) => (
                 <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-100">
                     <img
@@ -245,10 +281,18 @@ const Product = () => {
             render: (row) => <span className="text-[10px] font-mono font-bold text-gray-500 bg-gray-50 px-2 py-1 rounded border border-gray-100 uppercase">{row.sku || '-'}</span>,
             sortable: true
         },
-        { header: 'Category', accessor: 'category.categoryName', render: (row) => row.category?.categoryName || '-' },
+        { header: 'Category', accessor: 'category.categoryName', exportValue: (row) => `${row.category?.categoryName}` || '-', render: (row) => row.category?.categoryName || '-' },
         {
             header: 'Price Range',
             accessor: 'weighstWise',
+            exportValue: (row) => {
+                const variantPrices = row.weighstWise.map(v => `${v.weight}${v.unit}: $${v.price}`).join(', ');
+                const prices = row.weighstWise.map(w => w.price);
+                const minPrice = Math.min(...prices);
+                const maxPrice = Math.max(...prices);
+                const range = minPrice === maxPrice ? `$${minPrice}` : `$${minPrice} - $${maxPrice}`;
+                return `${range} (${variantPrices})`;
+            },
             render: (row) => {
                 const prices = row.weighstWise.map(w => w.price);
                 const minPrice = Math.min(...prices);
@@ -259,12 +303,21 @@ const Product = () => {
         {
             header: 'Rating',
             accessor: 'reviews',
+            exportValue: (row) => {
+                if (!row.reviews || row.reviews.length === 0) return '0.0';
+                const avgRating = row.reviews.reduce((acc, rev) => acc + (rev.rating || 0), 0) / row.reviews.length;
+                return avgRating.toFixed(1);
+            },
             render: (row) => renderStars(row.reviews),
             sortable: true
         },
         {
             header: 'Stock Status',
             accessor: 'weighstWise',
+            exportValue: (row) => {
+                const variantDetails = row.weighstWise.map(v => `${v.weight}${v.unit}: ${v.stock}`).join(', ');
+                return variantDetails;
+            },
             render: (row) => {
                 const lowStockItems = row.weighstWise.filter(v => v.stock <= 10);
                 if (lowStockItems.length === 0) {
@@ -281,6 +334,12 @@ const Product = () => {
                 );
             }
         },
+        {
+            header: 'Total Stock',
+            accessor: 'weighstWise',
+            hideInTable: true,
+            exportValue: (row) => row.weighstWise.reduce((acc, v) => acc + (Number(v.stock) || 0), 0)
+        },
     ];
 
     return (
@@ -292,8 +351,15 @@ const Product = () => {
                 </div>
                 <div className='flex items-center justify-end gap-2 ms-auto'>
                     <button
+                        onClick={() => setIsImportModalOpen(true)}
+                        className=" gap-2 flex items-center justify-center w-full sm:w-auto sm:px-5 px-3 py-2.5 bg-primary text-white rounded-[4px] hover:bg-primaryHover transition-all shadow-md active:scale-95 font-medium text-sm  tracking-wider whitespace-nowrap"
+                    >
+                        <FiUpload size={18} />
+                        <span>Bulk Import</span>
+                    </button>
+                    <button
                         onClick={() => handleOpenModal()}
-                        className=" gap-2 flex items-center justify-center w-full sm:w-auto px-5 py-2.5 bg-primary text-white rounded-[4px] hover:bg-primaryHover transition-all shadow-md active:scale-95 font-medium text-xs  tracking-wider whitespace-nowrap"
+                        className=" gap-2 flex items-center justify-center w-full sm:w-auto sm:px-5 px-3 py-2.5 bg-primary text-white rounded-[4px] hover:bg-primaryHover transition-all shadow-md active:scale-95 font-medium text-sm  tracking-wider whitespace-nowrap"
                     >
                         <FiPlus size={18} />
                         <span>Add Product</span>
@@ -312,11 +378,13 @@ const Product = () => {
                 onView={handleView}
                 onDelete={handleDelete}
                 itemsPerPage={10}
+                exportFileName="Products"
+                allowExport={true}
             />
 
             {isModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-                    <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl overflow-hidden transform transition-all animate-in slide-in-from-bottom-4 duration-300 max-h-[90vh] flex flex-col">
+                    <div className="bg-white rounded-[4px] shadow-2xl w-full max-w-4xl overflow-hidden transform transition-all animate-in slide-in-from-bottom-4 duration-300 max-h-[90vh] flex flex-col">
                         <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50 flex-shrink-0">
                             <h2 className="text-lg font-bold text-gray-900 tracking-tight">
                                 {isEditMode ? 'Update Product' : 'Create New Product'}
@@ -593,7 +661,7 @@ const Product = () => {
                                     <button
                                         type="submit"
                                         disabled={loading}
-                                        className="w-full bg-primary hover:bg-primaryHover text-white font-bold py-3 rounded-[4px] transition-all shadow-lg active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2  text-xs tracking-widest"
+                                        className="w-full bg-primary hover:bg-primaryHover text-white font-bold py-3 rounded-[4px] transition-all shadow-lg active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2 text-sm"
                                     >
                                         {loading ? <FiLoader className="animate-spin h-5 w-5" /> : isEditMode ? 'Update Product' : 'Create Product'}
                                     </button>
@@ -786,6 +854,109 @@ const Product = () => {
                     z-index: 9999 !important;
                 }
             `}} />
+            {/* Delete Confirmation Modal */}
+            <DeleteModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={confirmDelete}
+                title="Delete Product"
+                message={`Are you sure you want to delete "${itemToDelete?.name}"? All associated data and variations will be permanently removed.`}
+                isLoading={loading}
+            />
+
+            {/* Bulk Import Modal */}
+            {isImportModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[4px] shadow-2xl w-full max-w-xl overflow-hidden transform transition-all animate-in zoom-in-95 duration-300 flex flex-col">
+                        <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50">
+                            <h2 className="text-lg font-bold text-gray-900 tracking-tight flex items-center gap-2">
+                                <FiUpload className="text-green-600" /> Bulk Product Import
+                            </h2>
+                            <button
+                                onClick={handleCloseImportModal}
+                                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                            >
+                                <FiX size={20} />
+                            </button>
+                        </div>
+
+                        <div className="p-8 space-y-6">
+                            {/* Excel Selection */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-[600] text-textPrimary block">Step 1: Select Excel File</label>
+                                <div 
+                                    onClick={() => excelInputRef.current.click()}
+                                    className={`relative p-8 border-2 border-dashed rounded-[4px] flex flex-col items-center justify-center cursor-pointer transition-all ${importExcelFile ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-primary hover:bg-gray-50'}`}
+                                >
+                                    <input
+                                        type="file"
+                                        accept=".xlsx, .xls, .csv"
+                                        className="hidden"
+                                        ref={excelInputRef}
+                                        onChange={(e) => setImportExcelFile(e.target.files[0])}
+                                    />
+                                    <FiUpload size={24} className={importExcelFile ? 'text-green-600' : 'text-gray-400'} />
+                                    <p className={`mt-2 text-sm font-bold ${importExcelFile ? 'text-green-700' : 'text-textSecondary'}`}>
+                                        {importExcelFile ? importExcelFile.name : 'Click to select Excel (.xlsx, .xls)'}
+                                    </p>
+                                    {importExcelFile && <span className="text-[10px] text-green-600 mt-1">Ready for processing</span>}
+                                </div>
+                            </div>
+
+                            {/* Images Selection */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-[600] text-textPrimary block">Step 2: Select Images Folder</label>
+                                <div 
+                                    onClick={() => importImagesRef.current.click()}
+                                    className={`relative p-8 border-2 border-dashed rounded-[4px] flex flex-col items-center justify-center cursor-pointer transition-all ${importImageFiles.length > 0 ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-primary hover:bg-gray-50'}`}
+                                >
+                                    <input
+                                        type="file"
+                                        multiple
+                                        className="hidden"
+                                        ref={importImagesRef}
+                                        onChange={(e) => setImportImageFiles(Array.from(e.target.files))}
+                                        accept="image/*"
+                                    />
+                                    <FiUpload size={24} className={importImageFiles.length > 0 ? 'text-primary' : 'text-gray-400'} />
+                                    <p className={`mt-2 text-sm font-bold ${importImageFiles.length > 0 ? 'text-primary' : 'text-textSecondary'}`}>
+                                        {importImageFiles.length > 0 ? `${importImageFiles.length} images selected` : 'Select image files or folder'}
+                                    </p>
+                                    {importImageFiles.length > 0 && <span className="text-[10px] text-primary mt-1">Images will be matched with Excel names</span>}
+                                </div>
+                            </div>
+
+                            <div className="bg-amber-50 border border-amber-100 p-4 rounded-[4px] flex items-start gap-3">
+                                <FiAlertTriangle className="text-amber-500 mt-0.5 flex-shrink-0" size={16} />
+                                <p className="text-[11px] text-amber-700 font-medium leading-relaxed">
+                                    Make sure the image names in your Excel file (e.g., <span className="font-bold">apple.jpg</span>) exactly match the filenames of the images you upload.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="p-6 border-t bg-gray-50/50 flex flex-col gap-3">
+                            <button
+                                onClick={handleBulkImport}
+                                disabled={!importExcelFile || loading}
+                                className="w-full bg-green-600 hover:bg-green-700 text-white font-[600] py-3 rounded-[4px] transition-all shadow-lg active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2 text-sm"
+                            >
+                                {loading ? <FiLoader className="animate-spin h-5 w-5" /> : (
+                                    <>
+                                        <FiUpload size={18} />
+                                        Bluk Import Product
+                                    </>
+                                )}
+                            </button>
+                            <button
+                                onClick={handleCloseImportModal}
+                                className="w-full py-2.5 text-gray-500 hover:text-gray-700 text-sm font-[600]"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 };

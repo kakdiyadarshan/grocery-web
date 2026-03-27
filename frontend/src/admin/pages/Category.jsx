@@ -137,6 +137,8 @@ const Category = () => {
         {
             header: 'Image',
             accessor: 'categoryImage',
+            // hideInExport: true,
+            exportValue: (row) => `${row.categoryImage?.url}`,
             render: (row) => (
                 <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-100">
                     <img
@@ -176,12 +178,14 @@ const Category = () => {
                 onView={handleView}
                 onDelete={handleDelete}
                 itemsPerPage={10}
+                exportFileName="Categories_List"
+                allowExport={true}
             />
 
             {/* Create/Edit Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-                    <div className="bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-in slide-in-from-bottom-4 duration-300">
+                    <div className="bg-white rounded-[4px] shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-in slide-in-from-bottom-4 duration-300">
                         <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50">
                             <h2 className="text-lg font-bold text-gray-900 tracking-tight">
                                 {isEditMode ? 'Update Category' : 'Create New Category'}
@@ -287,7 +291,7 @@ const Category = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full bg-primary hover:bg-primaryHover text-white font-bold py-3 rounded-[4px] transition-all shadow-lg shadow-primary/20 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase text-xs tracking-widest"
+                                className="w-full bg-primary hover:bg-primaryHover text-white font-[600] py-3 rounded-[4px] transition-all shadow-lg shadow-primary/20 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
                             >
                                 {loading ? (
                                     <FiLoader className="animate-spin h-5 w-5" />

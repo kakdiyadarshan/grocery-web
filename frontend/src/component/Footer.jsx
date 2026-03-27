@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
 import { ChevronUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { FaFacebookF, FaInstagram, FaYoutube, FaTwitter, FaCcVisa, FaCcMastercard, FaCcAmex, FaCcPaypal, FaCcDiscover } from 'react-icons/fa';
+import { FaFacebookF, FaInstagram, FaYoutube, FaCcVisa, FaCcMastercard, FaCcAmex, FaCcPaypal, FaCcDiscover } from 'react-icons/fa';
 import { TiMessages } from 'react-icons/ti';
+import { FaXTwitter } from 'react-icons/fa6';
 
 import { getAllCategories } from '../redux/slice/category.slice';
 import { useDispatch, useSelector } from 'react-redux';
@@ -64,7 +65,7 @@ const Footer = () => {
                     <div className="lg:pl-6">
                         <h3 className="text-[16px] sm:text-[17px] font-bold text-[var(--text-gray)] mb-6 tracking-wide">Category</h3>
                         <ul className="flex flex-col gap-3">
-                            {categories?.map((category) => (
+                            {categories?.slice(0, 6).map((category) => (
                                 <li key={category._id}>
                                     <Link to={`/category/${category._id}`} className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">
                                         {category.categoryName}
@@ -114,12 +115,12 @@ const Footer = () => {
                             <FaYoutube className="w-4 h-4" />
                         </a>
                         <a href="#" className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-[var(--primary)] hover:text-white hover:border-[var(--primary)] transition-all">
-                            <FaTwitter className="w-4 h-4" />
+                            <FaXTwitter className="w-4 h-4" />
                         </a>
                     </div>
 
                     <p className="text-[13.5px] text-gray-500 text-center">
-                        &copy; 2026, Gromend - Grocery Store (Password: demo) Powered by Shopify
+                        &copy; 2026, Gromend - Grocery Store
                     </p>
 
                     {/* Payment Icons */}

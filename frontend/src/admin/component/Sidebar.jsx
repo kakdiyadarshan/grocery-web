@@ -87,7 +87,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 {/* Brand Logo & Close Button - */}
                 <div className="h-24 flex items-center justify-between px-8 min-[600px]:px-0 lg:px-8 border-b border-gray-50 min-[600px]:justify-center lg:justify-between">
                     <div className="flex items-center gap-2">
-                        <h1 className="text-2xl font-bold text-textPrimary tracking-tight min-[600px]:hidden lg:block">Grocery<span className="text-primary">web.</span></h1>
+                        <h1 className="text-2xl font-bold text-textPrimary tracking-tight min-[600px]:hidden lg:block">Admin <span className="text-primary">Panel.</span></h1>
                     </div>
                     {/* Close button for mobile */}
                     <button onClick={onClose} className="min-[600px]:hidden text-gray-500 hover:text-primary transition-colors">

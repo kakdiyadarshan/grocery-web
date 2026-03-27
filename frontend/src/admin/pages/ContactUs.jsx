@@ -29,16 +29,14 @@ const ContactUs = () => {
 
     const formatDate = (dateStr) => {
         if (!dateStr) return '-';
-        return new Date(dateStr).toLocaleString('en-IN', {
-            day: '2-digit', month: 'short', year: 'numeric',
-            hour: '2-digit', minute: '2-digit'
-        });
+        return new Date(dateStr).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     };
 
     const columns = [
         {
             header: '#',
             accessor: 'index',
+            hideInExport: true,
             render: (row, index) => (
                 <span className="text-gray-500 font-medium">{index + 1}</span>
             )
@@ -63,6 +61,7 @@ const ContactUs = () => {
             header: 'Received At',
             accessor: 'createdAt',
             sortable: true,
+            exportValue: (row) => formatDate(row.createdAt),
             render: (row) => (
                 <span className="text-sm text-gray-500">{formatDate(row.createdAt)}</span>
             )
@@ -88,6 +87,8 @@ const ContactUs = () => {
                 onView={handleView}
                 onDelete={handleDelete}
                 itemsPerPage={10}
+                exportFileName="Contact_Enquiries"
+                allowExport={true}
             />
 
             {/* View Modal */}
