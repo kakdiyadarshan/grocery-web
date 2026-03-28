@@ -10,7 +10,7 @@ const handleError = (error, dispatch, rejectWithValue) => {
 };
 
 export const fetchOfferBanners = createAsyncThunk(
-    'banner/fetchBanners',
+    'banner/fetchOfferBanners',
     async (_, { dispatch, rejectWithValue }) => {
         try {
             const response = await axios.get(`${BASE_URL}/getofferbanners`);

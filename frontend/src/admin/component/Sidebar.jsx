@@ -35,8 +35,12 @@ const Sidebar = ({ isOpen, onClose }) => {
 
     const menuItems = [
         { name: 'Dashboard', icon: <FiHome />, path: '/admin/dashboard' },
+        { name: 'Users', icon: <FiUsers />, path: '/admin/users' },
         { name: 'Products', icon: <FiPackage />, path: '/admin/products' },
         { name: 'Category', icon: <MdCategory />, path: '/admin/categories' },
+        { name: 'Orders', icon: <MdCategory />, path: '/admin/orders' },
+        { name: 'Transactions', icon: <MdCategory />, path: '/admin/transactions' },
+        { name: 'Reviews', icon: <MdCategory />, path: '/admin/reviews' },
         {
             name: 'Blogs',
             icon: <LuNotebookPen />,
@@ -62,9 +66,6 @@ const Sidebar = ({ isOpen, onClose }) => {
                 { name: 'Terms & Conditions', icon: <FiFileText />, path: '/admin/terms-condition' },
             ]
         },
-        { name: 'Privacy Policy', icon: <FiFileText />, path: '/admin/privacy-policy' },
-        { name: 'Blogs', icon: <LuNotebookPen />, path: '/admin/blogs' },
-        { name: 'Blog Categories', icon: <LuNotebookTabs />, path: '/admin/blog-categories' },
         { name: 'Subscribe', icon: <FaRegBell />, path: '/admin/subscribe' },
         { name: 'Offers', icon: <FiGrid />, path: '/admin/offers' },
          { name: 'Contact Us', icon: <RiContactsBook3Line />, path: '/admin/contact-us' }
@@ -85,7 +86,7 @@ const Sidebar = ({ isOpen, onClose }) => {
  ${isOpen ? 'translate-x-0' : '-translate-x-full'} min-[600px]:translate-x-0`}
             >
                 {/* Brand Logo & Close Button - */}
-                <div className="h-24 flex items-center justify-between px-8 min-[600px]:px-0 lg:px-8 border-b border-gray-50 min-[600px]:justify-center lg:justify-between">
+                <div className="h-20 flex items-center justify-between px-8 min-[600px]:px-0 lg:px-8 border-b border-gray-50 min-[600px]:justify-center lg:justify-between">
                     <div className="flex items-center gap-2">
                         <h1 className="text-2xl font-bold text-textPrimary tracking-tight min-[600px]:hidden lg:block">Admin <span className="text-primary">Panel.</span></h1>
                     </div>
@@ -96,7 +97,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 </div>
 
                 {/* Navigation Menu */}
-                <nav className="flex-1 overflow-y-auto py-8 px-4 min-[600px]:px-2 lg:px-4 no-scrollbar">
+                <nav className="flex-1 overflow-y-auto py-4 px-4 min-[600px]:px-2 lg:px-4 no-scrollbar">
                     <ul className="space-y-2">
                         {menuItems.map((item, index) => (
                             <li key={index}>

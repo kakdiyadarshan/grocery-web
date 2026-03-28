@@ -14,7 +14,7 @@ const { uploadPrivacyImage, saveAllPrivacyPolicies, getAllPrivacyPolicies, getPr
 const { addNewBlogCategoryController, getAllBlogCategoryController, getBlogCategoryByIdController, updateBlogCategoryController, deleteBlogCategoryController } = require('../controllers/blog.category.controller');
 const { getBlogWithCategoryController, getLatestBlogController, addNewBlogController, getAllBlogsController, getBlogByIdController, updateBlogController, deleteBlogController } = require('../controllers/blog.controller');
 const { createContact, getAllContacts, deleteContact } = require('../controllers/contact.controller');
-const { addSubscriber, getAllSubscribers, deleteSubscriber } = require('../controllers/subscribe.controller');
+const { addSubscriber, getAllSubscribers, deleteSubscriber, sendOfferEmail } = require('../controllers/subscribe.controller');
 const { getTermConditionById, getAllTermConditions, saveAllTermConditions, uploadTermImage } = require('../controllers/termscondition.controller');
 const { createOffer, getAllOffers, getOfferById, updateOffer, deleteOffer } = require('../controllers/offerController');
 const { createFAQ, getAllFAQs, getFAQById, updateFAQ, deleteFAQ } = require('../controllers/faq.controller');
@@ -123,6 +123,7 @@ indexRoutes.delete("/delete/blog/:blogId", deleteBlogController);
 indexRoutes.post('/subscribe', addSubscriber);
 indexRoutes.get('/all-subscribers', auth, authorizeRoles('admin'), getAllSubscribers);
 indexRoutes.delete('/delete-subscriber/:id', auth, authorizeRoles('admin'), deleteSubscriber);
+indexRoutes.post('/send-offer-email', auth, authorizeRoles('admin'), sendOfferEmail);
 // Review routes (Rate and Review)
 indexRoutes.post('/addReview', auth, upload.array('images', 5), createReview);
 indexRoutes.get('/getReview/:id', getReviewById);

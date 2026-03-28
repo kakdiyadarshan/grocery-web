@@ -55,6 +55,7 @@ function ShippingPolicy() {
                         <Link to="/" className="hover:text-primary transition-colors">Home</Link>
                         <span className="text-gray-300 font-light">&gt;</span>
                         <span className="text-gray-600">Shipping Policy</span>
+
                     </div>
                 </div>
             </div>

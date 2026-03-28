@@ -18,9 +18,14 @@ import Offers from './pages/Offer'
 import Faqs from './pages/Faqs'
 import Profile from './pages/Profile'
 import OfferBanners from './pages/OfferBanners'
+import Users from './pages/Users'
 import CreateOfferBanner from './pages/CreateOfferBanner'
 import Banners from './pages/Banners'
 import CreateBanner from './pages/CreateBanner'
+import Orders from './pages/Orders'
+import OrderDetails from './pages/OrderDetails'
+import Transactions from './pages/Transactions'
+import Reviews from './pages/Reviews'
 
 const Adminroutes = () => {
     const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -54,6 +59,11 @@ const Adminroutes = () => {
                     <Route path="offerbanners/create" element={<CreateOfferBanner />} />
                     <Route path="offerbanners/edit/:id" element={<CreateOfferBanner />} />
                     <Route path="offerbanners" element={<OfferBanners />} />
+                    <Route path="orders" element={<Orders />} />
+                    <Route path="orders/:id" element={<OrderDetails />} />
+                    <Route path="transactions" element={<Transactions />} />
+                    <Route path="reviews" element={<Reviews />} />
+                    <Route path="users" element={<Users />} />
 
                     <Route path="settings" element={<div className="p-6 h-full flex items-center justify-center text-gray-400 font-medium">Coming Soon</div>} />
 

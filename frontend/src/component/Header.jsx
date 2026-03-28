@@ -478,7 +478,11 @@ const Header = () => {
                     <ul className="flex flex-col">
                       {categories?.length > 0 && categories.map((category) => (
                         <li key={category._id}>
-                          <Link to={`/category/${category._id}`} className="flex items-center justify-between px-5 py-2.5 hover:bg-gray-50 hover:text-[var(--primary)] transition-colors">
+                          <Link
+                            to={`/shop?category=${encodeURIComponent(category.categoryName)}`}
+                            onClick={() => setIsCategoryMenuOpen(false)}
+                            className="flex items-center justify-between px-5 py-2.5 hover:bg-gray-50 hover:text-[var(--primary)] transition-colors"
+                          >
                             <span className="text-[14.5px]">{category.categoryName}</span>
                           </Link>
                         </li>
@@ -491,7 +495,7 @@ const Header = () => {
               {/* Desktop Nav Links */}
               <nav className="hidden lg:flex items-center gap-7">
                 <Link to="/" className="text-[var(--text-gray)] hover:text-[var(--primary)] font-bold text-[15px] transition-colors">Home</Link>
-                <Link to="/category" className="text-[var(--text-gray)] hover:text-[var(--primary)] font-bold text-[15px] transition-colors">Shop</Link>
+                <Link to="/shop" className="text-[var(--text-gray)] hover:text-[var(--primary)] font-bold text-[15px] transition-colors">Shop</Link>
                 <Link to="/aboutus" className="text-[var(--text-gray)] hover:text-[var(--primary)] font-bold text-[15px] transition-colors">About us</Link>
                 <Link to="/contact" className="text-[var(--text-gray)] hover:text-[var(--primary)] font-bold text-[15px] transition-colors">Contact us</Link>
                 <Link to="/blog" className="text-[var(--text-gray)] hover:text-[var(--primary)] font-bold text-[15px] transition-colors">Blog</Link>
@@ -533,7 +537,7 @@ const Header = () => {
 
         <div className="flex flex-col px-5 py-4 gap-4 overflow-y-auto">
           <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="text-[15px] font-bold text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors border-b border-gray-50 pb-3">Home</Link>
-          <Link to="/category" onClick={() => setIsMobileMenuOpen(false)} className="text-[15px] font-bold text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors border-b border-gray-50 pb-3">Shop</Link>
+          <Link to="/shop" onClick={() => setIsMobileMenuOpen(false)} className="text-[15px] font-bold text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors border-b border-gray-50 pb-3">Shop</Link>
           <Link to="/aboutus" onClick={() => setIsMobileMenuOpen(false)} className="text-[15px] font-bold text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors border-b border-gray-50 pb-3">About us</Link>
           <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="text-[15px] font-bold text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors border-b border-gray-50 pb-3">Contact us</Link>
           <Link to="/blog" onClick={() => setIsMobileMenuOpen(false)} className="text-[15px] font-bold text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors border-b border-gray-50 pb-3">Blog</Link>

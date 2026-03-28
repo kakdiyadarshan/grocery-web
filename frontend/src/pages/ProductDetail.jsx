@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MdKeyboardArrowRight, MdVisibility, MdKeyboardArrowUp, MdKeyboardArrowDown } from "react-icons/md";
 import { AiOutlineHeart, AiFillStar, AiOutlineStar } from "react-icons/ai";
 import { IoIosGitCompare } from "react-icons/io";
@@ -33,6 +33,14 @@ function ProductDetail() {
     const [selectedVariant, setSelectedVariant] = useState(null);
     const [startIndex, setStartIndex] = useState(0);
     const [activeTab, setActiveTab] = useState('description');
+    const tabsRef = useRef(null);
+
+    const scrollToDescription = () => {
+        setActiveTab('description');
+        setTimeout(() => {
+            tabsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+    };
 
     useEffect(() => {
         if (product?.images?.length > 0) {
@@ -157,7 +165,7 @@ function ProductDetail() {
                                 {[1, 2, 3, 4, 5].map((_, i) => (
                                     <AiFillStar
                                         key={i}
-                                        className={`text-base sm:text-lg ${i < (product.reviews?.length > 0 ? product.reviews.reduce((acc, r) => acc + r.rating, 0) / product.reviews.length : 4) ? "text-[#FFB81C]" : "text-[#D3D3D3]"}`}
+                                        className={`text-base sm:text-lg ${i < Math.round(product.avgRating || 0) ? "text-[#FFB81C]" : "text-[#D3D3D3]"}`}
                                     />
                                 ))}
                             </div>
@@ -167,7 +175,7 @@ function ProductDetail() {
 
                             {/* Rating Count */}
                             <span className="text-xs sm:text-sm text-gray-500">
-                                {product.reviews?.length || 0} Ratings
+                                {product.reviewCount || 0} Ratings
                             </span>
                         </div>
 
@@ -176,21 +184,22 @@ function ProductDetail() {
                             <div className="flex items-center gap-3">
                                 {/* Discounted Price */}
                                 <span className="text-2xl md:text-3xl font-bold text-[#00B880]">
-                                    ₹{product.discountPrice || (selectedVariant?.price || 0)}
+                                    ₹{selectedVariant?.discountPrice || selectedVariant?.price || 0}
                                 </span>
 
                                 {/* Original Price */}
-                                {product.discountPrice && (
+                                {selectedVariant?.discountPrice < selectedVariant?.price && (
                                     <span className="text-sm md:text-base text-gray-400 line-through">
                                         ₹{selectedVariant?.price}
                                     </span>
                                 )}
 
-
                                 {/* Discount Badge */}
-                                {product.discountPrice && (
+                                {product.offer && (
                                     <span className="text-xs md:text-sm font-medium text-red-500 bg-[#FFF1F1] px-2 py-1 rounded-md border border-[#FFE4E4]">
-                                        {Math.round(((product.weighstWise[0].price - product.discountPrice) / product.weighstWise[0].price) * 100)}% OFF
+                                        {product.offer.offer_type === 'Discount'
+                                            ? `${product.offer.offer_value}%`
+                                            : `$${product.offer.offer_value}`} OFF
                                     </span>
                                 )}
                             </div>
@@ -206,10 +215,19 @@ function ProductDetail() {
                             </div>
                         </div>
 
-                        {/* Description */}
-                        <p className="text-[#6B7280] leading-relaxed text-sm md:text-base mt-4">
-                            {product.description}
-                        </p>
+                        {/* Short Description with Read More */}
+                        <div className="mt-4">
+                            <div
+                                className="text-[#6B7280] leading-relaxed text-sm md:text-base line-clamp-2 ql-content"
+                                dangerouslySetInnerHTML={{ __html: product.description }}
+                            />
+                            <button
+                                onClick={scrollToDescription}
+                                className="text-[#00B880] font-bold text-sm mt-1 hover:underline flex items-center gap-1 group"
+                            >
+                                Read more <span className="group-hover:translate-x-1 transition-transform">→</span>
+                            </button>
+                        </div>
 
                         {/* Metadata */}
                         <div className="mt-8 space-y-3 pt-4 border-t border-gray-100">
@@ -278,7 +296,7 @@ function ProductDetail() {
                 </div>
 
                 {/* Tabs Section */}
-                <div className="mt-16 pt-6">
+                <div className="mt-16 pt-6" ref={tabsRef}>
                     {/* Tab Navigation */}
                     <div className="flex gap-4 mb-6 border-b border-gray-200 pb-7">
                         <button
@@ -298,82 +316,55 @@ function ProductDetail() {
                     {/* Tab Content */}
                     <div className="bg-white rounded-xl">
                         {activeTab === 'description' ? (
-                            // Description Content
-                            <div className="space-y-5 animate-fadeIn">
-                                <div className='space-y-4'>
-                                    <h3 className="text-2xl font-semibold text-[#333333] mb-4">About This Product</h3>
-                                    <p className="text-gray-500 leading-relaxed">
-                                        Dragon fruit needs full sun, so choose a sunny area in your garden or a sunny windowsill that gets at least six hours of sunlight a day. For the soil, choose potting soil that is well-draining (dragon fruits are sensitive to “wet feet,” or consistently wet roots) and rich in organic matter.
-                                    </p>
-                                    <p className="text-gray-500 leading-relaxed">
-                                        Dragon fruits are oval to oblong in shape and size, with pink peel and green scale-like leaves. It is named after its resemblance to dragon scales. White flesh is dotted with black, tiny edible seeds. It has juicy and spongy flesh with sweet flavour and a hint of sourness. Fresho dragon fruits are sourced from Thailand.
-                                    </p>
-                                </div>
-
-                                <div className='space-y-2'>
-                                    <h4 className="text-2xl font-semibold text-[#333333] mb-4">Benefits</h4>
-
-                                    <ul className="list-disc pl-5 space-y-2 text-gray-500 leading-relaxed">
-                                        <li>
-                                            Carrots provide the highest content of vitamin A of all the vegetables.
-                                        </li>
-                                        <li>
-                                            Brightly orange colored carrots have pigments like carotenoids and flavonoids, that provide several antioxidants and act as a defense against cancer.
-                                        </li>
-                                    </ul>
-                                </div>
-
-                                <div className='space-y-2'>
-                                    <h4 className="text-2xl font-semibold text-[#333333] mb-4">Storage Tips</h4>
-
-                                    <ul className="list-disc pl-5 space-y-2 text-gray-500 leading-relaxed">
-                                        <li>
-                                            Refrigerate carrots in a mesh bag.
-                                        </li>
-                                        <li>
-                                            Alternatively, trim off the greens and store carrots in water to keep them fresh and crunchy for longer.
-                                        </li>
-                                    </ul>
-                                </div>
+                            // Full Description Content
+                            <div className="animate-fadeIn">
+                                <div className="ql-content prose prose-sm sm:prose-base max-w-none text-gray-500 leading-relaxed"
+                                    dangerouslySetInnerHTML={{ __html: product.description }}
+                                />
                             </div>
                         ) : (
                             // Reviews Content
                             <div className="animate-fadeIn">
                                 <div className="space-y-10 mb-2">
-                                    {[
-                                        {
-                                            name: "Mariya Lykra",
-                                            rating: 4,
-                                            comment: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen.",
-                                            avatar: "https://ui-avatars.com/api/?name=Mariya+Lykra&background=random"
-                                        },
-                                        {
-                                            name: "Moris Willson",
-                                            rating: 3,
-                                            comment: "Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen.",
-                                            avatar: "https://ui-avatars.com/api/?name=Moris+Willson&background=random"
-                                        }
-                                    ].map((review, i) => (
-                                        <div key={i} className="flex gap-4 pb-8 border-b border-gray-100 last:border-0">
-                                            <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-gray-100">
-                                                <img src={review.avatar} alt={review.name} className="w-full h-full object-cover" />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <h4 className="font-semibold text-[#1F2937] text-base">{review.name}</h4>
-                                                <div className="flex items-center gap-1 py-1 text-base sm:text-lg">
-                                                    {[...Array(5)].map((_, index) => (
-                                                        <AiFillStar
-                                                            key={index}
-                                                            className={index < review.rating ? "text-orange-400" : "text-gray-200"}
-                                                        />
-                                                    ))}
+                                    {product.reviews && product.reviews.length > 0 ? (
+                                        product.reviews.map((review, i) => {
+                                            const userName = typeof review.userId === 'object' ? review.userId?.name : 'Verified Customer';
+                                            const userAvatar = typeof review.userId === 'object' && review.userId?.avatar?.url
+                                                ? review.userId.avatar.url
+                                                : `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`;
+ 
+                                            return (
+                                                <div key={review._id || i} className="flex gap-4 pb-8 border-b border-gray-100 last:border-0">
+                                                    <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-gray-100">
+                                                        <img src={userAvatar} alt={userName} className="w-full h-full object-cover" />
+                                                    </div>
+                                                    <div className="space-y-1 flex-1">
+                                                        <div className="flex items-center justify-between">
+                                                            <h4 className="font-semibold text-[#1F2937] text-base">{userName}</h4>
+                                                            <span className="text-xs text-gray-400">
+                                                                {new Date(review.createdAt).toLocaleDateString()}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1 py-1 text-base sm:text-lg">
+                                                            {[...Array(5)].map((_, index) => (
+                                                                <AiFillStar
+                                                                    key={index}
+                                                                    className={index < review.rating ? "text-orange-400" : "text-gray-200"}
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                        <p className="text-gray-500 text-sm sm:text-base leading-relaxed">
+                                                            {review.comment}
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                                <p className="text-gray-500 text-sm sm:text-base leading-relaxed">
-                                                    {review.comment}
-                                                </p>
-                                            </div>
+                                            );
+                                        })
+                                    ) : (
+                                        <div className="text-center py-10">
+                                            <p className="text-gray-500">No reviews yet. Be the first to review this product!</p>
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
 
                                 {/* Add a Review Form */}

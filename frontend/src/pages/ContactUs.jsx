@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Home, Phone, Mail, Info, Loader2 } from 'lucide-react';
+import { Home, Phone, Mail, Info, Loader2, ChevronRight } from 'lucide-react';
 import Subscribe from './Subscribe';
 import { useDispatch, useSelector } from 'react-redux';
 import { createContact } from '../redux/slice/contact.slice';
@@ -55,7 +55,7 @@ function ContactUs() {
 
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Left Section - Contact Form */}
-                    <div className="flex-1 w-full lg:w-2/3 border border-[var(--border)] rounded-lg p-4 sm:p-8 shadow-sm bg-[var(--bg-card)]">
+                    <div className="flex-1 w-full lg:w-2/3 border border-[var(--border)] rounded-lg p-4 sm:p-8  bg-[var(--bg-card)]">
                         <h2 className="text-2xl font-bold text-[var(--text-primary)]">Do You Have Any Questions?</h2>
                         <hr className="border-[var(--border)] my-6" />
                         <form onSubmit={handleSubmit} className="space-y-6">

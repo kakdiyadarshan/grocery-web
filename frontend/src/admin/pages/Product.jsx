@@ -12,10 +12,11 @@ import {
 import { getAllCategories } from '../../redux/slice/category.slice';
 import Table from '../component/DataTable';
 import Breadcrumb from '../component/Breadcrumb';
-import { FiPlus, FiX, FiUpload, FiLoader, FiTrash2, FiPlusCircle, FiAlertTriangle, FiTag, FiCalendar, FiStar, FiAward } from 'react-icons/fi';
+import { FiPlus, FiX, FiUpload, FiLoader, FiTrash2, FiPlusCircle, FiAlertTriangle, FiTag, FiCalendar, FiStar, FiAward, FiBarChart2 } from 'react-icons/fi';
 import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
 import DeleteModal from '../component/DeleteModal';
 import StockChart from '../component/StockChart';
+import CategoryChart from '../component/CategoryChart';
 import CustomSelect from '../component/CustomSelect';
 import ReactQuill from 'react-quill-new';
 
@@ -35,6 +36,8 @@ const Product = () => {
     const importImagesRef = useRef(null);
 
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+    const [isChartModalOpen, setIsChartModalOpen] = useState(false);
+    const [activeChartTab, setActiveChartTab] = useState('stock');
     const [importExcelFile, setImportExcelFile] = useState(null);
     const [importImageFiles, setImportImageFiles] = useState([]);
 
@@ -212,7 +215,7 @@ const Product = () => {
 
         const formData = new FormData();
         formData.append('excel', importExcelFile);
-        
+
         importImageFiles.forEach(file => {
             formData.append('images', file);
         });
@@ -351,25 +354,30 @@ const Product = () => {
                 </div>
                 <div className='flex items-center justify-end gap-2 ms-auto'>
                     <button
+                        onClick={() => setIsChartModalOpen(true)}
+                        className=" gap-2 flex items-center justify-center w-full sm:w-auto sm:px-5 px-3 py-2.5 bg-white text-primary border border-primary rounded-[4px] hover:bg-primary/5 transition-all shadow-md active:scale-95 font-medium text-sm tracking-wider whitespace-nowrap"
+                    >
+                        <FiBarChart2 size={18} />
+                        <span className='hidden md:block'>Stock Analytics</span>
+                    </button>
+                    <button
                         onClick={() => setIsImportModalOpen(true)}
                         className=" gap-2 flex items-center justify-center w-full sm:w-auto sm:px-5 px-3 py-2.5 bg-primary text-white rounded-[4px] hover:bg-primaryHover transition-all shadow-md active:scale-95 font-medium text-sm  tracking-wider whitespace-nowrap"
                     >
                         <FiUpload size={18} />
-                        <span>Bulk Import</span>
+                        <span className='hidden md:block'>Bulk Import</span>
                     </button>
                     <button
                         onClick={() => handleOpenModal()}
                         className=" gap-2 flex items-center justify-center w-full sm:w-auto sm:px-5 px-3 py-2.5 bg-primary text-white rounded-[4px] hover:bg-primaryHover transition-all shadow-md active:scale-95 font-medium text-sm  tracking-wider whitespace-nowrap"
                     >
                         <FiPlus size={18} />
-                        <span>Add Product</span>
+                        <span className='hidden md:block'>Add Product</span>
                     </button>
                 </div>
             </div>
 
-            <div className="mb-8 overflow-hidden">
-                <StockChart products={products} />
-            </div>
+
 
             <Table
                 columns={columns}
@@ -875,7 +883,7 @@ const Product = () => {
                             {/* Excel Selection */}
                             <div className="space-y-2">
                                 <label className="text-sm font-[600] text-textPrimary block">Step 1: Select Excel File</label>
-                                <div 
+                                <div
                                     onClick={() => excelInputRef.current.click()}
                                     className={`relative p-8 border-2 border-dashed rounded-[4px] flex flex-col items-center justify-center cursor-pointer transition-all ${importExcelFile ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-primary hover:bg-gray-50'}`}
                                 >
@@ -897,7 +905,7 @@ const Product = () => {
                             {/* Images Selection */}
                             <div className="space-y-2">
                                 <label className="text-sm font-[600] text-textPrimary block">Step 2: Select Images Folder</label>
-                                <div 
+                                <div
                                     onClick={() => importImagesRef.current.click()}
                                     className={`relative p-8 border-2 border-dashed rounded-[4px] flex flex-col items-center justify-center cursor-pointer transition-all ${importImageFiles.length > 0 ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-primary hover:bg-gray-50'}`}
                                 >
@@ -943,6 +951,66 @@ const Product = () => {
                                 className="w-full py-2.5 text-gray-500 hover:text-gray-700 text-sm font-[600]"
                             >
                                 Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
+            {isChartModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300" onClick={() => setIsChartModalOpen(false)}>
+                    <div className="bg-white rounded-[4px] shadow-2xl w-full max-w-5xl h-[650px] max-h-[90vh] overflow-hidden transform transition-all animate-in zoom-in-95 duration-300 flex flex-col relative" onClick={(e) => e.stopPropagation()}>
+                        <button
+                            onClick={() => setIsChartModalOpen(false)}
+                            className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors z-[110]"
+                        >
+                            <FiX size={20} />
+                        </button>
+
+                        <div className="flex flex-col sm:flex-row gap-10 rounded-[4px] p-3 sm:p-6 border-b border-gray-100 bg-gray-50/50 flex-shrink-0 gap-6">
+                            <div className="flex flex-col min-w-[200px]">
+                                <h2 className="text-lg font-bold text-gray-900 tracking-tight flex items-center gap-2">
+                                    <FiBarChart2 className="text-primary" /> Inventory Analytics
+                                </h2>
+                                <p className="text-[10px] text-gray-500 font-medium">Real-time overview of your store inventory</p>
+                            </div>
+
+                            {/* Tab Switcher */}
+                            <div className="flex bg-gray-100 p-1 rounded-lg gap-1 mx-auto sm:mx-0 border border-gray-200 overflow-x-auto no-scrollbar max-w-[80%] sm:max-w-none">
+                                <button
+                                    onClick={() => setActiveChartTab('stock')}
+                                    className={`px-3 sm:px-4 py-1.5 rounded-md text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap outline-none ${activeChartTab === 'stock' ? 'bg-white text-primary shadow-sm border border-gray-100' : 'text-gray-500 hover:text-gray-700'}`}
+                                >
+                                    Stock Levels
+                                </button>
+                                <button
+                                    onClick={() => setActiveChartTab('category')}
+                                    className={`px-3 sm:px-4 py-1.5 rounded-md text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap outline-none ${activeChartTab === 'category' ? 'bg-white text-primary shadow-sm border border-gray-100' : 'text-gray-500 hover:text-gray-700'}`}
+                                >
+                                    Category Mix
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="p-8 overflow-y-auto custom-scrollbar flex-grow bg-slate-50/30">
+                            {activeChartTab === 'stock' ? (
+                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    <StockChart products={products} noContainer={true} />
+                                </div>
+                            ) : (
+                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    <CategoryChart products={products} categories={categories} />
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="p-4 border-t border-gray-100 bg-gray-50/50 flex justify-end">
+                            <button
+                                onClick={() => setIsChartModalOpen(false)}
+                                className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-[4px] text-sm font-bold transition-all border border-gray-200 shadow-sm active:scale-95"
+                            >
+                                Close Dashboard
                             </button>
                         </div>
                     </div>

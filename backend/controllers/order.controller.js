@@ -111,8 +111,7 @@ exports.createOrder = async (req, res) => {
 exports.getAllOrders = async (req, res) => {
     try {
         const orders = await Order.find()
-            .populate('userId', 'name email')
-            .populate('addressId')
+            .populate('userId', 'firstname lastname email')
             .populate('items.productId', 'name images weighstWise')
             .sort({ createdAt: -1 });
 
