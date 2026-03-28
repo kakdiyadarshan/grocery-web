@@ -36,10 +36,38 @@ const OrderTracking = () => {
     return () => clearInterval(timer);
   }, [id]);
 
-  if (loading) return <div className="py-20 text-center text-gray-400 font-bold">Connecting to live tracking...</div>;
-  if (!data) return <div className="py-20 text-center text-red-500 font-bold">Order tracking currently unavailable.</div>;
 
-  const displayId = `#${(data._id || "").toString().slice(-8).toUpperCase()}`;
+  if (loading || !data) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-[var(--primary)] border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-500 font-medium">Tracking your order...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const displayId = `#${(data?._id || "").toString().slice(-8).toUpperCase()}`;
+
+  // Build delivery address from populated address object or use pre-computed string
+  const getDeliveryAddress = () => {
+    if (data.deliveryAddress) return data.deliveryAddress;
+    if (data.address) {
+      const addr = data.address;
+      return `${addr.address}, ${addr.city}, ${addr.state} - ${addr.zip}, ${addr.country}`;
+    }
+    return 'Address not available';
+  };
+
+  const getDeliveryContact = () => {
+    if (data.deliveryContact) return data.deliveryContact;
+    if (data.address) {
+      const addr = data.address;
+      return `${addr.email} | ${addr.phone}`;
+    }
+    return '';
+  };
 
   return (
     <div className=" bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 ">
@@ -77,8 +105,9 @@ const OrderTracking = () => {
 
               <div className="relative">
                 {data.steps.map((step, index) => {
-                  const Icon = step.status === "Packed & Ready" || step.status === "Processing" ? Package :
-                    step.status === "Out for Delivery" ? Truck : CheckCircle2;
+                  const Icon = step.status === "Order Placed" ? Package :
+                    step.status === "Processing" ? Package :
+                      step.status === "Out for Delivery" ? Truck : CheckCircle2;
                   return (
                     <div key={index} className="flex gap-6 mb-10 relative">
                       {index < data.steps.length - 1 && (
@@ -99,29 +128,60 @@ const OrderTracking = () => {
 
               <div className="mt-4 pt-8 border-t">
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 text-left">Delivery Address</p>
-                <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                  <MapPin className="text-[var(--primary)] w-5 h-5 shrink-0 mt-0.5" />
-                  {console.log("data", data)}
-
-                  <p className="text-sm font-medium text-gray-700 leading-relaxed text-left">{data.address || "Your specified address"}</p>
+                <div className="flex items-start gap-4 p-5 bg-gray-50 rounded-2xl border border-gray-100">
+                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-gray-100">
+                    <MapPin className="text-[var(--primary)] w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-gray-900 mb-1">{getDeliveryAddress()}</p>
+                    {getDeliveryContact() && <p className="text-xs text-gray-500 font-medium italic">{getDeliveryContact()}</p>}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 h-fit">
-            <h3 className="text-xl font-bold mb-6 text-gray-900">Summary</h3>
-            <div className="space-y-4 mb-8">
+            <h3 className="text-xl font-bold mb-6 text-gray-900 border-b pb-4">Order Summary</h3>
+            <div className="space-y-6 mb-8 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
               {(data.items || []).map((item, i) => (
-                <div key={i} className="flex justify-between gap-4">
-                  <div className="text-left"><p className="font-bold text-gray-800 text-sm">{item.productId?.name || 'Item'}</p><p className="text-[12px] text-gray-500">Qty: {item.quantity}</p></div>
-                  <p className="font-bold text-gray-900 text-sm italic">₹{(item.selectedVariant?.price || 0) * item.quantity}</p>
+                <div key={i} className="flex gap-4 items-center">
+                  <div className="w-20 h-20 bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 shrink-0 shadow-sm">
+                    <img 
+                      src={item.productId?.images?.[0]?.url || item.productId?.images?.[0] || 'https://via.placeholder.com/150?text=Product'} 
+                      alt={item.productId?.name}
+                      className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
+                    />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-bold text-gray-900 text-[15px] line-clamp-1">{item.productId?.name || 'Item'}</p>
+                    <p className="text-[12px] text-gray-500 font-medium mt-0.5">
+                      {item.selectedVariant?.weight} {item.selectedVariant?.unit} × {item.quantity}
+                    </p>
+                    <div className="flex justify-between items-center mt-2">
+                       <p className="font-extrabold text-[var(--primary)] text-sm">₹{(item.selectedVariant?.price || 0) * item.quantity}</p>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
-            <div className="pt-6 border-t border-dashed space-y-3">
-              <div className="flex justify-between text-sm"><span className="text-gray-500">Subtotal</span><span className="text-gray-900 font-bold">₹{data.totalAmount?.toFixed(2)}</span></div>
-              <div className="flex justify-between items-center pt-3 border-t"><span className="text-gray-900 font-black">Total</span><span className="text-xl font-black text-[var(--primary)]">₹{data.totalAmount?.toFixed(2)}</span></div>
+            
+            <div className="pt-6 border-t border-dashed space-y-4">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500 font-medium">Subtotal</span>
+                <span className="text-gray-900 font-bold">₹{data.totalAmount?.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500 font-medium">Shipping</span>
+                <span className="text-green-600 font-bold uppercase text-[11px] tracking-wider bg-green-50 px-2 py-0.5 rounded-md">Free</span>
+              </div>
+              <div className="pt-4 border-t flex justify-between items-center">
+                <span className="text-gray-900 font-black text-lg">Total</span>
+                <div className="text-right">
+                   <span className="text-2xl font-black text-[var(--primary)]">₹{data.totalAmount?.toFixed(2)}</span>
+                   <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Taxes Included</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

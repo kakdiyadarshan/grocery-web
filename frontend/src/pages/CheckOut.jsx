@@ -23,7 +23,6 @@ const CheckOut = () => {
   const navigate = useNavigate();
   const { user } = useSelector(state => state.auth);
   const { cart } = useSelector(state => state.cart);
-  console.log("Checkout Cart:", cart?.userId);
   const { addresses } = useSelector(state => state.address);
   const items = cart?.items || [];
 
@@ -63,6 +62,16 @@ const CheckOut = () => {
     }
   }, [dispatch, user]);
 
+  const mapCountryValue = (country) => {
+    if (!country) return '';
+    const normalized = country.toString().trim().toLowerCase();
+    if (['in', 'india', 'ind', 'bharat'].includes(normalized)) return 'IN';
+    if (['us', 'usa', 'united states', 'united states of america'].includes(normalized)) return 'US';
+    if (['uk', 'united kingdom', 'great britain', 'britain'].includes(normalized)) return 'UK';
+    if (['ca', 'canada'].includes(normalized)) return 'CA';
+    return country;
+  };
+
   React.useEffect(() => {
     if (defaultAddress) {
       setSelectedAddress(defaultAddress);
@@ -71,17 +80,17 @@ const CheckOut = () => {
   }, [defaultAddress]);
 
   React.useEffect(() => {
-    if (useSavedAddress && selectedAddress) {
+    if (useSavedAddress && selectedAddress) {      
       setFormData(prev => ({
         ...prev,
-        firstName: selectedAddress.firstName || prev.firstName,
-        lastName: selectedAddress.lastName || prev.lastName,
+        firstName: selectedAddress.firstName || selectedAddress.firstname || user?.firstName || user?.firstname || prev.firstName,
+        lastName: selectedAddress.lastName || selectedAddress.lastname || user?.lastName || user?.lastname || prev.lastName,
         email: selectedAddress.email || user?.email || prev.email,
         phone: selectedAddress.phone || prev.phone,
         address: selectedAddress.address || prev.address,
         city: selectedAddress.city || prev.city,
-        country: selectedAddress.country || prev.country,
-        zip: selectedAddress.zip || prev.zip,
+        country: mapCountryValue(selectedAddress.country) || mapCountryValue(selectedAddress.countryName) || prev.country,
+        zip: selectedAddress.zip || selectedAddress.postcode || prev.zip,
       }));
     }
   }, [useSavedAddress, selectedAddress, user]);
@@ -171,9 +180,19 @@ const CheckOut = () => {
           variantId: item.variantId,
           quantity: item.quantity
         })),
-
         totalAmount: totalAmount,
         paymentMethod: paymentMethod === 'cod' ? 'COD' : paymentMethod === 'upi' ? 'UPI' : paymentMethod === 'netbanking' ? 'Bank' : 'Stripe',
+        addressId: selectedAddress?._id || null,
+        addressDetails: {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          zip: formData.zip,
+          country: formData.country
+        },
         upiDetails: paymentMethod === 'upi' ? { upiId: formData.upiId } : undefined,
         bankDetails: paymentMethod === 'netbanking' ? { bankName: formData.selectedBank } : undefined
       };
@@ -185,8 +204,8 @@ const CheckOut = () => {
 
       if (triggerCreateOrder.fulfilled.match(resultAction)) {
         const data = resultAction.payload.data;
-        const newOrderId = data.orderId || data.order?._id;
-        if (data.paymentUrl) {
+        const newOrderId = data?.orderId || data?.order?._id || data?._id;
+        if (data?.paymentUrl) {
           // Clear cart before stripe redirect
           dispatch(clearCart());
           // Stripe Redirect
@@ -195,8 +214,11 @@ const CheckOut = () => {
           // COD/UPI/Bank Success
           dispatch(clearCart());
           toast.success("Order placed successfully!");
-          navigate(`/order-completed?order_id=${newOrderId}`);
-        }
+          if (newOrderId) {
+            navigate(`/order-completed?order_id=${newOrderId}`);
+          } else {
+            navigate('/order-completed');
+          } }
 
 
 

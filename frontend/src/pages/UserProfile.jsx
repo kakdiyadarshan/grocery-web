@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
@@ -11,6 +11,7 @@ import { FiUser, FiSettings, FiLock, FiCheckCircle, FiCamera, FiEye, FiEyeOff, F
 import { BASE_URL } from '../utils/baseUrl';
 import CustomSelect from '../admin/component/CustomSelect';
 import MyOrder from './MyOrder';
+import { ArrowLeft } from 'lucide-react';
 
 const UserProfile = () => {
     const dispatch = useDispatch();
@@ -583,6 +584,11 @@ const UserProfile = () => {
                             {/* ADDRESS TAB */}
                             {activeTab === 'Address' && (
                                 <div className="animate-in fade-in duration-300">
+                                    <Link to="/checkout" className="flex items-center gap-2 text-gray-500 hover:text-[var(--primary)] mb-4 transition-colors">
+                                        <ArrowLeft className="w-4 h-4" />
+                                        Back to CheckOut
+                                    </Link>
+                                    {/* <Link to="/checkout" className='text-[var(--primary)] text-[12px]' >Back to checkout</Link> */}
                                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
                                         <div className="flex flex-col">
                                             <h3 className="text-xl font-bold text-textPrimary tracking-tight">Saved Addresses</h3>

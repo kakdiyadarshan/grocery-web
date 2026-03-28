@@ -1,7 +1,10 @@
 const Order = require('../models/order.model');
 const Coupon = require('../models/coupon.model');
 const Payment = require('../models/payment.model');
-const Cart = require('../models/cart.model'); // Added Cart model
+const Cart = require('../models/cart.model');
+const Address = require('../models/address.model'); // Added missing model
+const Product = require('../models/product.model'); // Added missing model
+const User = require('../models/user.model'); // Added missing model
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 // Helper to determine dynamic status based on time
@@ -25,15 +28,15 @@ const transformAndAutoUpdate = async (order) => {
     const currentStatus = order.status;
     const dynamicStatus = calculateDynamicStatus(order);
 
-    // If time has passed 2 hours but DB still says pending, update it!
     if (dynamicStatus === 'completed' && currentStatus === 'pending') {
         order.status = 'completed';
         await Order.findByIdAndUpdate(order._id, { status: 'completed' });
     }
 
-    const orderObj = order.toObject ? order.toObject() : order;
+    // Convert Mongoose doc to plain JS object
+    const orderObj = order.toObject ? order.toObject() : { ...order };
 
-    // Add display status for frontend
+    // Now use orderObj safely
     orderObj.displayStatus = dynamicStatus;
 
     orderObj.items = (orderObj.items || []).map(item => {
@@ -41,10 +44,13 @@ const transformAndAutoUpdate = async (order) => {
         if (product && product.weighstWise) {
             let foundVariant = null;
             if (item.variantId) {
-                foundVariant = product.weighstWise.find(v => (v._id || v).toString() === (item.variantId || "").toString());
+                foundVariant = product.weighstWise.find(
+                    v => (v._id || v).toString() === (item.variantId || "").toString()
+                );
             }
             item.selectedVariant = foundVariant || product.weighstWise[0];
         }
+
         if (item.productId && typeof item.productId === 'object') {
             const { weighstWise, ...productWithoutVariants } = item.productId;
             item.productId = productWithoutVariants;
@@ -57,13 +63,13 @@ const transformAndAutoUpdate = async (order) => {
 
 exports.createOrder = async (req, res) => {
     try {
-        let { userId, items, totalAmount, couponId, paymentMethod, upiDetails, bankDetails } = req.body;
+        let { userId, items, totalAmount, couponId, paymentMethod, addressId, upiDetails, bankDetails, addressDetails } = req.body;
         if (!userId || !items || !totalAmount || !paymentMethod) {
             return res.status(400).json({ success: false, message: 'Required fields missing' });
         }
 
         totalAmount = parseFloat(Number(totalAmount).toFixed(2));
-        const order = await Order.create({ userId, items, totalAmount, couponId, paymentMethod });
+        const order = await Order.create({ userId, items, totalAmount, couponId, paymentMethod, addressId });
 
         // Handle Stripe Payment
         if (paymentMethod === 'Stripe') {
@@ -91,7 +97,9 @@ exports.createOrder = async (req, res) => {
         await Cart.findOneAndUpdate({ userId }, { items: [] });
 
         await Payment.create({ userId, orderId: order._id, paymentMethod, amount: totalAmount, status: 'pending', upiDetails, bankDetails });
-        const populatedOrder = await Order.findById(order._id).populate('items.productId');
+        const populatedOrder = await Order.findById(order._id)
+            .populate('addressId')
+            .populate('items.productId');
 
         res.status(201).json({ success: true, data: await transformAndAutoUpdate(populatedOrder) });
     } catch (error) {
@@ -117,6 +125,7 @@ exports.getAllOrders = async (req, res) => {
 exports.getUserOrders = async (req, res) => {
     try {
         const orders = await Order.find({ userId: req.user.id })
+            .populate('addressId')
             .populate('items.productId', 'name images weighstWise')
             .sort({ createdAt: -1 });
 
@@ -133,8 +142,33 @@ exports.getOrderById = async (req, res) => {
             .populate('userId', 'firstname lastname addresses')
             .populate('items.productId')
             .populate('couponId');
-        if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
-        res.status(200).json({ success: true, data: await transformAndAutoUpdate(order) });
+
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'Order not found' });
+        }
+
+        const transformed = await transformAndAutoUpdate(order);
+
+        //  Fetch selected address from user's addresses array
+        let address = null;
+
+        if (order.addressId) {
+            const user = await User.findOne(
+                { "addresses._id": order.addressId },
+                { "addresses.$": 1 }
+            );
+
+            address = user?.addresses?.[0] || null;
+        }
+
+        res.status(200).json({
+            success: true,
+            data: {
+                ...transformed,
+                address // ✅ Now you will get selected address
+            }
+        });
+
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -142,11 +176,23 @@ exports.getOrderById = async (req, res) => {
 
 exports.trackOrder = async (req, res) => {
     try {
-        const order = await Order.findById(req.params.id).populate('items.productId');
+        const order = await Order.findById(req.params.id)
+            .populate('items.productId'); // keep this as before
+
         if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
 
         const transformed = await transformAndAutoUpdate(order);
         const createdAt = new Date(order.createdAt);
+
+        // ✅ Fetch address from user's addresses array
+        let address = null;
+        if (order.addressId) {
+            const user = await User.findOne(
+                { "addresses._id": order.addressId },
+                { "addresses.$": 1 } 
+            );
+            address = user?.addresses?.[0] || null;
+        }
 
         const steps = [
             { status: "Order Placed", date: createdAt, isCompleted: true },
@@ -157,8 +203,9 @@ exports.trackOrder = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            data: { ...transformed, steps }
+            data: { ...transformed, address, steps } // ✅ address added here
         });
+
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -184,13 +231,41 @@ exports.deleteOrder = async (req, res) => {
 
 exports.cancelOrder = async (req, res) => {
     try {
-        const order = await Order.findByIdAndUpdate(req.params.id, { status: 'cancelled' }, { new: true });
+        const order = await Order.findById(req.params.id);
+
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'Order not found' });
+        }
+
+        // Prevent cancelling already completed/cancelled orders
+        if (['completed', 'cancelled'].includes(order.status)) {
+            return res.status(400).json({
+                success: false,
+                message: `Order cannot be cancelled — it is already ${order.status}`
+            });
+        }
+
+        // Optional: only allow the owner to cancel
+        if (order.userId.toString() !== req.user.id) {
+            return res.status(403).json({ success: false, message: 'Unauthorized' });
+        }
+
+        order.status = 'cancelled';
+        await order.save();
+
+        // Optional: Refund if paid via Stripe
+        if (order.paymentMethod === 'Stripe') {
+            const payment = await Payment.findOne({ orderId: order._id });
+            if (payment?.stripePaymentIntentId) {
+                await stripe.refunds.create({ payment_intent: payment.stripePaymentIntentId });
+            }
+        }
+
         res.status(200).json({ success: true, data: order });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 };
-
 exports.handleStripeWebhook = async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;

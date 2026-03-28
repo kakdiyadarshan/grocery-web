@@ -41,6 +41,11 @@ const orderSchema = new mongoose.Schema({
     paymentMethod: {
         type: String,
         default: "COD"
+    },
+    addressId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "user",
+        default: null
     }
 }, { timestamps: true });
 
