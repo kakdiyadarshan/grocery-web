@@ -58,8 +58,8 @@ exports.createReview = async (req, res) => {
 exports.getReviewById = async (req, res) => {
     try {
         const review = await Review.findById(req.params.id)
-            .populate("userId", "name photo")
-            // .populate("product", "name images");
+            .populate("userId", "firstname lastname photo email")
+            .populate("productId", "name images");
 
         if (!review) {
             return res.status(404).json({ success: false, message: "Review not found" });
@@ -78,7 +78,8 @@ exports.getAllReviews = async (req, res) => {
         const query = productId ? { product: productId } : {};
 
         const reviews = await Review.find(query)
-            .populate("userId", "name photo")
+            .populate("userId", "firstname lastname photo email")
+            .populate("productId", "name images")
             .sort({ createdAt: -1 });
 
         res.status(200).json({

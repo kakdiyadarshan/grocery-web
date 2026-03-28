@@ -11,6 +11,7 @@ const handleErrors = (error, dispatch, rejectWithValue) => {
 
 const initialState = {
     orders: [],
+    allorders: [],
     currentOrder: null,
     loading: false,
     error: null,
@@ -25,6 +26,24 @@ export const createOrder = createAsyncThunk(
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
+            });
+            return response.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
+export const fetchOrders = createAsyncThunk(
+    'order/fetchOrders',
+    async (_, { dispatch, rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`${BASE_URL}/getallorders`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                withCredentials: true
             });
             return response.data;
         } catch (error) {
@@ -80,6 +99,18 @@ const orderSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+            .addCase(fetchOrders.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchOrders.fulfilled, (state, action) => {
+                state.loading = false;
+                state.allorders = action.payload.data;
+            })
+            .addCase(fetchOrders.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
             .addCase(createOrder.pending, (state) => { state.loading = true; })
             .addCase(createOrder.fulfilled, (state, action) => {
                 state.loading = false;
