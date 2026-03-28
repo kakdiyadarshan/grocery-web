@@ -491,7 +491,7 @@ const Header = () => {
               {/* Desktop Nav Links */}
               <nav className="hidden lg:flex items-center gap-7">
                 <Link to="/" className="text-[var(--text-gray)] hover:text-[var(--primary)] font-bold text-[15px] transition-colors">Home</Link>
-                <Link to="/category" className="text-[var(--text-gray)] hover:text-[var(--primary)] font-bold text-[15px] transition-colors">Shop</Link>
+                <Link to="/shop" className="text-[var(--text-gray)] hover:text-[var(--primary)] font-bold text-[15px] transition-colors">Shop</Link>
                 <Link to="/aboutus" className="text-[var(--text-gray)] hover:text-[var(--primary)] font-bold text-[15px] transition-colors">About us</Link>
                 <Link to="/contact" className="text-[var(--text-gray)] hover:text-[var(--primary)] font-bold text-[15px] transition-colors">Contact us</Link>
                 <Link to="/blog" className="text-[var(--text-gray)] hover:text-[var(--primary)] font-bold text-[15px] transition-colors">Blog</Link>
