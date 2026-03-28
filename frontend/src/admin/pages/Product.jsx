@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFormik, FieldArray, FormikProvider } from 'formik';
 import * as Yup from 'yup';
@@ -22,6 +23,7 @@ import ReactQuill from 'react-quill-new';
 
 const Product = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { products, loading } = useSelector((state) => state.product);
     const { categories } = useSelector((state) => state.category);
 
@@ -29,8 +31,6 @@ const Product = () => {
     const [isEditMode, setIsEditMode] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [imagePreviews, setImagePreviews] = useState([]);
-    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-    const [activeImageIndex, setActiveImageIndex] = useState(0);
     const fileInputRef = useRef(null);
     const excelInputRef = useRef(null);
     const importImagesRef = useRef(null);
@@ -158,9 +158,7 @@ const Product = () => {
     };
 
     const handleView = (product) => {
-        setSelectedProduct(product);
-        setActiveImageIndex(0);
-        setIsViewModalOpen(true);
+        navigate(`view/${product._id}`);
     };
 
     const handleImageChange = (e) => {
@@ -676,163 +674,6 @@ const Product = () => {
                                 </div>
                             </form>
                         </FormikProvider>
-                    </div>
-                </div>
-            )}
-
-            {/* View Modal */}
-            {isViewModalOpen && selectedProduct && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsViewModalOpen(false)}>
-                    <div className="bg-white rounded-[4px] shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all animate-in zoom-in-95 duration-300 border border-gray-100 flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
-                        <div className="relative h-64 w-full bg-slate-100">
-                            <img
-                                src={selectedProduct.images[activeImageIndex]?.url || selectedProduct.images[0]?.url}
-                                alt={selectedProduct.name}
-                                className="w-full h-full object-cover transition-all duration-500"
-                            />
-                            <button onClick={() => setIsViewModalOpen(false)} className="absolute top-4 right-4 p-2 bg-white/20 backdrop-blur-md hover:bg-white/40 text-white rounded-full shadow-lg transition-all z-10"><FiX size={20} /></button>
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
-                            <div className="absolute bottom-6 left-8 right-8">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <span className="px-2.5 py-0.5 bg-primary/20 backdrop-blur-md border border-primary/30 text-white rounded-full text-[10px] font-bold tracking-widest uppercase">
-                                        Product Details
-                                    </span>
-                                </div>
-                                <h3 className="text-white font-extrabold text-3xl">{selectedProduct.name}</h3>
-                                {selectedProduct.tags && selectedProduct.tags.length > 0 && (
-                                    <div className="flex flex-wrap gap-2 mt-2">
-                                        {selectedProduct.tags.map(tag => (
-                                            <span key={tag} className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-white/30 backdrop-blur-md ${tag === 'featured' ? 'bg-emerald-400/20 text-emerald-200' : 'bg-green-400/20 text-green-200'
-                                                }`}>
-                                                {tag.replace('_', ' ')}
-                                            </span>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="p-8 space-y-6 overflow-y-auto custom-scrollbar flex-grow">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div>
-                                    <h4 className="text-[10px] font-bold text-gray-900  tracking-widest mb-4 flex items-center gap-2">
-                                        <div className="w-6 h-[2px] bg-primary" /> About Product
-                                    </h4>
-                                    <div
-                                        className="text-gray-600 text-sm leading-relaxed mb-8 quill-content-view"
-                                        dangerouslySetInnerHTML={{ __html: selectedProduct.description }}
-                                    />
-
-                                    <h4 className="text-[10px] font-bold text-gray-900 tracking-widest mb-3 flex items-center gap-2">
-                                        <div className="w-6 h-[2px] bg-primary" /> Customer Ratings
-                                    </h4>
-                                    <div className="bg-gray-50/50 rounded-xl border border-gray-100 mb-6 p-2 inline-block">
-                                        {renderStars(selectedProduct.reviews)}
-                                    </div>
-                                    {/* Active Offers Section */}
-                                    {selectedProduct.offer && selectedProduct.offer.length > 0 && (
-                                        <>
-                                            <h4 className="text-[10px] font-bold text-gray-900 tracking-widest mb-3 flex items-center gap-2">
-                                                <div className="w-6 h-[2px] bg-primary" /> Active Offers
-                                            </h4>
-                                            {selectedProduct.offer.map((offer, idx) => (
-                                                <div key={idx} className="bg-primary/5 rounded-xl  relative overflow-hidden group">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                                                            <FiTag size={18} />
-                                                        </div>
-                                                        <div>
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-[10px] font-black text-primary uppercase tracking-widest">{offer.offer_type} Discount</span>
-                                                            </div>
-                                                            <h5 className="text-xl font-black text-gray-900 leading-none mt-0.5">
-                                                                {offer.offer_type === 'Discount' ? `${offer.offer_value}% OFF` : `$${offer.offer_value} OFF`}
-                                                            </h5>
-                                                        </div>
-                                                    </div>
-                                                    <div className="grid grid-cols-2 gap-4 pt-3">
-                                                        <div className="flex flex-col gap-0.5">
-                                                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">Start Date</span>
-                                                            <div className="flex items-center gap-1.5 text-gray-600 text-[11px] font-bold">
-                                                                <FiCalendar size={12} className="text-primary ms-1" />
-                                                                {new Date(offer.offer_start_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex flex-col gap-0.5">
-                                                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">End Date</span>
-                                                            <div className="flex items-center gap-1.5 text-gray-600 text-[11px] font-bold">
-                                                                <FiCalendar size={12} className="text-red-400 ms-1" />
-                                                                {new Date(offer.offer_end_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </>
-                                    )}
-                                </div>
-                                <div>
-                                    <h4 className="text-[10px] font-bold text-gray-900  tracking-widest mb-4 flex items-center gap-2">
-                                        <div className="w-6 h-[2px] bg-primary" /> Pricing & Stock
-                                    </h4>
-                                    <div className="space-y-3 mb-8">
-                                        {selectedProduct.weighstWise.map((v, i) => {
-                                            const isLowStock = v.stock <= 10;
-                                            return (
-                                                <div key={i} className={`flex justify-between items-center p-4 rounded-xl border transition-all ${isLowStock ? 'bg-red-50 border-red-100 ring-1 ring-red-200 shadow-sm' : 'bg-gray-50 border-gray-100'}`}>
-                                                    <div className="flex flex-col">
-                                                        <span className={`text-sm font-bold ${isLowStock ? 'text-red-700' : 'text-gray-700'}`}>{v.weight} {v.unit}</span>
-                                                        <span className={`text-[11px] font-extrabold  tracking-widest mt-1 ${isLowStock ? 'text-red-500 animate-pulse' : 'text-gray-400'}`}>
-                                                            Stock: {v.stock} {isLowStock && '(Low Stock)'}
-                                                        </span>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <div className={`font-black text-xl ${isLowStock ? 'text-red-600' : 'text-primary'}`}>${v.price}</div>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-
-                                    {/* Move SKU and Ratings here */}
-                                    {selectedProduct.sku && (
-                                        <div className="mb-6">
-                                            <h4 className="text-[10px] font-bold text-gray-900 tracking-widest mb-3 flex items-center gap-2">
-                                                <div className="w-6 h-[2px] bg-primary" /> SKU
-                                            </h4>
-                                            <div className="inline-flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-dashed border-gray-200">
-                                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Code:</span>
-                                                <span className="text-xs font-mono font-bold text-gray-700">{selectedProduct.sku}</span>
-                                            </div>
-                                        </div>
-                                    )}
-
-
-                                </div>
-                            </div>
-
-                            <div>
-                                <h4 className="text-[10px] font-bold text-gray-900  tracking-widest mb-4 flex items-center gap-2">
-                                    <div className="w-6 h-[2px] bg-primary" /> Gallery
-                                </h4>
-                                <div className="grid grid-cols-5 md:grid-cols-6 gap-3">
-                                    {selectedProduct.images.map((img, i) => (
-                                        <div
-                                            key={i}
-                                            onClick={() => setActiveImageIndex(i)}
-                                            className={`aspect-square rounded-xl overflow-hidden border-2 cursor-pointer transition-all hover:scale-105 ${activeImageIndex === i ? 'border-primary ring-2 ring-primary/20 shadow-md' : 'border-gray-100 grayscale hover:grayscale-0'}`}
-                                        >
-                                            <img src={img.url} alt="" className="w-full h-full object-cover" />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="p-6 border-t flex justify-end gap-3">
-                            <button onClick={() => { setIsViewModalOpen(false); handleOpenModal(selectedProduct); }} className="px-5 py-1.5 border border-primary text-primary hover:bg-primary hover:text-white font-bold rounded-[4px] text-xs  tracking-widest hover:bg-primary/5 transition-all">Edit</button>
-                            <button onClick={() => setIsViewModalOpen(false)} className="px-5 py-1.5 bg-primary text-white hover:bg-white hover:border hover:border-primary hover:text-primary font-bold rounded-[4px] text-xs  tracking-widest shadow-lg shadow-primary/20 hover:scale-105 transition-all">Close</button>
-                        </div>
                     </div>
                 </div>
             )}

@@ -26,6 +26,7 @@ import Orders from './pages/Orders'
 import OrderDetails from './pages/OrderDetails'
 import Transactions from './pages/Transactions'
 import Reviews from './pages/Reviews'
+import ProductDetailsAdmin from './pages/ProductDetailsAdmin'
 
 const Adminroutes = () => {
     const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -45,6 +46,7 @@ const Adminroutes = () => {
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="categories" element={<Category />} />
                     <Route path="products" element={<Product />} />
+                    <Route path="products/view/:id" element={<ProductDetailsAdmin />} />
                     <Route path="privacy-policy" element={<PrivacyPolicy />} />
                     <Route path="terms-condition" element={<Termscondition />} />
                     <Route path="blogs" element={<BlogAdmin />} />
