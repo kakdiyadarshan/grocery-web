@@ -11,7 +11,7 @@ const ProductSlider = ({ title, products, className = '' }) => {
       const cardWidth = el.children[0].offsetWidth;
       const gap = parseInt(window.getComputedStyle(el).gap) || 0;
       const scrollAmount = (cardWidth + gap) * 2;
-      
+
       el.scrollBy({
         left: direction === 'left' ? -scrollAmount : scrollAmount,
         behavior: 'smooth'
@@ -87,24 +87,28 @@ const ProductSlider = ({ title, products, className = '' }) => {
 
   return (
     <div className={`relative group/slider ${className}`}>
-      {title && <h2 className="text-3xl font-semibold text-[#31353C] mb-8 border-b border-gray-200 pb-5">{title}</h2>}
+      {title && <h2 className="text-2xl sm:text-3xl font-semibold text-[#31353C] mb-8 border-b border-gray-200 pb-5">{title}</h2>}
 
       <div className="relative">
-        <button
-          onClick={() => scrollSlider('left')}
-          className="absolute -left-2 lg:-left-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center text-gray-600 hover:bg-[var(--primary)] hover:text-white transition-all duration-300 opacity-0 group-hover/slider:opacity-100 cursor-pointer hidden mb:flex"
-          aria-label="Previous products"
-        >
-          <HiOutlineChevronLeft size={24} />
-        </button>
+        {products?.length > 5 && (
+          <>
+            <button
+              onClick={() => scrollSlider('left')}
+              className="absolute -left-2 lg:-left-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center text-gray-600 hover:bg-[var(--primary)] hover:text-white transition-all duration-300 opacity-0 group-hover/slider:opacity-100 cursor-pointer hidden mb:flex"
+              aria-label="Previous products"
+            >
+              <HiOutlineChevronLeft size={24} />
+            </button>
 
-        <button
-          onClick={() => scrollSlider('right')}
-          className="absolute -right-2 lg:-right-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center text-gray-600 hover:bg-[var(--primary)] hover:text-white transition-all duration-300 opacity-0 group-hover/slider:opacity-100 cursor-pointer hidden mb:flex"
-          aria-label="Next products"
-        >
-          <HiOutlineChevronRight size={24} />
-        </button>
+            <button
+              onClick={() => scrollSlider('right')}
+              className="absolute -right-2 lg:-right-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center text-gray-600 hover:bg-[var(--primary)] hover:text-white transition-all duration-300 opacity-0 group-hover/slider:opacity-100 cursor-pointer hidden mb:flex"
+              aria-label="Next products"
+            >
+              <HiOutlineChevronRight size={24} />
+            </button>
+          </>
+        )}
 
         <div
           ref={scrollRef}

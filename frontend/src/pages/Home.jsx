@@ -148,8 +148,8 @@ function Home() {
 
           {/* 2. Featured Categories */}
           <div className='mt-16 pb-12'>
-            <div className='text-center mb-6'>
-              <h2 className=" text-2xl sm:text-3xl font-medium text-[#2e3d30] border-b border-gray-200 pb-5">Featured Categories</h2>
+            <div className='mb-6'>
+              <h2 className="text-2xl sm:text-3xl font-semibold text-[#31353C] border-b border-gray-200 pb-5">Featured Categories</h2>
             </div>
 
             <div
