@@ -16,3 +16,44 @@
 .scroll-smooth {
   scroll-behavior: smooth;
 }
+
+/* Rich Text Editor Content Styling */
+.ql-content {
+    color: #4b5563;
+    line-height: 1.6;
+}
+.ql-content h1, .ql-content h2, .ql-content h3 {
+    font-weight: 700;
+    color: #111827;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+.ql-content h1 { font-size: 1.875rem; }
+.ql-content h2 { font-size: 1.5rem; }
+.ql-content h3 { font-size: 1.25rem; }
+
+.ql-content ol {
+    list-style-type: decimal !important;
+    padding-left: 1.5rem !important;
+    margin: 1rem 0 !important;
+}
+.ql-content ul {
+    list-style-type: disc !important;
+    padding-left: 1.5rem !important;
+    margin: 1rem 0 !important;
+}
+.ql-content li {
+    margin-bottom: 0.25rem !important;
+}
+.ql-content strong {
+    font-weight: 700;
+}
+.ql-content em {
+    font-style: italic;
+}
+.ql-content u {
+    text-decoration: underline;
+}
+.ql-content s {
+    text-decoration: line-through;
+}

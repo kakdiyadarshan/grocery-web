@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MdKeyboardArrowRight, MdVisibility, MdKeyboardArrowUp, MdKeyboardArrowDown } from "react-icons/md";
 import { AiOutlineHeart, AiFillStar, AiOutlineStar } from "react-icons/ai";
 import { IoIosGitCompare } from "react-icons/io";
@@ -33,6 +33,14 @@ function ProductDetail() {
     const [selectedVariant, setSelectedVariant] = useState(null);
     const [startIndex, setStartIndex] = useState(0);
     const [activeTab, setActiveTab] = useState('description');
+    const tabsRef = useRef(null);
+
+    const scrollToDescription = () => {
+        setActiveTab('description');
+        setTimeout(() => {
+            tabsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+    };
 
     useEffect(() => {
         if (product?.images?.length > 0) {
@@ -206,10 +214,19 @@ function ProductDetail() {
                             </div>
                         </div>
 
-                        {/* Description */}
-                        <p className="text-[#6B7280] leading-relaxed text-sm md:text-base mt-4">
-                            {product.description}
-                        </p>
+                        {/* Short Description with Read More */}
+                        <div className="mt-4">
+                            <div
+                                className="text-[#6B7280] leading-relaxed text-sm md:text-base line-clamp-2 ql-content"
+                                dangerouslySetInnerHTML={{ __html: product.description }}
+                            />
+                            <button
+                                onClick={scrollToDescription}
+                                className="text-[#00B880] font-bold text-sm mt-1 hover:underline flex items-center gap-1 group"
+                            >
+                                Read more <span className="group-hover:translate-x-1 transition-transform">→</span>
+                            </button>
+                        </div>
 
                         {/* Metadata */}
                         <div className="mt-8 space-y-3 pt-4 border-t border-gray-100">
@@ -278,7 +295,7 @@ function ProductDetail() {
                 </div>
 
                 {/* Tabs Section */}
-                <div className="mt-16 pt-6">
+                <div className="mt-16 pt-6" ref={tabsRef}>
                     {/* Tab Navigation */}
                     <div className="flex gap-4 mb-6 border-b border-gray-200 pb-7">
                         <button
@@ -298,43 +315,11 @@ function ProductDetail() {
                     {/* Tab Content */}
                     <div className="bg-white rounded-xl">
                         {activeTab === 'description' ? (
-                            // Description Content
-                            <div className="space-y-5 animate-fadeIn">
-                                <div className='space-y-4'>
-                                    <h3 className="text-2xl font-semibold text-[#333333] mb-4">About This Product</h3>
-                                    <p className="text-gray-500 leading-relaxed">
-                                        Dragon fruit needs full sun, so choose a sunny area in your garden or a sunny windowsill that gets at least six hours of sunlight a day. For the soil, choose potting soil that is well-draining (dragon fruits are sensitive to “wet feet,” or consistently wet roots) and rich in organic matter.
-                                    </p>
-                                    <p className="text-gray-500 leading-relaxed">
-                                        Dragon fruits are oval to oblong in shape and size, with pink peel and green scale-like leaves. It is named after its resemblance to dragon scales. White flesh is dotted with black, tiny edible seeds. It has juicy and spongy flesh with sweet flavour and a hint of sourness. Fresho dragon fruits are sourced from Thailand.
-                                    </p>
-                                </div>
-
-                                <div className='space-y-2'>
-                                    <h4 className="text-2xl font-semibold text-[#333333] mb-4">Benefits</h4>
-
-                                    <ul className="list-disc pl-5 space-y-2 text-gray-500 leading-relaxed">
-                                        <li>
-                                            Carrots provide the highest content of vitamin A of all the vegetables.
-                                        </li>
-                                        <li>
-                                            Brightly orange colored carrots have pigments like carotenoids and flavonoids, that provide several antioxidants and act as a defense against cancer.
-                                        </li>
-                                    </ul>
-                                </div>
-
-                                <div className='space-y-2'>
-                                    <h4 className="text-2xl font-semibold text-[#333333] mb-4">Storage Tips</h4>
-
-                                    <ul className="list-disc pl-5 space-y-2 text-gray-500 leading-relaxed">
-                                        <li>
-                                            Refrigerate carrots in a mesh bag.
-                                        </li>
-                                        <li>
-                                            Alternatively, trim off the greens and store carrots in water to keep them fresh and crunchy for longer.
-                                        </li>
-                                    </ul>
-                                </div>
+                            // Full Description Content
+                            <div className="animate-fadeIn">
+                                <div className="ql-content prose prose-sm sm:prose-base max-w-none text-gray-500 leading-relaxed"
+                                    dangerouslySetInnerHTML={{ __html: product.description }}
+                                />
                             </div>
                         ) : (
                             // Reviews Content
