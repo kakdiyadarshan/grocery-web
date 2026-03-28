@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllFAQs } from '../redux/slice/faq.slice';
 import Subscribe from './Subscribe';
-import { Plus, Minus, Loader2, ChevronRight } from 'lucide-react';
+import { Plus, Minus, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Newsletter from '../component/Newsletter';
 
@@ -62,18 +62,20 @@ function FAQs() {
   return (
     <>
 
-      <div className="container mx-auto w-full space-y-8 py-12">
-        <div className=" mx-auto px-4 lg:px-6">
-          <h1 className="text-[28px] sm:text-[32px] font-bold text-[#1e5066] mb-3 text-left">Frequently Asked Questions</h1>
-          <div className="flex items-center gap-1 text-[14px] text-gray-500 font-medium">
-            <Link to="/" className="hover:text-[var(--primary)] transition-colors">Home</Link>
-            <ChevronRight className="w-4 h-4 text-gray-400" />
-            <span className="text-[var(--primary)] font-bold">FAQ</span>
+      <div className="w-full">
+        <div className="bg-[#f8f9fa] border-b border-gray-100 py-10 md:py-14 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-[1440px] mx-auto px-2 md:px-0 lg:px-4">
+            <h1 className="text-3xl md:text-[40px] font-bold text-[#1a1a1a] mb-3 tracking-tight">Frequently Asked Questions</h1>
+            <div className="flex items-center gap-2 text-[13px] md:text-sm text-gray-400 font-medium">
+              <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+              <span className="text-gray-300 font-light">&gt;</span>
+              <span className="text-gray-600">FAQs</span>
+            </div>
           </div>
         </div>
       </div>
       <div className="w-full bg-white font-jost min-h-screen">
-        <div className="max-w-[1440px] mx-auto px-4">
+        <div className="max-w-[1440px] mx-auto px-4 pt-10 sm:pt-16">
 
           <div className="mb-10 sm:mb-16">
             <p className="text-textSecondary text-[15px] sm:text-[16px] leading-[1.7] max-w-[900px] font-medium">
