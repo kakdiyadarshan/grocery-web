@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Table from '../component/DataTable';
 import { FiPlus, FiX, FiRefreshCw, FiTrash2 } from 'react-icons/fi';
 import Breadcrumb from '../component/Breadcrumb';
@@ -77,18 +77,22 @@ const BlogCategoryAdmin = () => {
         setIsModalOpen(true);
     };
 
-    // ─── DELETE ──────────────────────────────────────────────────────────────────
-    const promptDelete = (item) => {
-        setDeleteItem(item);
-    };
+    // // ─── DELETE ──────────────────────────────────────────────────────────────────
+    // const promptDelete = (item) => {
+    //     setDeleteItem(item);
+    // };
 
-    const confirmDelete = async () => {
-        if (!deleteItem) return;
-        const action = await dispatch(deleteBlogCategory(deleteItem._id));
-        if (action.type.endsWith('/fulfilled')) {
-            setDeleteItem(null);
-        }
-    };
+    // const confirmDelete = async () => {
+    //     if (!deleteItem) return;
+    //     const action = await dispatch(deleteBlogCategory(deleteItem._id));
+    //     if (action.type.endsWith('/fulfilled')) {
+    //         setDeleteItem(null);
+    //     }
+    // };
+
+    const handleDelete = useCallback(async (blogCategory) => {
+        dispatch(deleteBlogCategory(blogCategory._id));
+    }, [dispatch]);
 
     const closeModal = () => {
         setIsModalOpen(false);
@@ -130,7 +134,7 @@ const BlogCategoryAdmin = () => {
                     columns={columns}
                     data={data}
                     onEdit={handleEdit}
-                    onDelete={promptDelete}
+                    onDelete={handleDelete}
                     itemsPerPage={10}
                     exportFileName="Blog_Categories"
                     allowExport={false}
@@ -200,7 +204,7 @@ const BlogCategoryAdmin = () => {
             )}
 
             {/* Delete Confirmation Modal */}
-            {deleteItem && (
+            {/* {deleteItem && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
                     <div className="bg-white rounded-[4px] shadow-xl w-full max-w-sm overflow-hidden font-jost p-6 text-center">
                         <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
@@ -237,7 +241,7 @@ const BlogCategoryAdmin = () => {
                         </div>
                     </div>
                 </div>
-            )}
+            )} */}
         </>
     );
 };

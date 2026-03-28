@@ -25,6 +25,12 @@ import ReactApexChart from 'react-apexcharts';
 
 
 const COLORS = ['#228B22', '#b3d498', '#98d4a0',"#70bb70"];
+
+const formatCompact = (val) => {
+  if (val >= 1000000) return `$${(val / 1000000).toFixed(val % 1000000 === 0 ? 0 : 1)}M`;
+  if (val >= 1000) return `$${(val / 1000).toFixed(val % 1000 === 0 ? 0 : 1)}k`;
+  return `$${val}`;
+};
 const barColors = ['#228B22'];
 
 const getPath = (x, y, width, height) => {
@@ -256,6 +262,7 @@ const Dashboard = () => {
                   axisLine={false}
                   tickLine={false}
                   tick={{ fill: '#94a3b8', fontSize: 12 }}
+                  tickFormatter={(val) => formatCompact(val).replace('$', '')}
                 />
                 <Tooltip
                   cursor={{ fill: '#f8fafc' }}
@@ -418,7 +425,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Orders Analytics */}
+        {/* Revenue */}
         <div className="lg:col-span-2 rounded-md bg-white p-4 border border-slate-100 flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-bold">Revenue</h3>
@@ -511,7 +518,7 @@ const Dashboard = () => {
                 },
                 yaxis: {
                   labels: {
-                    formatter: (val) => `$${val.toLocaleString()}`,
+                    formatter: (val) => formatCompact(val),
                     style: {
                       colors: '#94a3b8',
                       fontSize: '12px',
@@ -588,7 +595,7 @@ const MetricCard = ({ title, value, percentage, isPositive, icon, bgColor, borde
     className={`p-6 bg-white  border ${borderColor}  
       relative overflow-hidden group 
       rounded-md 
-      transition-all duration-300 ease-out cursor-pointer`}
+      transition-all duration-300 ease-out `}
   >
     {/* Soft gradient glow on hover */}
     <div

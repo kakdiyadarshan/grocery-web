@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Table from '../component/DataTable';
 import { FiPlus, FiTrash2, FiImage, FiArrowLeft, FiRefreshCw, FiX } from 'react-icons/fi';
 import Breadcrumb from '../component/Breadcrumb';
@@ -242,17 +242,10 @@ const BlogAdmin = () => {
         setView('view');
     };
 
-    const promptDelete = (item) => {
-        setDeleteItem(item);
-    };
 
-    const confirmDelete = async () => {
-        if (!deleteItem) return;
-        const action = await dispatch(deleteBlog(deleteItem._id));
-        if (action.type.endsWith('/fulfilled')) {
-            setDeleteItem(null);
-        }
-    };
+    const handleDelete = useCallback(async (blog) => {
+        dispatch(deleteBlog(blog._id));
+    }, [dispatch]);
 
     const closeForm = () => {
         setView('list');
@@ -315,7 +308,7 @@ const BlogAdmin = () => {
                             data={blogs}
                             onEdit={handleEdit}
                             onView={handleView}
-                            onDelete={promptDelete}
+                            onDelete={handleDelete}
                             itemsPerPage={10}
                             allowExport={false}
                         />
@@ -636,7 +629,7 @@ const BlogAdmin = () => {
             )}
 
             {/* Delete Confirmation Modal */}
-            {deleteItem && (
+            {/* {deleteItem && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
                     <div className="bg-white rounded-[4px] shadow-xl w-full max-w-sm overflow-hidden font-jost p-6 text-center">
                         <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
@@ -673,7 +666,7 @@ const BlogAdmin = () => {
                         </div>
                     </div>
                 </div>
-            )}
+            )} */}
         </div>
     );
 };

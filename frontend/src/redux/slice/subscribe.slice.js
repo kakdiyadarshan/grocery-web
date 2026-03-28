@@ -13,6 +13,7 @@ const initialState = {
     subscribers: [],
     loading: false,
     submitLoading: false,
+    emailLoading: false,
     error: null,
 };
 
@@ -64,6 +65,22 @@ export const deleteSubscriber = createAsyncThunk(
     }
 );
 
+export const sendOfferEmail = createAsyncThunk(
+    'subscribe/sendOfferEmail',
+    async ({ subject, message }, { dispatch, rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.post(`${BASE_URL}/send-offer-email`, { subject, message }, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            dispatch(setAlert({ text: response.data.message, type: 'success' }));
+            return response.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
 const subscribeSlice = createSlice({
     name: 'subscribe',
     initialState,
@@ -92,6 +109,16 @@ const subscribeSlice = createSlice({
             })
             .addCase(deleteSubscriber.rejected, (state) => {
                 state.submitLoading = false;
+            })
+            // Send Offer Email
+            .addCase(sendOfferEmail.pending, (state) => {
+                state.emailLoading = true;
+            })
+            .addCase(sendOfferEmail.fulfilled, (state) => {
+                state.emailLoading = false;
+            })
+            .addCase(sendOfferEmail.rejected, (state) => {
+                state.emailLoading = false;
             });
     },
 });
