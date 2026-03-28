@@ -92,7 +92,7 @@ const ProductSlider = ({ title, products, className = '' }) => {
       <div className="relative">
         <button
           onClick={() => scrollSlider('left')}
-          className="absolute -left-2 lg:-left-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center text-gray-600 hover:bg-[#38b47e] hover:text-white transition-all duration-300 opacity-0 group-hover/slider:opacity-100 cursor-pointer hidden mb:flex"
+          className="absolute -left-2 lg:-left-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center text-gray-600 hover:bg-[var(--primary)] hover:text-white transition-all duration-300 opacity-0 group-hover/slider:opacity-100 cursor-pointer hidden mb:flex"
           aria-label="Previous products"
         >
           <HiOutlineChevronLeft size={24} />
@@ -100,7 +100,7 @@ const ProductSlider = ({ title, products, className = '' }) => {
 
         <button
           onClick={() => scrollSlider('right')}
-          className="absolute -right-2 lg:-right-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center text-gray-600 hover:bg-[#38b47e] hover:text-white transition-all duration-300 opacity-0 group-hover/slider:opacity-100 cursor-pointer hidden mb:flex"
+          className="absolute -right-2 lg:-right-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center text-gray-600 hover:bg-[var(--primary)] hover:text-white transition-all duration-300 opacity-0 group-hover/slider:opacity-100 cursor-pointer hidden mb:flex"
           aria-label="Next products"
         >
           <HiOutlineChevronRight size={24} />

@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BannerSlider from '../component/BannerSlider';
 import ProductCard from '../component/ProductCard';
@@ -36,21 +36,26 @@ function Home() {
   const scrollRef = useRef(null);
   const [isPending, setIsPending] = useState(false);
 
-  const categories = Array.isArray(apiCategories)
-    ? apiCategories.slice(0, 3).map(c => c.categoryName)
-    : [];
+  const categories = useMemo(() => {
+    if (!apiCategories || !apiProducts) return [];
+    return apiCategories
+      .filter(cat =>
+        apiProducts.some(product => {
+          const catName = typeof product.category === 'object' ? product.category?.categoryName : product.category;
+          return catName === cat.categoryName;
+        })
+      )
+      .map(c => c.categoryName)
+      .slice(0, 3); // Limit to top 3 categories with products
+  }, [apiCategories, apiProducts]);
 
-  while (categories.length < 3) {
-    categories.push(''); // or any placeholder
-  }
-
-  const [activeTab, setActiveTab] = useState(categories[0]);
+  const [activeTab, setActiveTab] = useState("");
 
   useEffect(() => {
-    if (apiCategories?.length > 0) {
-      setActiveTab(apiCategories[0].categoryName);
+    if (categories.length > 0 && !activeTab) {
+      setActiveTab(categories[0]);
     }
-  }, [apiCategories]);
+  }, [categories, activeTab]);
 
   const handleTabChange = (category) => {
     if (category === activeTab) return;

@@ -7,7 +7,7 @@ import Newsletter from '../component/Newsletter';
 
 export default function About() {
   return (
-    <div className="min-h-screen  px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen">
 
       <div className="bg-[#f8f9fa] border-b border-gray-100 py-10 md:py-14 px-4 sm:px-6 lg:px-8">
         <div className="max-w-[1440px] mx-auto px-2 md:px-0 lg:px-4">

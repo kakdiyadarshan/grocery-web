@@ -38,11 +38,18 @@ const ProductCard = ({ product }) => {
     const image = product.images?.[0]?.url || product.image;
     const hoverImage = product.images?.[1]?.url || product.hoverImage;
     const title = product.name || product.title;
-    const price = product.weighstWise?.[0]?.price ? `$${product.weighstWise[0].price}` : product.price;
+    const variant = product.weighstWise?.[0];
+    const initialPrice = variant?.price || 0;
+    const currentPrice = variant?.discountPrice || initialPrice;
+
     const brand = product.category?.categoryName || product.brand || 'Grocery';
-    const rating = product.rating || 0;
-    const discount = product.discount || null;
-    const originalPrice = product.originalPrice || null;
+    const rating = product.avgRating || product.rating || 0;
+    const discount = product.offer?.offer_value || null;
+
+    // Condition to show original price: only if currentPrice is different from initialPrice
+    const hasDiscount = currentPrice < initialPrice;
+    const originalPriceDisplay = `$${initialPrice}`;
+    const currentPriceDisplay = `$${currentPrice}`;
 
     return (
         <div
@@ -51,8 +58,8 @@ const ProductCard = ({ product }) => {
         >
             {/* Discount Badge */}
             {discount && (
-                <span className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 bg-[#FF4F4F] text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
-                    {discount}
+                <span className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 bg-[#FF4F4F] text-white text-[9px] sm:text-[12px] font-bold px-1.5 py-0.5 rounded shadow-sm">
+                    -{product.offer?.offer_type === "Fixed" ? `$${discount}` : `${discount}%`}
                 </span>
             )}
 
@@ -111,21 +118,24 @@ const ProductCard = ({ product }) => {
                 </h3>
 
                 <div className="flex items-center gap-0.5 sm:gap-1">
-                    {[...Array(5)].map((_, i) => (
-                        <AiFillStar
-                            key={i}
-                            className={`text-[10px] sm:text-base ${i < rating ? "text-[#FFB81C]" : "text-[#E6E8EA]"}`}
-                        />
-                    ))}
+                    <div className="flex items-center">
+                        {[...Array(5)].map((_, i) => (
+                            <AiFillStar
+                                key={i}
+                                className={`text-[10px] sm:text-base ${i < Math.round(rating) ? "text-[#FFB81C]" : "text-[#E6E8EA]"}`}
+                            />
+                        ))}
+                    </div>
+                    <span className="text-[10px] sm:text-xs text-gray-400 ml-1">({product.reviewCount || 0})</span>
                 </div>
 
                 <div className="flex items-baseline gap-1.5 sm:gap-2 mt-auto">
                     <span className="text-sm sm:text-base font-semibold text-[var(--primary)]">
-                        {price}
+                        {currentPriceDisplay}
                     </span>
-                    {originalPrice && (
+                    {hasDiscount && (
                         <span className="text-xs sm:text-base text-[#A2A9B1] line-through font-medium">
-                            {originalPrice}
+                            {originalPriceDisplay}
                         </span>
                     )}
                 </div>
