@@ -131,7 +131,50 @@ exports.getAllProducts = async (req, res) => {
             {
                 $addFields: {
                     avgRating: { $avg: '$reviews.rating' },
-                    reviewCount: { $size: '$reviews' }
+                    reviewCount: { $size: '$reviews' },
+                    offer: { $arrayElemAt: ['$offer', 0] }
+                }
+            },
+            {
+                $addFields: {
+                    weighstWise: {
+                        $map: {
+                            input: '$weighstWise',
+                            as: 'w',
+                            in: {
+                                $mergeObjects: [
+                                    '$$w',
+                                    {
+                                        discountPrice: {
+                                            $cond: {
+                                                if: { $ifNull: ['$offer', false] },
+                                                then: {
+                                                    $cond: {
+                                                        if: { $eq: ['$offer.offer_type', 'Discount'] },
+                                                        then: {
+                                                            $subtract: [
+                                                                '$$w.price',
+                                                                { $divide: [{ $multiply: ['$$w.price', '$offer.offer_value'] }, 100] }
+                                                            ]
+                                                        },
+                                                        else: {
+                                                            $max: [0, { $subtract: ['$$w.price', '$offer.offer_value'] }]
+                                                        }
+                                                    }
+                                                },
+                                                else: '$$w.price'
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                $addFields: {
+                    discountPrice: { $min: '$weighstWise.discountPrice' }
                 }
             }
         ]);
@@ -198,7 +241,50 @@ exports.getProductById = async (req, res) => {
             {
                 $addFields: {
                     avgRating: { $avg: '$reviews.rating' },
-                    reviewCount: { $size: '$reviews' }
+                    reviewCount: { $size: '$reviews' },
+                    offer: { $arrayElemAt: ['$offer', 0] }
+                }
+            },
+            {
+                $addFields: {
+                    weighstWise: {
+                        $map: {
+                            input: '$weighstWise',
+                            as: 'w',
+                            in: {
+                                $mergeObjects: [
+                                    '$$w',
+                                    {
+                                        discountPrice: {
+                                            $cond: {
+                                                if: { $ifNull: ['$offer', false] },
+                                                then: {
+                                                    $cond: {
+                                                        if: { $eq: ['$offer.offer_type', 'Discount'] },
+                                                        then: {
+                                                            $subtract: [
+                                                                '$$w.price',
+                                                                { $divide: [{ $multiply: ['$$w.price', '$offer.offer_value'] }, 100] }
+                                                            ]
+                                                        },
+                                                        else: {
+                                                            $max: [0, { $subtract: ['$$w.price', '$offer.offer_value'] }]
+                                                        }
+                                                    }
+                                                },
+                                                else: '$$w.price'
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                $addFields: {
+                    discountPrice: { $min: '$weighstWise.discountPrice' }
                 }
             }
         ]);
@@ -355,7 +441,50 @@ exports.getFeaturedProducts = async (req, res) => {
             {
                 $addFields: {
                     avgRating: { $avg: '$reviews.rating' },
-                    reviewCount: { $size: '$reviews' }
+                    reviewCount: { $size: '$reviews' },
+                    offer: { $arrayElemAt: ['$offer', 0] }
+                }
+            },
+            {
+                $addFields: {
+                    weighstWise: {
+                        $map: {
+                            input: '$weighstWise',
+                            as: 'w',
+                            in: {
+                                $mergeObjects: [
+                                    '$$w',
+                                    {
+                                        discountPrice: {
+                                            $cond: {
+                                                if: { $ifNull: ['$offer', false] },
+                                                then: {
+                                                    $cond: {
+                                                        if: { $eq: ['$offer.offer_type', 'Discount'] },
+                                                        then: {
+                                                            $subtract: [
+                                                                '$$w.price',
+                                                                { $divide: [{ $multiply: ['$$w.price', '$offer.offer_value'] }, 100] }
+                                                            ]
+                                                        },
+                                                        else: {
+                                                            $max: [0, { $subtract: ['$$w.price', '$offer.offer_value'] }]
+                                                        }
+                                                    }
+                                                },
+                                                else: '$$w.price'
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                $addFields: {
+                    discountPrice: { $min: '$weighstWise.discountPrice' }
                 }
             }
         ]);

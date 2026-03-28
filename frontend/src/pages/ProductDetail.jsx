@@ -165,7 +165,7 @@ function ProductDetail() {
                                 {[1, 2, 3, 4, 5].map((_, i) => (
                                     <AiFillStar
                                         key={i}
-                                        className={`text-base sm:text-lg ${i < (product.reviews?.length > 0 ? product.reviews.reduce((acc, r) => acc + r.rating, 0) / product.reviews.length : 4) ? "text-[#FFB81C]" : "text-[#D3D3D3]"}`}
+                                        className={`text-base sm:text-lg ${i < Math.round(product.avgRating || 0) ? "text-[#FFB81C]" : "text-[#D3D3D3]"}`}
                                     />
                                 ))}
                             </div>
@@ -175,7 +175,7 @@ function ProductDetail() {
 
                             {/* Rating Count */}
                             <span className="text-xs sm:text-sm text-gray-500">
-                                {product.reviews?.length || 0} Ratings
+                                {product.reviewCount || 0} Ratings
                             </span>
                         </div>
 
@@ -184,21 +184,22 @@ function ProductDetail() {
                             <div className="flex items-center gap-3">
                                 {/* Discounted Price */}
                                 <span className="text-2xl md:text-3xl font-bold text-[#00B880]">
-                                    ₹{product.discountPrice || (selectedVariant?.price || 0)}
+                                    ₹{selectedVariant?.discountPrice || selectedVariant?.price || 0}
                                 </span>
 
                                 {/* Original Price */}
-                                {product.discountPrice && (
+                                {selectedVariant?.discountPrice < selectedVariant?.price && (
                                     <span className="text-sm md:text-base text-gray-400 line-through">
                                         ₹{selectedVariant?.price}
                                     </span>
                                 )}
 
-
                                 {/* Discount Badge */}
-                                {product.discountPrice && (
+                                {product.offer && (
                                     <span className="text-xs md:text-sm font-medium text-red-500 bg-[#FFF1F1] px-2 py-1 rounded-md border border-[#FFE4E4]">
-                                        {Math.round(((product.weighstWise[0].price - product.discountPrice) / product.weighstWise[0].price) * 100)}% OFF
+                                        {product.offer.offer_type === 'Discount'
+                                            ? `${product.offer.offer_value}%`
+                                            : `$${product.offer.offer_value}`} OFF
                                     </span>
                                 )}
                             </div>
@@ -325,40 +326,45 @@ function ProductDetail() {
                             // Reviews Content
                             <div className="animate-fadeIn">
                                 <div className="space-y-10 mb-2">
-                                    {[
-                                        {
-                                            name: "Mariya Lykra",
-                                            rating: 4,
-                                            comment: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen.",
-                                            avatar: "https://ui-avatars.com/api/?name=Mariya+Lykra&background=random"
-                                        },
-                                        {
-                                            name: "Moris Willson",
-                                            rating: 3,
-                                            comment: "Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen.",
-                                            avatar: "https://ui-avatars.com/api/?name=Moris+Willson&background=random"
-                                        }
-                                    ].map((review, i) => (
-                                        <div key={i} className="flex gap-4 pb-8 border-b border-gray-100 last:border-0">
-                                            <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-gray-100">
-                                                <img src={review.avatar} alt={review.name} className="w-full h-full object-cover" />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <h4 className="font-semibold text-[#1F2937] text-base">{review.name}</h4>
-                                                <div className="flex items-center gap-1 py-1 text-base sm:text-lg">
-                                                    {[...Array(5)].map((_, index) => (
-                                                        <AiFillStar
-                                                            key={index}
-                                                            className={index < review.rating ? "text-orange-400" : "text-gray-200"}
-                                                        />
-                                                    ))}
+                                    {product.reviews && product.reviews.length > 0 ? (
+                                        product.reviews.map((review, i) => {
+                                            const userName = typeof review.userId === 'object' ? review.userId?.name : 'Verified Customer';
+                                            const userAvatar = typeof review.userId === 'object' && review.userId?.avatar?.url
+                                                ? review.userId.avatar.url
+                                                : `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`;
+ 
+                                            return (
+                                                <div key={review._id || i} className="flex gap-4 pb-8 border-b border-gray-100 last:border-0">
+                                                    <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-gray-100">
+                                                        <img src={userAvatar} alt={userName} className="w-full h-full object-cover" />
+                                                    </div>
+                                                    <div className="space-y-1 flex-1">
+                                                        <div className="flex items-center justify-between">
+                                                            <h4 className="font-semibold text-[#1F2937] text-base">{userName}</h4>
+                                                            <span className="text-xs text-gray-400">
+                                                                {new Date(review.createdAt).toLocaleDateString()}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1 py-1 text-base sm:text-lg">
+                                                            {[...Array(5)].map((_, index) => (
+                                                                <AiFillStar
+                                                                    key={index}
+                                                                    className={index < review.rating ? "text-orange-400" : "text-gray-200"}
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                        <p className="text-gray-500 text-sm sm:text-base leading-relaxed">
+                                                            {review.comment}
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                                <p className="text-gray-500 text-sm sm:text-base leading-relaxed">
-                                                    {review.comment}
-                                                </p>
-                                            </div>
+                                            );
+                                        })
+                                    ) : (
+                                        <div className="text-center py-10">
+                                            <p className="text-gray-500">No reviews yet. Be the first to review this product!</p>
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
 
                                 {/* Add a Review Form */}

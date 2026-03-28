@@ -11,7 +11,7 @@ import AboutImg4 from '../Image/about6.jpg'
 
 export default function About() {
   return (
-    <div className="min-h-screen  px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen">
 
       <div className="container mx-auto w-full space-y-8 py-12">
         <div className=" mx-auto px-4 lg:px-6">
