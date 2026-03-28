@@ -237,8 +237,8 @@ const Dashboard = () => {
             <h3 className="text-xl font-bold">Orders Analytics</h3>
             <div className="flex items-center gap-6">
               <CustomSelect
-                options={['2025', '2024', '2023']}
-                defaultValue="2025"
+                options={['2026','2025', '2024', '2023']}
+                defaultValue="2026"
                 onChange={(year) => console.log('Selected year:', year)}
               />
             </div>

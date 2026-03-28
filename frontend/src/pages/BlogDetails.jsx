@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getBlogById } from '../redux/slice/blog.slice';
 import Subscribe from './Subscribe';
 import Newsletter from '../component/Newsletter';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 function BlogDetails() {
     const { id } = useParams();
@@ -36,10 +37,19 @@ function BlogDetails() {
     }
 
     return (
-        <div className="w-full container mx-auto p-4 sm:p-6 lg:p-8 mt-10 mb-20 animate-fade-in font-jost">
-            <Link to="/blog" className="text-primary hover:underline mb-8 inline-block font-medium flex items-center gap-2 group decoration-2 underline-offset-4">
-                <span className="group-hover:-translate-x-1 transition-transform">&larr;</span> Back to Blogs
-            </Link>
+        <div className="w-full container mx-auto px-4 mb-20 animate-fade-in font-jost">
+            <div className=" py-12 ">
+                <div className=" mx-auto px-4 lg:px-6">
+                    <h1 className="text-[28px] sm:text-[32px] font-bold text-[#1e5066] mb-3 text-left">Blog Details</h1>
+                    <div className="flex items-center gap-1 text-[14px] text-gray-500 font-medium">
+                        <Link to="/" className="hover:text-[var(--primary)] transition-colors">Home</Link>
+                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                        <Link to="/blog" className="hover:text-[var(--primary)] transition-colors">Blog</Link>
+                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                        <span className="text-[var(--primary)] font-bold">Blog Details</span>
+                    </div>
+                </div>
+            </div>
 
             <div className="">
                 <div className="w-full h-[300px] sm:h-[400px] md:h-[500px] relative">
@@ -50,7 +60,7 @@ function BlogDetails() {
                     />
                 </div>
 
-                <div className="py-6 sm:py-8 md:py-12">
+                <div className="">
                     <div className="flex flex-wrap items-center gap-4 mb-6">
                         <span className="bg-primary/10 text-primary py-1.5 rounded-full font-bold text-xs uppercase tracking-wider">
                             {post.blogCategoryId?.blogCategoryName || 'General'}
@@ -116,6 +126,11 @@ function BlogDetails() {
                                 </p>
                             </div>
                         )}
+
+                        <div className=" mt-10 ">
+                            <Link to="/blog" className="px-3 flex w-fit items-center gap-2 py-2.5 text-black  border  font-semibold "> <ChevronLeft className="w-4 h-4" /> Back to Blogs</Link>
+                        </div>
+
                     </div>
                 </div>
             </div>

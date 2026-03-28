@@ -48,16 +48,16 @@ const shippingData = [
 function ShippingPolicy() {
     return (
         <div className="min-h-screen px-4 sm:px-6 lg:px-8">
-            <div className="bg-[#f8f9fa] border-b border-gray-100 py-10 md:py-14 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-[1440px] mx-auto px-2 md:px-0 lg:px-4">
-                    <h1 className="text-3xl md:text-[40px] font-bold text-[#1a1a1a] mb-3 tracking-tight">Shipping Policy</h1>
-                    <div className="flex items-center gap-2 text-[13px] md:text-sm text-gray-400 font-medium">
-                        <Link to="/" className="hover:text-primary transition-colors">Home</Link>
-                        <span className="text-gray-300 font-light">&gt;</span>
-                        <span className="text-gray-600">Shipping Policy</span>
+             <div className="container mx-auto w-full space-y-8 py-12">
+                    <div className=" mx-auto px-4 lg:px-6">
+                      <h1 className="text-[28px] sm:text-[32px] font-bold text-[#1e5066] mb-3 text-left">Shipping Policy</h1>
+                      <div className="flex items-center gap-1 text-[14px] text-gray-500 font-medium">
+                        <Link to="/" className="hover:text-[var(--primary)] transition-colors">Home</Link>
+                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                        <span className="text-[var(--primary)] font-bold">Shipping Policy</span>
+                      </div>
                     </div>
-                </div>
-            </div>
+                  </div>
 
             <main className="container mx-auto py-12 px-4">
                 <div className="space-y-8">

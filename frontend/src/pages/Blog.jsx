@@ -19,18 +19,18 @@ function Blog() {
     return (
         <div className="min-h-screen  px-4 sm:px-6 lg:px-8">
 
-            <div className="bg-[#f8f9fa] border-b border-gray-100 py-10 md:py-14 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-[1440px] mx-auto px-2 md:px-0 lg:px-4">
-                    <h1 className="text-3xl md:text-[40px] font-bold text-[#1a1a1a] mb-3 tracking-tight">Blog</h1>
-                    <div className="flex items-center gap-2 text-[13px] md:text-sm text-gray-400 font-medium">
-                        <Link to="/" className="hover:text-primary transition-colors">Home</Link>
-                        <span className="text-gray-300 font-light">&gt;</span>
-                        <span className="text-gray-600">Blog</span>
+            <div className="container mx-auto w-full space-y-8 py-12">
+                <div className=" mx-auto px-4 lg:px-6">
+                    <h1 className="text-[28px] sm:text-[32px] font-bold text-[#1e5066] mb-3 text-left">Blog</h1>
+                    <div className="flex items-center gap-1 text-[14px] text-gray-500 font-medium">
+                        <Link to="/" className="hover:text-[var(--primary)] transition-colors">Home</Link>
+                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                        <span className="text-[var(--primary)] font-bold">Blog</span>
                     </div>
                 </div>
             </div>
 
-            <main className="container mx-auto px-4 py-12">
+            <main className="container mx-auto px-4">
                 {loading ? (
                     <div className="flex items-center justify-center py-20">
                         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--primary)]"></div>
