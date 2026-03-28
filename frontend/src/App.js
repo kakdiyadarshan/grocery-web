@@ -19,7 +19,7 @@ import BlogDetails from './pages/BlogDetails';
 import ProductDetail from './pages/ProductDetail';
 import CheckOut from './pages/CheckOut';
 import MyOrder from './pages/MyOrder';
-import InvoicePage from './pages/InvoicePage';
+// import InvoicePage from './pages/InvoicePage';
 import Shop from './pages/Shop';
 
 
@@ -85,7 +85,7 @@ function App() {
             <Route path="/my-order" element={<MyOrder />} />
             <Route path='/order-tracking' element={<OrderTracking />} />
             <Route path='/order-completed' element={<OrderCompleted />} />
-            <Route path='/invoice' element={<InvoicePage />} />
+            {/* <Route path='/invoice' element={<InvoicePage />} /> */}
             <Route path="/shop" element={<Shop />} />
           </Route>
         </Route>

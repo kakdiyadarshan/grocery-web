@@ -68,6 +68,23 @@ export const getOrderById = createAsyncThunk(
     }
 );
 
+export const cancelOrder = createAsyncThunk(
+    'order/cancelOrder',
+    async (orderId, { dispatch, rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.put(`${BASE_URL}/cancelOrder/${orderId}`, {}, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            return response.data.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
 
 const orderSlice = createSlice({
 
@@ -101,6 +118,16 @@ const orderSlice = createSlice({
                 state.currentOrder = action.payload;
             })
             .addCase(getOrderById.rejected, (state) => { state.loading = false; })
+
+            .addCase(cancelOrder.pending, (state) => { state.loading = true; })
+            .addCase(cancelOrder.fulfilled, (state, action) => {
+                state.loading = false;
+                const cancelledOrder = action.payload;
+                state.orders = state.orders.map(order => 
+                    order._id === cancelledOrder._id ? cancelledOrder : order
+                );
+            })
+            .addCase(cancelOrder.rejected, (state) => { state.loading = false; })
 
 
     }
