@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import subscribeimg from "../assets/image/subscribeimg.png"
+import subscribeimg from "../Image/cat1.png"
 import { useDispatch, useSelector } from 'react-redux';
 import { subscribeNewsletter } from '../redux/slice/subscribe.slice';
 

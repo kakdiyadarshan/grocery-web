@@ -4,6 +4,10 @@ import Subscribe from './Subscribe';
 import { Link } from 'react-router-dom';
 import { ChevronRight, CreditCard, Sparkles, ShieldCheck, Timer } from 'lucide-react';
 import Newsletter from '../component/Newsletter';
+import AboutImg1 from '../Image/about1.jpeg'
+import AboutImg2 from '../Image/about5.jpg'
+import AboutImg3 from '../Image/about3.avif'
+import AboutImg4 from '../Image/about6.jpg'
 
 export default function About() {
   return (
@@ -30,22 +34,22 @@ export default function About() {
             {/* Images Grid */}
             <div className="w-full lg:w-1/2 grid grid-cols-2 gap-4">
               <img
-                src="https://retailinsider.b-cdn.net/wp-content/uploads/2020/03/shutterstock_373602469.jpg"
+                src={AboutImg1}
                 alt="Grocery delivery"
                 className="w-full h-full object-cover rounded-xl shadow-sm"
               />
               <img
-                src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&h=400&q=80"
+                src={AboutImg2}
                 alt="Fresh vegetables stand"
                 className="w-full h-full object-cover rounded-xl shadow-sm"
               />
               <img
-                src="https://cdn.metro-online.com/-/media/Project/MCW/PK_Metro/2020-to-2021/Product-world-small-banners/14-Grocery-World.jpg?rev=8746957d463b4e61bc45e75c415024d3%22"
+                src={AboutImg4}
                 alt="Grocery delivery interaction"
                 className="w-full h-full object-cover rounded-xl shadow-sm"
               />
               <img
-                src="https://img-cdn.misfitsmarket.com/melodious-taiyaki-9pkr2z/aH6BNUMqNJQqILDE_20240730_Assortment_4_Fill.jpg%22"
+                src={AboutImg3}
                 alt="Fresh vegetables closeup"
                 className="w-full h-full object-cover rounded-xl shadow-sm"
               />

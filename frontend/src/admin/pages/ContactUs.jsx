@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllContacts, deleteContact } from '../../redux/slice/contact.slice';
 import Table from '../component/DataTable';
@@ -21,11 +21,9 @@ const ContactUs = () => {
         setIsViewModalOpen(true);
     };
 
-    const handleDelete = async (contact) => {
-        if (window.confirm(`Are you sure you want to delete the contact from "${contact.name}"?`)) {
-            await dispatch(deleteContact(contact._id));
-        }
-    };
+    const handleDelete = useCallback(async (contact) => {
+        dispatch(deleteContact(contact._id));
+    }, [dispatch]);
 
     const formatDate = (dateStr) => {
         if (!dateStr) return '-';

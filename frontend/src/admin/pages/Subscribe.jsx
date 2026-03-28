@@ -1,14 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAllSubscribers, deleteSubscriber } from '../../redux/slice/subscribe.slice';
+import { getAllSubscribers, deleteSubscriber, sendOfferEmail } from '../../redux/slice/subscribe.slice';
 import Table from '../component/DataTable';
 import Breadcrumb from '../component/Breadcrumb';
-import { FiRefreshCw, FiTrash2, FiMail, FiX } from 'react-icons/fi';
+import { FiMail, FiX, FiSend } from 'react-icons/fi';
 
 const Subscribe = () => {
     const dispatch = useDispatch();
-    const { subscribers: data, loading, submitLoading } = useSelector((state) => state.subscribe);
-    const [deleteItem, setDeleteItem] = useState(null);
+    const { subscribers: data, loading, submitLoading, emailLoading } = useSelector((state) => state.subscribe);
+
+    const [showEmailModal, setShowEmailModal] = useState(false);
+    const [emailForm, setEmailForm] = useState({ subject: '', message: '' });
+    const [errors, setErrors] = useState({});
 
     const fetchSubscribers = () => {
         dispatch(getAllSubscribers());
@@ -57,17 +60,36 @@ const Subscribe = () => {
         }
     ];
 
-    const handleDelete = (item) => {
-        setDeleteItem(item);
+    const handleDelete = useCallback(async (contact) => {
+        dispatch(deleteSubscriber(contact._id));
+    }, [dispatch]);
+
+    const validate = () => {
+        const newErrors = {};
+        if (!emailForm.subject.trim()) newErrors.subject = 'Subject is required.';
+        if (!emailForm.message.trim()) newErrors.message = 'Message is required.';
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
 
-    const confirmDelete = async () => {
-        if (!deleteItem) return;
-        const result = await dispatch(deleteSubscriber(deleteItem._id));
-        if (result.type.endsWith('/fulfilled')) {
-            setDeleteItem(null);
+    const handleSendEmail = async () => {
+        if (!validate()) return;
+        const result = await dispatch(sendOfferEmail({ subject: emailForm.subject, message: emailForm.message }));
+        if (result.meta.requestStatus === 'fulfilled') {
+            setShowEmailModal(false);
+            setEmailForm({ subject: '', message: '' });
+            setErrors({});
         }
     };
+
+    const handleCloseModal = () => {
+        setShowEmailModal(false);
+        setEmailForm({ subject: '', message: '' });
+        setErrors({});
+    };
+
+    const activeCount = data?.filter(s => s.status === 'Active').length || 0;
+    const thisMonthCount = data?.filter(s => new Date(s.createdAt).getMonth() === new Date().getMonth()).length || 0;
 
     return (
         <div className="py-8">
@@ -83,19 +105,14 @@ const Subscribe = () => {
                     <Breadcrumb />
                 </div>
                 <div className="flex items-center gap-3">
-                    {/* <button
-                        onClick={fetchSubscribers}
-                        className="flex items-center gap-2 px-4 py-2 text-gray-600  transition-all font-medium text-sm "
+                    <button
+                        onClick={() => setShowEmailModal(true)}
+                        disabled={!activeCount}
+                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-[4px] hover:bg-primaryHover transition-all font-medium text-sm shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <FiRefreshCw size={16} className={loading ? 'animate-spin' : ''} />
- 
-                    </button> */}
-                    {/* <button
-                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-[4px] hover:bg-primaryHover transition-all font-medium text-sm shadow-lg shadow-primary/20"
-                    >
-                        <FiMail size={16} />
-                        Export Emails
-                    </button> */}
+                        <FiSend size={15} />
+                        Send Offer Email
+                    </button>
                 </div>
             </div>
 
@@ -116,9 +133,7 @@ const Subscribe = () => {
                     </div>
                     <div>
                         <p className="text-sm text-gray-500 font-medium">Active This Month</p>
-                        <h4 className="text-xl font-bold text-gray-800">
-                            {data?.filter(s => new Date(s.createdAt).getMonth() === new Date().getMonth()).length || 0}
-                        </h4>
+                        <h4 className="text-xl font-bold text-gray-800">{thisMonthCount}</h4>
                     </div>
                 </div>
             </div>
@@ -140,40 +155,103 @@ const Subscribe = () => {
                 />
             )}
 
-            {/* Delete Confirmation Modal */}
-            {deleteItem && (
+            {/* Send Offer Email Modal */}
+            {showEmailModal && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-[4px] shadow-2xl w-full max-w-sm overflow-hidden font-jost">
-                        <div className="p-6 text-center">
-                            <div className="mx-auto w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
-                                <FiTrash2 className="text-red-500 text-2xl" />
+                    <div className="bg-white rounded-[8px] shadow-2xl w-full max-w-lg overflow-hidden font-jost">
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
+                                    <FiSend size={16} />
+                                </div>
+                                <div>
+                                    <h3 className="text-base font-bold text-gray-800">Send Offer Email</h3>
+                                    <p className="text-xs text-gray-400">Will be sent to {activeCount} active subscriber(s)</p>
+                                </div>
                             </div>
-                            <h3 className="text-xl font-bold text-gray-800 mb-2">Unsubscribe User</h3>
-                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-                                Are you sure you want to remove <span className="font-semibold text-gray-700 italic">"{deleteItem.email}"</span>? They will no longer receive newsletter updates.
-                            </p>
+                            <button
+                                onClick={handleCloseModal}
+                                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-all"
+                            >
+                                <FiX size={18} />
+                            </button>
+                        </div>
 
-                            <div className="flex justify-center gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => setDeleteItem(null)}
-                                    className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-[4px] hover:bg-gray-200 transition-all italic"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={confirmDelete}
-                                    disabled={submitLoading}
-                                    className="flex-1 px-4 py-2.5 text-sm font-bold text-white bg-red-500 rounded-[4px] hover:bg-red-600 transition-all flex items-center justify-center gap-2"
-                                >
-                                    {submitLoading ? (
-                                        <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                                    ) : (
-                                        'Confirm Deletion'
-                                    )}
-                                </button>
+                        {/* Modal Body */}
+                        <div className="px-6 py-5 space-y-4">
+                            {/* Subject */}
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                    Email Subject <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. 🎉 Exclusive 30% OFF on Fresh Vegetables!"
+                                    value={emailForm.subject}
+                                    onChange={(e) => {
+                                        setEmailForm(prev => ({ ...prev, subject: e.target.value }));
+                                        if (errors.subject) setErrors(prev => ({ ...prev, subject: '' }));
+                                    }}
+                                    className={`w-full px-4 py-2.5 border rounded-[4px] text-sm outline-none transition-all focus:ring-2 focus:ring-primary/20 focus:border-primary ${errors.subject ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}
+                                />
+                                {errors.subject && <p className="text-red-500 text-xs mt-1">{errors.subject}</p>}
                             </div>
+
+                            {/* Message */}
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                    Message / Offer Details <span className="text-red-500">*</span>
+                                </label>
+                                <textarea
+                                    rows={5}
+                                    placeholder="Write your offer details here... e.g. Get 30% off on all vegetables this weekend only. Use code FRESH30 at checkout!"
+                                    value={emailForm.message}
+                                    onChange={(e) => {
+                                        setEmailForm(prev => ({ ...prev, message: e.target.value }));
+                                        if (errors.message) setErrors(prev => ({ ...prev, message: '' }));
+                                    }}
+                                    className={`w-full px-4 py-2.5 border rounded-[4px] text-sm outline-none transition-all focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none ${errors.message ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}
+                                />
+                                {errors.message && <p className="text-red-500 text-xs mt-1">{errors.message}</p>}
+                            </div>
+
+                            {/* Info note */}
+                            <div className="flex items-start gap-2.5 bg-blue-50 border border-blue-100 rounded-[4px] px-4 py-3">
+                                <FiMail size={15} className="text-blue-500 mt-0.5 shrink-0" />
+                                <p className="text-xs text-blue-600 leading-relaxed">
+                                    This email will be sent to all <strong>{activeCount} active</strong> subscriber(s). A professional HTML email template will be used automatically.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="flex sm:justify-end justify-center gap-3 sm:px-6 px-2 py-4 border-t border-gray-100 bg-gray-50">
+                            <button
+                                type="button"
+                                onClick={handleCloseModal}
+                                className="px-5 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-[4px] hover:bg-gray-100 transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleSendEmail}
+                                disabled={emailLoading}
+                                className="px-5 py-2 text-sm font-bold text-white bg-primary rounded-[4px] hover:bg-primaryHover transition-all flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                                {emailLoading ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        Sending...
+                                    </>
+                                ) : (
+                                    <>
+                                        <FiSend size={14} />
+                                        Send to All
+                                    </>
+                                )}
+                            </button>
                         </div>
                     </div>
                 </div>
