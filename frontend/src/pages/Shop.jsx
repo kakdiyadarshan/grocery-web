@@ -9,7 +9,7 @@ import { addToCart } from '../redux/slice/cart.slice';
 import { getWishlist, addToWishlist, removeFromWishlist } from '../redux/slice/wishlist.slice';
 
 
-const Shop = () => {  
+const Shop = () => {
     const dispatch = useDispatch();
     const location = useLocation();
     const { products = [], loading = false } = useSelector((state) => state.product || {});
@@ -18,17 +18,17 @@ const Shop = () => {
     const wishlistItems = wishlist?.items || [];
     const [searchParams, setSearchParams] = useSearchParams();
     const categoryParam = searchParams.get('category');
- 
+
     const [viewType, setViewType] = useState('grid');
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [sortBy, setSortBy] = useState('alphabetical-az');
- 
+
     // Filter states
     const [selectedAvailability, setSelectedAvailability] = useState([]);
     const [priceRange, setPriceRange] = useState({ min: '', max: '' });
     const [selectedWeights, setSelectedWeights] = useState([]);
     const [selectedCategories, setSelectedCategories] = useState(categoryParam ? [categoryParam] : []);
-    
+
     // Toggle state for filter sections
     const [expandedFilters, setExpandedFilters] = useState({
         categories: true,
@@ -46,7 +46,7 @@ const Shop = () => {
         dispatch(getAllCategories());
         dispatch(getWishlist());
     }, [dispatch]);
- 
+
     useEffect(() => {
         if (categoryParam) {
             setSelectedCategories([categoryParam]);
@@ -77,7 +77,7 @@ const Shop = () => {
             else outOfStockCount++;
 
             // Weights
-            const productWeights = new Set(product.weighstWise?.map(w => w.weight) || []);
+            const productWeights = new Set(product.weighstWise?.map(w => w.unit ? `${w.weight} ${w.unit}` : w.weight) || []);
             productWeights.forEach(weight => {
                 weightsMap.set(weight, (weightsMap.get(weight) || 0) + 1);
             });
@@ -138,7 +138,10 @@ const Shop = () => {
         // 4. Filter by Weight
         if (selectedWeights.length > 0) {
             result = result.filter(product =>
-                product.weighstWise?.some(w => selectedWeights.includes(w.weight))
+                product.weighstWise?.some(w => {
+                    const weightLabel = w.unit ? `${w.weight} ${w.unit}` : w.weight;
+                    return selectedWeights.includes(weightLabel);
+                })
             );
         }
 
@@ -239,8 +242,8 @@ const Shop = () => {
                             {/* Categories Section */}
                             {filterOptions.categories.length > 0 && (
                                 <section className="bg-white p-5 lg:p-6 rounded-md border border-gray-100">
-                                    <button 
-                                        onClick={() => toggleFilter('categories')} 
+                                    <button
+                                        onClick={() => toggleFilter('categories')}
                                         className="w-full flex items-center justify-between font-bold text-[14px] text-gray-900 tracking-wider transition-opacity hover:opacity-80"
                                     >
                                         CATEGORIES
@@ -278,8 +281,8 @@ const Shop = () => {
 
                             {/* Price Section */}
                             <section className="bg-white p-5 lg:p-6 rounded-md border border-gray-100">
-                                <button 
-                                    onClick={() => toggleFilter('price')} 
+                                <button
+                                    onClick={() => toggleFilter('price')}
                                     className="w-full flex items-center justify-between font-bold text-[14px] text-gray-900 tracking-wider transition-opacity hover:opacity-80"
                                 >
                                     PRICE RANGE
@@ -292,7 +295,7 @@ const Shop = () => {
                                         <span className="inline-block w-1 h-1 rounded-full bg-gray-300"></span>
                                         Highest price is ${filterOptions.maxPrice.toFixed(2)}
                                     </p>
-                                    
+
                                     <div className="flex items-center gap-2">
                                         <div className="relative flex-1 group">
                                             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[13px] font-medium transition-colors">$</div>
@@ -323,8 +326,8 @@ const Shop = () => {
 
                             {/* Availability Section */}
                             <section className="bg-white p-5 lg:p-6 rounded-md border border-gray-100">
-                                <button 
-                                    onClick={() => toggleFilter('availability')} 
+                                <button
+                                    onClick={() => toggleFilter('availability')}
                                     className="w-full flex items-center justify-between font-bold text-[14px] text-gray-900 tracking-wider transition-opacity hover:opacity-80"
                                 >
                                     AVAILABILITY
@@ -346,7 +349,7 @@ const Shop = () => {
                                                             className="peer sr-only"
                                                         />
                                                         <div className={`w-5 h-5 rounded-[4px] border transition-all duration-200 flex items-center justify-center
-                                                            ${item.id === 'in-stock' 
+                                                            ${item.id === 'in-stock'
                                                                 ? (isChecked ? 'bg-emerald-500 border-emerald-500' : 'border-emerald-300/70 group-hover:border-emerald-400')
                                                                 : (isChecked ? 'bg-rose-400 border-rose-400' : 'border-rose-200/80 group-hover:border-rose-300')}`}>
                                                             <svg className="w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity duration-200 scale-50 peer-checked:scale-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -368,8 +371,8 @@ const Shop = () => {
                             {/* Weight Section */}
                             {filterOptions.weights.length > 0 && (
                                 <section className="bg-white p-5 lg:p-6 rounded-md border border-gray-100">
-                                    <button 
-                                        onClick={() => toggleFilter('weights')} 
+                                    <button
+                                        onClick={() => toggleFilter('weights')}
                                         className="w-full flex items-center justify-between font-bold text-[14px] text-gray-900 tracking-wider transition-opacity hover:opacity-80"
                                     >
                                         WEIGHT
@@ -389,8 +392,8 @@ const Shop = () => {
                                                         className="sr-only"
                                                     />
                                                     <div className={`px-3 py-1.5 rounded-lg text-[13px] font-semibold transition-all duration-200 border flex items-center gap-1.5 focus-within:ring-2 focus-within:ring-[var(--primary)]/30
-                                                        ${isSelected 
-                                                            ? 'bg-[var(--primary)] border-[var(--primary)] text-white' 
+                                                        ${isSelected
+                                                            ? 'bg-[var(--primary)] border-[var(--primary)] text-white'
                                                             : 'bg-white border-gray-200 text-gray-700 hover:border-gray-300 hover:text-gray-900'}`}>
                                                         {item.label}
                                                         <span className={`flex items-center justify-center text-[10px] font-bold h-[18px] min-w-[18px] px-1 rounded-md ${isSelected ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'}`}>
@@ -489,7 +492,7 @@ const Shop = () => {
                             </div>
                         ) : (
                             <div className={viewType === 'grid'
-                                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
+                                ? "grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
                                 : "flex flex-col gap-6"
                             }>
                                 {filteredProducts.map((product) => {
@@ -501,33 +504,33 @@ const Shop = () => {
                                     const avgRating = product.reviews?.length > 0
                                         ? product.reviews.reduce((acc, rev) => acc + (rev.rating || 0), 0) / product.reviews.length
                                         : 0;
- 
+
                                     return (
-                                        <div 
-                                            key={product._id} 
-                                            className={`group relative bg-white border border-gray-200 hover:border-[var(--primary)] rounded-md p-3 sm:p-4 transition-all duration-300 cursor-pointer
-                                                ${viewType === 'list' ? 'flex flex-col sm:flex-row gap-4 sm:gap-6 items-center sm:items-stretch' : 'flex flex-col h-full'}`}
+                                        <div
+                                            key={product._id}
+                                            className={`group relative bg-white border border-gray-200 hover:border-[var(--primary)] rounded-xl transition-all duration-300 cursor-pointer overflow-hidden
+                                                ${viewType === 'list' ? 'flex flex-col sm:flex-row gap-0 sm:gap-6 items-center sm:items-stretch p-0 sm:p-4' : 'flex flex-col h-full'}`}
                                             onClick={() => document.getElementById(`link-${product._id}`).click()}
                                         >
                                             {/* Hidden Link for entire card click */}
                                             <Link id={`link-${product._id}`} to={`/product-details/${product._id}`} className="hidden">{product.name}</Link>
 
                                             {/* Top left badges */}
-                                            <div className="absolute top-5 left-5 z-20 flex flex-col gap-1.5 pointer-events-none">
+                                            <div className="absolute top-4 left-4 z-20 flex flex-col gap-1.5 pointer-events-none">
                                                 {hasDiscount && (
-                                                    <span className="bg-[#E73959] text-white text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded shadow-sm tracking-widest uppercase">
+                                                    <span className="bg-[#E73959] text-white text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-sm shadow-sm tracking-wide uppercase">
                                                         {Math.round(((minPrice - product.discountPrice) / minPrice) * 100)}% OFF
                                                     </span>
                                                 )}
                                                 {outOfStock && (
-                                                    <span className="bg-gray-900/90 text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded shadow-sm tracking-wide">
+                                                    <span className="bg-gray-900/90 text-white text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-sm shadow-sm tracking-wide">
                                                         SOLD OUT
                                                     </span>
                                                 )}
                                             </div>
 
                                             {/* Floating Actions - Top Right */}
-                                            <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">
+                                            <div className={`absolute top-4 right-4 z-20 flex flex-col gap-2 transition-all duration-300 ${viewType === 'grid' ? 'opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0' : ''}`}>
                                                 {/* Wishlist */}
                                                 {(() => {
                                                     const isInWishlist = wishlistItems.some(wish => {
@@ -545,66 +548,81 @@ const Shop = () => {
                                                                     dispatch(addToWishlist(product._id));
                                                                 }
                                                             }}
-                                                            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full shadow-sm flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 bg-white/95 backdrop-blur-[2px] border border-gray-100 ${isInWishlist
-                                                                ? 'text-[#FF424E]'
-                                                                : 'text-gray-400 hover:text-[#FF424E]'
+                                                            className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 bg-white border border-gray-100/50 ${isInWishlist
+                                                                ? 'text-[var(--primary)]'
+                                                                : 'text-[#62728f] hover:text-[var(--primary)]'
                                                                 }`}
                                                             title={isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
                                                         >
-                                                            <Heart size={14} fill={isInWishlist ? "currentColor" : "none"} className={isInWishlist ? 'scale-110' : ''} />
+                                                            <Heart size={18} fill={isInWishlist ? "currentColor" : "none"} className={isInWishlist ? 'scale-110' : ''} />
                                                         </button>
                                                     );
                                                 })()}
+                                                {/* Add to Cart */}
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        if (!outOfStock) dispatch(addToCart({ productId: product._id, quantity: 1 }));
+                                                    }}
+                                                    disabled={outOfStock}
+                                                    className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 bg-white border border-gray-100/50 text-[#62728f] hover:text-[var(--primary)] disabled:opacity-50 disabled:cursor-not-allowed`}
+                                                    title="Add to Cart"
+                                                >
+                                                    <ShoppingCart size={18} />
+                                                </button>
                                                 {/* Quick View */}
                                                 <Link
                                                     to={`/product-details/${product._id}`}
                                                     onClick={(e) => e.stopPropagation()}
-                                                    className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full shadow-sm flex items-center justify-center transition-all duration-300 bg-white/95 backdrop-blur-[2px] border border-gray-100 text-gray-500 hover:text-[var(--primary)] active:scale-95 ${viewType === 'grid' ? 'opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0' : ''}`}
+                                                    className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center transition-all duration-300 bg-white border border-gray-100/50 text-[#62728f] hover:text-[var(--primary)] hover:scale-105 active:scale-95`}
                                                     title="Quick View"
                                                 >
-                                                    <Eye size={14} />
+                                                    <Eye size={18} />
                                                 </Link>
                                             </div>
 
                                             {/* Product Image Section */}
-                                            <div className={`relative shrink-0 rounded-xl bg-[#F8F9FA] overflow-hidden group-hover:bg-[#F1F3F5] transition-colors duration-300
-                                                ${viewType === 'list' ? 'w-full sm:w-[220px] aspect-square' : 'w-full aspect-square mb-3 sm:mb-4'}`}>
-                                                
-                                                <div className="w-full h-full p-4 sm:p-6 flex items-center justify-center relative">
+                                            <div className={`relative shrink-0 overflow-hidden bg-white
+                                                ${viewType === 'list' ? 'w-full sm:w-[260px] aspect-auto h-full sm:h-[200px]' : 'w-full aspect-[4/3] pt-6 pb-2 px-6'}`}>
+
+                                                <div className="w-full h-full flex items-center justify-center relative">
                                                     <img
                                                         src={product.images?.[0]?.url || 'https://via.placeholder.com/400?text=No+Image'}
                                                         alt={product.name}
-                                                        className={`max-w-full max-h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-110 ${outOfStock ? 'grayscale opacity-70' : ''}`}
+                                                        className={`max-w-full max-h-[160px] object-contain transition-transform duration-500 group-hover:scale-105 ${outOfStock ? 'grayscale opacity-70' : ''}`}
                                                     />
                                                 </div>
                                             </div>
 
                                             {/* Product Info Section */}
-                                            <div className={`flex flex-col flex-grow w-full ${viewType === 'list' ? 'py-1 sm:py-2' : ''}`}>
-                                                
-                                                {/* Category & Rating Row */}
-                                                <div className="flex items-center justify-between gap-2 mb-2">
-                                                    <span className="text-[10px] sm:text-[11px] text-gray-400 font-bold uppercase tracking-[0.15em] line-clamp-1">
-                                                        {product.category?.categoryName || 'GENERAL'}
-                                                    </span>
-                                                    {avgRating > 0 && (
-                                                        <div className="flex items-center gap-1 bg-green-50 px-1.5 py-0.5 rounded text-green-700">
-                                                            <span className="text-[10px] sm:text-[11px] font-bold leading-none">{avgRating.toFixed(1)}</span>
-                                                            <Star size={10} fill="currentColor" className="mb-[1px]" />
-                                                        </div>
-                                                    )}
+                                            <div className={`flex flex-col flex-grow w-full ${viewType === 'list' ? 'p-4 sm:py-4 sm:px-0' : 'p-4 sm:p-5 pt-2'}`}>
+
+                                                {/* Category */}
+                                                <div className="text-[13px] text-[#8e9aab] mb-1.5 font-medium transition-colors">
+                                                    {product.category?.categoryName || 'Vegetables'}
                                                 </div>
 
                                                 {/* Title */}
-                                                <h3 className="text-[14px] sm:text-[15px] font-bold text-[#1F2937] leading-snug mb-1 line-clamp-2 group-hover:text-[var(--primary)] transition-colors">
+                                                <h3 className="text-[16px] font-[700] text-[#112a46] leading-snug mb-2 line-clamp-2 group-hover:text-[var(--primary)] transition-colors">
                                                     {product.name}
                                                 </h3>
-                                                
+
+                                                {/* Rating */}
+                                                <div className="flex items-center gap-1.5 mb-3">
+                                                    <div className="flex items-center text-[#e2e8f0]">
+                                                        {[...Array(5)].map((_, i) => (
+                                                            <Star key={i} size={14} fill={i < Math.round(avgRating) ? "#fbbf24" : "#e2e8f0"} className={i < Math.round(avgRating) ? "text-[#fbbf24]" : "text-[#e2e8f0]"} />
+                                                        ))}
+                                                    </div>
+                                                    <span className="text-[13px] text-[#8e9aab] font-medium">({product.reviews?.length || 0})</span>
+                                                </div>
+
                                                 {/* Weight Push (Optional placeholder area) */}
                                                 <div className="flex-grow"></div>
 
                                                 {/* Bottom Row: Price & Add Button */}
-                                                <div className={`flex items-center justify-between mt-4 ${viewType === 'list' ? 'pt-4 sm:pt-5 border-t border-gray-100' : 'pt-2'}`}>
+                                                <div className={`flex items-center justify-between ${viewType === 'list' ? 'pt-2' : 'pt-1'}`}>
                                                     <div className="flex flex-col relative top-0.5">
                                                         {hasDiscount ? (
                                                             <>
@@ -614,37 +632,29 @@ const Shop = () => {
                                                                 <span className="text-[17px] sm:text-[18px] font-[600] text-gray-900 leading-none tracking-tight">
                                                                     ${(Number(product.discountPrice || minPrice) || 0).toFixed(2)}
                                                                 </span>
-                                                            </>
+                                                            </div>
                                                         ) : (
-                                                            <span className="text-[17px] sm:text-[18px] font-[600] text-gray-900 leading-none tracking-tight">
+                                                            <span className="text-[18px] sm:text-[20px] font-bold text-[var(--primary)] leading-none tracking-tight">
                                                                 ${(Number(minPrice) || 0).toFixed(2)}
                                                             </span>
                                                         )}
                                                     </div>
-                                                    
-                                                    {/* Premium ADD Button */}
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.preventDefault();
-                                                            e.stopPropagation();
-                                                            if (!outOfStock) dispatch(addToCart({ productId: product._id, quantity: 1 }));
-                                                        }}
-                                                        disabled={outOfStock}
-                                                        className={`relative overflow-hidden flex items-center justify-center gap-2 font-[600] transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed
-                                                            ${viewType === 'list' 
-                                                                ? 'h-10 px-6 bg-[var(--primary)] text-white rounded-md hover:bg-[var(--primary-hover)]' 
-                                                                : 'h-8 px-5 bg-[var(--primary)] text-white sm:bg-green-50/80 sm:text-[var(--primary)] sm:border sm:border-[var(--primary)]/20 rounded hover:bg-[var(--primary)] hover:border-[var(--primary)] hover:text-white group-hover:bg-[var(--primary)] group-hover:text-white'
-                                                            }`}
-                                                    >
-                                                        {viewType === 'list' ? (
-                                                            <>
-                                                                <ShoppingCart size={16} />
-                                                                <span className="text-[13px] sm:text-[14px]">Add to Cart</span>
-                                                            </>
-                                                        ) : (
-                                                            <span className="text-[12px] sm:text-[13px] tracking-wide relative top-[0.5px]">ADD</span>
-                                                        )}
-                                                    </button>
+
+                                                    {/* Add Button for list view only (since grid has floating cart) */}
+                                                    {viewType === 'list' && (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                if (!outOfStock) dispatch(addToCart({ productId: product._id, quantity: 1 }));
+                                                            }}
+                                                            disabled={outOfStock}
+                                                            className="relative overflow-hidden flex items-center justify-center gap-2 font-[600] transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed h-10 px-6 bg-[var(--primary)] text-white rounded-md hover:bg-[var(--primary-hover)] whitespace-nowrap"
+                                                        >
+                                                            <ShoppingCart size={16} />
+                                                            <span className="text-[14px]">Add to Cart</span>
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>

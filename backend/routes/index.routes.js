@@ -16,6 +16,7 @@ const { getBlogWithCategoryController, getLatestBlogController, addNewBlogContro
 const { createContact, getAllContacts, deleteContact } = require('../controllers/contact.controller');
 const { addSubscriber, getAllSubscribers, deleteSubscriber, sendOfferEmail } = require('../controllers/subscribe.controller');
 const { getTermConditionById, getAllTermConditions, saveAllTermConditions, uploadTermImage } = require('../controllers/termscondition.controller');
+const { uploadShippingImage, saveAllShippingPolicies, getAllShippingPolicies, getShippingPolicyById } = require('../controllers/shippingpolicy.controller');
 const { createOffer, getAllOffers, getOfferById, updateOffer, deleteOffer } = require('../controllers/offerController');
 const { createFAQ, getAllFAQs, getFAQById, updateFAQ, deleteFAQ } = require('../controllers/faq.controller');
 const { createReview, getReviewById, getAllReviews, deleteReview } = require('../controllers/review.controller');
@@ -84,6 +85,12 @@ indexRoutes.post('/terms/upload-image', auth, authorizeRoles("admin"), upload.si
 indexRoutes.post('/saveallterms', auth, authorizeRoles("admin"), saveAllTermConditions);
 indexRoutes.get('/getallterms', getAllTermConditions);
 indexRoutes.get('/getterms/:id', getTermConditionById);
+
+// Shipping Policy Routes
+indexRoutes.post('/shipping/upload-image', auth, authorizeRoles('admin'), upload.single('image'), uploadShippingImage);
+indexRoutes.post('/saveallshipping', auth, authorizeRoles('admin'), saveAllShippingPolicies);
+indexRoutes.get('/getallshipping', getAllShippingPolicies);
+indexRoutes.get('/getshipping/:id', getShippingPolicyById);
 
 // Offer routes
 indexRoutes.post('/addoffer', auth, authorizeRoles('admin'), createOffer);
