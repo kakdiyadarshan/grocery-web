@@ -24,12 +24,13 @@ const Header = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const [recentSearches, setRecentSearches] = useState([]);
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  // const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const userMenuRef = useRef(null);
   const categoryMenuRef = useRef(null);
   const desktopSearchRef = useRef(null);
@@ -119,7 +120,8 @@ const Header = () => {
       .join('')
     : 'U';
 
-  const handleLogout = () => {
+  // const handleLogout = () => {
+  const handleLogoutClick = () => {
     setIsLogoutModalOpen(true);
     setIsUserMenuOpen(false);
   };
@@ -316,26 +318,26 @@ const Header = () => {
             <form className="hidden md:flex flex-1 justify-center mx-6 lg:mx-12" onSubmit={handleSearch}>
               <div className="relative w-full max-w-2xl" ref={desktopSearchRef}>
                 <div className="flex items-center border border-[var(--primary)] rounded p-[2px]">
-                <input
-                  type="text"
-                  placeholder="Search"
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setIsSuggestionsOpen(true);
-                    setActiveSuggestionIndex(-1);
-                  }}
-                  onFocus={() => setIsSuggestionsOpen(true)}
-                  onKeyDown={handleSuggestionKeyDown}
-                  className="w-full px-4 py-2 outline-none text-[var(--text-gray)] bg-transparent text-sm sm:text-base"
-                />
-                <button
-                  type="submit"
-                  className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors text-white px-6 lg:px-8 py-2 rounded text-sm sm:text-base font-medium"
-                >
-                  Search
-                </button>
-              </div>
+                  <input
+                    type="text"
+                    placeholder="Search"
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setIsSuggestionsOpen(true);
+                      setActiveSuggestionIndex(-1);
+                    }}
+                    onFocus={() => setIsSuggestionsOpen(true)}
+                    onKeyDown={handleSuggestionKeyDown}
+                    className="w-full px-4 py-2 outline-none text-[var(--text-gray)] bg-transparent text-sm sm:text-base"
+                  />
+                  <button
+                    type="submit"
+                    className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors text-white px-6 lg:px-8 py-2 rounded text-sm sm:text-base font-medium"
+                  >
+                    Search
+                  </button>
+                </div>
                 {renderSuggestions()}
               </div>
             </form>
@@ -399,8 +401,8 @@ const Header = () => {
                           </li>
                           <li className="border-t border-gray-100 mt-1 pt-1">
                             <button
-                              onClick={handleLogout}
-                              className="w-full text-left flex items-center gap-3 px-5 py-2.5 text-[14px] text-rose-500 hover:bg-rose-50 transition-all font-semibold"
+                              onClick={handleLogoutClick}
+                               className="w-full text-left flex items-center gap-3 px-5 py-2.5 text-[14px] text-rose-500 hover:bg-rose-50 transition-all font-semibold"
                             >
                               <X size={17} className="stroke-[2]" />
                               Logout
@@ -610,7 +612,7 @@ const Header = () => {
           
           {isAuthenticated && (
             <button 
-              onClick={handleLogout} 
+              onClick={handleLogoutClick} 
               className="flex items-center gap-3 text-[15px] font-bold text-rose-500 hover:text-rose-600 transition-colors pt-2"
             >
               Logout
@@ -621,29 +623,30 @@ const Header = () => {
 
       {/* Logout Confirmation Modal */}
       {isLogoutModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
-          <div className="bg-white rounded-md shadow-2xl p-6 max-w-sm w-full animate-scaleIn">
-            <div className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center mb-4">
-                <X className="w-8 h-8 text-rose-500" />
-              </div>
-              <h3 className="text-[20px] font-semibold text-gray-900 mb-2">Logout account?</h3>
-              <p className="text-sm text-gray-500 mb-8 leading-relaxed">
-                Are you sure you want to log out of your account? You will need to login again to access your data.
-              </p>
-              
-              <div className="flex gap-3 w-full">
-                <button
-                  onClick={() => setIsLogoutModalOpen(false)}
-                  className="flex-1 px-4 py-3 rounded-md border border-gray-200 text-gray-700 font-semibold text-[14px] hover:bg-gray-50 transition-all active:scale-95"
-                >
-                  Cancel
-                </button>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity"
+            onClick={() => setIsLogoutModalOpen(false)}
+          ></div>
+
+          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-[450px] p-8 md:p-10 transform transition-all animate-in fade-in zoom-in duration-200">
+            <div className="text-center">
+              <h3 className="text-xl md:text-2xl font-semibold text-[#1F2937] mb-8">
+                Are you sure you want to signOut?
+              </h3>
+
+              <div className="flex items-center justify-center gap-4">
                 <button
                   onClick={confirmLogout}
-                  className="flex-1 px-4 py-3 rounded-md bg-rose-500 text-white font-semibold text-[14px] hover:bg-rose-600 transition-all active:scale-95"
+                  className="flex-1 bg-[#F34E4E] hover:bg-[#E33E3E] text-white font-semibold py-3 px-6 rounded-lg transition-colors shadow-sm active:scale-95"
                 >
-                  Yes, Logout
+                  SignOut
+                </button>
+                <button
+                  onClick={() => setIsLogoutModalOpen(false)}
+                  className="flex-1 bg-white border border-gray-200 hover:bg-gray-50 text-[#1F2937] font-semibold py-3 px-6 rounded-lg transition-colors active:scale-95"
+                >
+                  Cancel
                 </button>
               </div>
             </div>

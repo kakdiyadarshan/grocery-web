@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MdKeyboardArrowRight, MdVisibility, MdKeyboardArrowUp, MdKeyboardArrowDown } from "react-icons/md";
-import { AiOutlineHeart, AiFillStar, AiOutlineStar } from "react-icons/ai";
+import { AiOutlineHeart, AiFillStar, AiOutlineStar, AiFillHeart } from "react-icons/ai";
 import { IoIosGitCompare } from "react-icons/io";
 import { FiMinus, FiPlus, FiShoppingCart } from "react-icons/fi";
 import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getProductById, getAllProducts } from '../redux/slice/product.slice';
 import { addToCart } from '../redux/slice/cart.slice';
-import { addToWishlist } from '../redux/slice/wishlist.slice';
+import { addToWishlist, removeFromWishlist } from '../redux/slice/wishlist.slice';
 import Newsletter from '../component/Newsletter';
 import ProductSlider from '../component/ProductSlider';
 
@@ -17,6 +17,13 @@ function ProductDetail() {
     const { id } = useParams();
     const dispatch = useDispatch();
     const { product, products, loading } = useSelector(state => state.product);
+    const { wishlist } = useSelector((state) => state.wishlist);
+    const wishlistItems = wishlist?.items || [];
+
+    const isInWishlist = wishlistItems.some(wish => {
+        const wishProductId = typeof wish.productId === 'object' ? wish.productId?._id : wish.productId;
+        return wishProductId === product?._id;
+    });
 
     useEffect(() => {
         if (id) {
@@ -34,6 +41,30 @@ function ProductDetail() {
     const [startIndex, setStartIndex] = useState(0);
     const [activeTab, setActiveTab] = useState('description');
     const tabsRef = useRef(null);
+    const imgRefZoom = useRef(null);
+
+    // ***** Product Image Hover Zoom  *****
+    const handleMouseMove = (e) => {
+        if (imgRefZoom.current) {
+            const { left, top, width, height } = imgRefZoom.current.getBoundingClientRect();
+            const x = ((e.clientX - left) / width) * 100;
+            const y = ((e.clientY - top) / height) * 100;
+            imgRefZoom.current.style.transformOrigin = `${x}% ${y}%`;
+        }
+    };
+
+    const handleMouseEnter = () => {
+        if (imgRefZoom.current) {
+            imgRefZoom.current.style.transform = "scale(2)";
+        }
+    };
+
+    const handleMouseLeave = () => {
+        if (imgRefZoom.current) {
+            imgRefZoom.current.style.transform = "scale(1)";
+            imgRefZoom.current.style.transformOrigin = "center center";
+        }
+    };
 
     const scrollToDescription = () => {
         setActiveTab('description');
@@ -65,9 +96,13 @@ function ProductDetail() {
     };
 
 
-    const handleAddToWishlist = () => {
+    const handleWishlistToggle = () => {
         if (product) {
-            dispatch(addToWishlist(product._id));
+            if (isInWishlist) {
+                dispatch(removeFromWishlist(product._id));
+            } else {
+                dispatch(addToWishlist(product._id));
+            }
         }
     };
 
@@ -79,9 +114,14 @@ function ProductDetail() {
             {/* ===== Breadcrumbs ===== */}
             <div className="bg-[#f0f5f3] shadow-sm">
                 <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-4 py-4 sm:py-6 md:py-8 flex items-center flex-wrap gap-1 text-xs sm:text-sm md:text-base text-gray-600 font-medium">
-                    <span className="cursor-pointer hover:text-green-600 transition">Home</span>
+                    <Link to="/" className="cursor-pointer hover:text-[var(--primary-hover)] transition">Home</Link>
                     <MdKeyboardArrowRight className="text-xl" />
-                    <span className="cursor-pointer hover:text-green-600 transition">{product.category?.categoryName || 'Category'}</span>
+                    <Link
+                        to={`/shop?category=${encodeURIComponent(product.category?.categoryName || '')}`}
+                        className="cursor-pointer hover:text-[var(--primary-hover)] transition"
+                    >
+                        {product.category?.categoryName || 'Category'}
+                    </Link>
                     <MdKeyboardArrowRight className="text-xl" />
                     <span className="text-gray-400 truncate max-w-[150px] xs:max-w-none">
                         {product.name}
@@ -103,7 +143,7 @@ function ProductDetail() {
                                 disabled={startIndex === 0}
                                 className={`hidden md:flex items-center justify-center w-full px-1 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 transition ${startIndex === 0 ? 'opacity-30 cursor-not-allowed' : ''}`}
                             >
-                                <MdKeyboardArrowUp className="text-2xl" />
+                                <MdKeyboardArrowUp className="text-2xl hover:text-[var(--primary)]" />
                             </button>
 
                             <div className="hidden md:block overflow-hidden h-[420px]">
@@ -115,7 +155,7 @@ function ProductDetail() {
                                         <div
                                             key={index}
                                             onClick={() => setSelectedImage(img)}
-                                            className={`w-24 h-24 p-1 rounded-lg border cursor-pointer transition-all flex-shrink-0 flex items-center justify-center bg-gray-50 overflow-hidden ${selectedImage === img ? 'border-[#00B880]' : 'border-gray-100 hover:border-gray-200'}`}
+                                            className={`w-24 h-24 p-1 rounded-lg border cursor-pointer transition-all flex-shrink-0 flex items-center justify-center bg-gray-50 overflow-hidden ${selectedImage === img ? 'border-[var(--primary)]' : 'border-gray-200 hover:border-gray-300'}`}
                                         >
                                             <img src={img} alt={`Product ${index}`} className="max-w-full max-h-full object-contain mix-blend-multiply" />
                                         </div>
@@ -129,7 +169,7 @@ function ProductDetail() {
                                     <div
                                         key={index}
                                         onClick={() => setSelectedImage(img)}
-                                        className={`w-20 h-20 p-1 rounded-lg border cursor-pointer transition-all flex-shrink-0 flex items-center justify-center bg-gray-50 overflow-hidden ${selectedImage === img ? 'border-[#00B880]' : 'border-gray-100 hover:border-gray-200'}`}
+                                        className={`w-20 h-20 p-1 rounded-lg border cursor-pointer transition-all flex-shrink-0 flex items-center justify-center bg-gray-50 overflow-hidden ${selectedImage === img ? 'border-[var(--primary)]' : 'border-gray-100 hover:border-gray-200'}`}
                                     >
                                         <img src={img} alt={`Product ${index}`} className="max-w-full max-h-full object-contain mix-blend-multiply" />
                                     </div>
@@ -141,13 +181,21 @@ function ProductDetail() {
                                 disabled={startIndex >= images.length - 4}
                                 className={`hidden md:flex items-center justify-center w-full px-1 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 transition ${startIndex >= images.length - 4 ? 'opacity-30 cursor-not-allowed' : ''}`}
                             >
-                                <MdKeyboardArrowDown className="text-2xl" />
+                                <MdKeyboardArrowDown className="text-2xl hover:text-[var(--primary)]" />
                             </button>
                         </div>
 
                         {/* Main Product Image */}
-                        <div className="flex-1 flex items-center justify-center bg-transparent p-4 min-h-[400px] border rounded-lg border-gray-200">
-                            <img src={selectedImage} alt="Main Product" className="max-w-full max-h-[500px] object-contain transition-all duration-300" />
+                        <div className="flex-1 flex items-center justify-center bg-transparent p-4 min-h-[400px] border rounded-lg border-gray-200 overflow-hidden cursor-zoom-in">
+                            <img
+                                ref={imgRefZoom}
+                                src={selectedImage}
+                                alt="Main Product"
+                                className="max-w-full max-h-[500px] object-contain transition-transform duration-300 ease-out"
+                                onMouseMove={handleMouseMove}
+                                onMouseEnter={handleMouseEnter}
+                                onMouseLeave={handleMouseLeave}
+                            />
                         </div>
                     </div>
 
@@ -183,7 +231,8 @@ function ProductDetail() {
                         <div className="flex items-center justify-between gap-3 mt-4 flex-wrap">
                             <div className="flex items-center gap-3">
                                 {/* Discounted Price */}
-                                <span className="text-2xl md:text-3xl font-bold text-[#00B880]">
+                                {/* <span className="text-2xl md:text-3xl font-bold text-[#00B880]"> */}
+                                <span className="text-2xl md:text-3xl font-bold text-[var(--primary)]">
                                     ${selectedVariant?.discountPrice || selectedVariant?.price || 0}
                                 </span>
 
@@ -207,10 +256,15 @@ function ProductDetail() {
                             {/* Wishlist & Compare Section */}
                             <div className="flex items-center gap-3">
                                 <button
-                                    onClick={handleAddToWishlist}
-                                    className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-200 hover:bg-white hover:border-[#00B880] hover:text-[#00B880] transition-all duration-300 shadow-sm group"
+                                    onClick={handleWishlistToggle}
+                                    title={isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
+                                    className={`w-10 h-10 flex items-center justify-center rounded-full border transition-all duration-300 shadow-sm group transform active:scale-95 
+                                        ${isInWishlist
+                                            ? 'bg-red-50 border-red-200 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500'
+                                            : 'border-gray-200 text-gray-400 hover:bg-[var(--primary)] hover:text-white hover:border-[var(--primary)]'
+                                        }`}
                                 >
-                                    <AiOutlineHeart className="text-xl text-gray-400 group-hover:text-[#00B880]" />
+                                    {isInWishlist ? <AiFillHeart className="text-xl" /> : <AiOutlineHeart className="text-xl" />}
                                 </button>
                             </div>
                         </div>
@@ -223,7 +277,7 @@ function ProductDetail() {
                             />
                             <button
                                 onClick={scrollToDescription}
-                                className="text-[#00B880] font-bold text-sm mt-1 hover:underline flex items-center gap-1 group"
+                                className="text-[var(--primary)] font-bold text-sm mt-1 hover:underline flex items-center gap-1 group"
                             >
                                 Read more <span className="group-hover:translate-x-1 transition-transform">→</span>
                             </button>
@@ -270,7 +324,7 @@ function ProductDetail() {
                                     <button
                                         key={variant._id}
                                         onClick={() => setSelectedVariant(variant)}
-                                        className={`px-4 py-1 border rounded-md text-sm sm:text-base font-semibold transition ${selectedVariant?._id === variant._id ? 'border-black text-black bg-white' : 'border-gray-200 text-gray-600 hover:border-gray-400'}`}
+                                        className={`px-4 py-1 border rounded-md text-sm sm:text-base font-medium transition ${selectedVariant?._id === variant._id ? 'border-[var(--primary)] text-[var(--primary)] bg-white' : 'border-gray-200 text-gray-500 hover:border-gray-400'}`}
                                     >
                                         {variant.weight} {variant.unit}
                                     </button>
@@ -296,7 +350,7 @@ function ProductDetail() {
                 </div>
 
                 {/* Tabs Section */}
-                <div className="mt-16 pt-6" ref={tabsRef}>
+                <div className="mt-16 pt-6 scroll-mt-40" ref={tabsRef}>
                     {/* Tab Navigation */}
                     <div className="flex gap-4 mb-6 border-b border-gray-200 pb-7">
                         <button
@@ -332,7 +386,7 @@ function ProductDetail() {
                                             const userAvatar = typeof review.userId === 'object' && review.userId?.avatar?.url
                                                 ? review.userId.avatar.url
                                                 : `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`;
- 
+
                                             return (
                                                 <div key={review._id || i} className="flex gap-4 pb-8 border-b border-gray-100 last:border-0">
                                                     <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-gray-100">
@@ -368,7 +422,7 @@ function ProductDetail() {
                                 </div>
 
                                 {/* Add a Review Form */}
-                                <div className="pt-4 border-t border-gray-200 space-y-6">
+                                {/* <div className="pt-4 border-t border-gray-200 space-y-6">
                                     <div className="space-y-2">
                                         <h3 className="text-2xl font-semibold text-[#333333]">Add a Review</h3>
                                         <div className="flex items-center gap-3">
@@ -408,7 +462,7 @@ function ProductDetail() {
                                             Submit
                                         </button>
                                     </form>
-                                </div>
+                                </div> */}
                             </div>
                         )}
                     </div>
