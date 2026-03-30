@@ -46,7 +46,7 @@ const Wishlist = () => {
         <div className="container font-['Inter',sans-serif]">
             <div className="bg-white py-8 px-4 mb-4">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
-                    <h1 className="text-[26px] sm:text-[28px] font-bold text-[#1e5066] text-left leading-tight">My Wishlist</h1>
+                    <h1 className="text-[26px] sm:text-[28px] font-bold text-left leading-tight">My Wishlist</h1>
                     {wishlistItems.length > 0 && (
                         <Link to="/shop" className="text-[var(--primary)] hover:text-[#1e5066] font-bold flex items-center gap-2 transition-colors">
                             <ArrowLeft size={16} /> Continue Shopping

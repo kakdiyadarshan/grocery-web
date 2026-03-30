@@ -5,6 +5,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { getUserOrders, cancelOrder } from '../redux/slice/order.slice';
 import { toast } from 'sonner';
 import ConfirmDialog from '../component/ConfirmDialog';
+import ReviewModal from '../component/ReviewModal';
+import { Star } from 'lucide-react';
 
 const MyOrder = ({ isEmbedded = false }) => {
     const dispatch = useDispatch();
@@ -14,6 +16,8 @@ const MyOrder = ({ isEmbedded = false }) => {
 
     const [dialogOpen, setDialogOpen] = useState(false);
     const [pendingCancelId, setPendingCancelId] = useState(null);
+    const [reviewModalOpen, setReviewModalOpen] = useState(false);
+    const [reviewProduct, setReviewProduct] = useState(null);
 
     useEffect(() => {
         dispatch(getUserOrders());
@@ -80,6 +84,19 @@ const MyOrder = ({ isEmbedded = false }) => {
 
     const tabs = ['All', 'In Progress', 'Delivered', 'Cancelled'];
 
+    const handleReviewClick = (order, e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const item = order.items?.[0];
+        const product = item?.productId;
+        if (product) {
+            setReviewProduct(product);
+            setReviewModalOpen(true);
+        } else {
+            toast.error("Product information not found");
+        }
+    };
+
     const getDisplayStatus = (status) => {
         switch (status?.toLowerCase()) {
             case 'pending':
@@ -125,10 +142,16 @@ const MyOrder = ({ isEmbedded = false }) => {
     return (
         <>
             <ConfirmDialog
-                isOpen={dialogOpen}
-                onConfirm={handleConfirmCancel}
                 onCancel={handleCancelDialog}
                 orderId={pendingCancelId}
+            />
+            <ReviewModal
+                isOpen={reviewModalOpen}
+                onClose={() => {
+                    setReviewModalOpen(false);
+                    setReviewProduct(null);
+                }}
+                product={reviewProduct}
             />
             <div className={`${isEmbedded ? 'w-full px-0 py-0' : 'container mx-auto px-4 py-8 max-w-5xl'}`}>
                 {!isEmbedded && (
@@ -232,6 +255,15 @@ const MyOrder = ({ isEmbedded = false }) => {
                                                 <X className="w-3.5 h-3.5" />
                                             )}
                                             Cancel
+                                        </button>
+                                    )}
+                                    {order.status.toLowerCase() === 'delivered' && (
+                                        <button
+                                            onClick={(e) => handleReviewClick(order.rawOrder, e)}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-50 hover:bg-yellow-100 text-yellow-600 rounded-lg font-bold text-xs transition-colors shadow-sm"
+                                        >
+                                            <Star className="w-3.5 h-3.5 fill-yellow-600" />
+                                            Rate Product
                                         </button>
                                     )}
                                     <ChevronRight className="text-[var(--primary)] w-5 h-5" />

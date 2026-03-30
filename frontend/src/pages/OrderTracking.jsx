@@ -9,13 +9,17 @@ import {
   CheckCircle2,
   MapPin,
   Clock,
-  ArrowLeft
+  ArrowLeft,
+  Star
 } from 'lucide-react';
+import ReviewModal from '../component/ReviewModal';
 
 const OrderTracking = () => {
   const { id } = useParams();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [reviewProduct, setReviewProduct] = useState(null);
 
   useEffect(() => {
     const fetchTracking = async () => {
@@ -71,6 +75,14 @@ const OrderTracking = () => {
 
   return (
     <div className=" bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 ">
+      <ReviewModal
+        isOpen={reviewModalOpen}
+        onClose={() => {
+          setReviewModalOpen(false);
+          setReviewProduct(null);
+        }}
+        product={reviewProduct}
+      />
       <div className="container mx-auto max-w-6xl">
 
         {/* Header */}
@@ -160,6 +172,18 @@ const OrderTracking = () => {
                     </p>
                     <div className="flex justify-between items-center mt-2">
                        <p className="font-extrabold text-[var(--primary)] text-sm">₹{(item.selectedVariant?.price || 0) * item.quantity}</p>
+                       {(data.status?.toLowerCase() === 'delivered' || data.status?.toLowerCase() === 'completed') && (
+                         <button
+                           onClick={() => {
+                             setReviewProduct(item.productId);
+                             setReviewModalOpen(true);
+                           }}
+                           className="flex items-center gap-1 text-[10px] font-bold text-yellow-600 bg-yellow-50 px-2 py-1 rounded-md hover:bg-yellow-100 transition-colors"
+                         >
+                           <Star className="w-3 h-3 fill-yellow-600" />
+                           Rate
+                         </button>
+                       )}
                     </div>
                   </div>
                 </div>
