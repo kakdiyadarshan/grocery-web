@@ -61,9 +61,8 @@ const Cart = () => {
 
     // Calculations
     const subtotal = cartItems.reduce((acc, item) => {
-        const prod = item.productId;
-        const variant = item.selectedVariant || prod?.weighstWise?.find(v => v._id === item.variantId) || prod?.weighstWise?.[0];
-        const price = variant?.price || prod?.price || 0;
+        const variant = item.selectedVariant;
+        const price = variant?.discountPrice || variant?.price || 0;
         return acc + (price * item.quantity);
     }, 0);
 
@@ -87,10 +86,10 @@ const Cart = () => {
     }
 
     return (
-        <div className="container font-['Inter',sans-serif] pb-12">
+        <div className="container pb-12">
             <div className="bg-white py-8 px-4 mb-8">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
-                    <h1 className="text-[26px] sm:text-[28px] font-bold text-left leading-tight">Shopping Cart</h1>
+                    <h1 className="text-[26px] sm:text-[28px] font-bold text-textPrimary text-left leading-tight">Shopping Cart</h1>
                     {cartItems.length > 0 && (
                         <Link to="/shop" className="text-[var(--primary)] hover:text-[#1e5066] font-bold flex items-center gap-2 transition-colors">
                             <ArrowLeft size={16} /> Continue Shopping
@@ -123,10 +122,12 @@ const Cart = () => {
                                     const item = wish.productId;
                                     if (!item) return null;
                                     const prodId = item._id || item;
-                                    
+
                                     // Get proper price
-                                    const variant = wish.selectedVariant || item?.weighstWise?.find(v => v._id === wish.variantId) || item?.weighstWise?.[0];
-                                    const price = variant?.price || item?.price || 0;
+                                    const variant = wish.selectedVariant;
+                                    const originalPrice = variant?.price || 0;
+                                    const price = variant?.discountPrice || originalPrice;
+                                    const hasOffer = price < originalPrice;
 
                                     return (
                                         <div key={wish._id} className="flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-0 border-b border-gray-100 pb-8 last:border-0 last:pb-0">
@@ -190,7 +191,12 @@ const Cart = () => {
                                                 {/* Price */}
                                                 <div className="md:w-[27%] flex flex-col items-center justify-center">
                                                     <span className="md:hidden text-gray-400 font-bold text-[10px] uppercase tracking-wider mb-1">Price</span>
-                                                    <span className="text-[var(--text-primary)] text-sm md:text-[15px] font-semibold">${price.toFixed(2)}</span>
+                                                    <div className="flex flex-col items-center">
+                                                        <span className="text-[var(--text-primary)] text-sm md:text-[15px] font-semibold">${price.toFixed(2)}</span>
+                                                        {hasOffer && (
+                                                            <span className="text-[12px] text-textSecondary line-through font-medium">${originalPrice.toFixed(2)}</span>
+                                                        )}
+                                                    </div>
                                                 </div>
 
                                                 {/* Total */}

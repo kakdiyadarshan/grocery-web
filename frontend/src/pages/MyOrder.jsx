@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, Package, Calendar, ShoppingBag, X } from 'lucide-react';
+import { ChevronRight, Package, Calendar, ShoppingBag, X, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { getUserOrders, cancelOrder } from '../redux/slice/order.slice';
@@ -119,6 +119,20 @@ const MyOrder = ({ isEmbedded = false }) => {
         const firstItem = order.items?.[0] || {};
         const product = firstItem.productId || {};
 
+        // Calculate original total to show savings if offer is active
+        let originalTotal = 0;
+        let hasActiveOffer = false;
+
+        (order.items || []).forEach(item => {
+            const variant = item.selectedVariant;
+            if (variant) {
+                originalTotal += (variant.price || 0) * (item.quantity || 1);
+                if (variant.discountPrice !== null) {
+                    hasActiveOffer = true;
+                }
+            }
+        });
+
         return {
             id: order._id,
             displayId: `#${(order._id || "").toString().slice(-8).toUpperCase()}`,
@@ -131,6 +145,8 @@ const MyOrder = ({ isEmbedded = false }) => {
             image: product.images?.[0]?.url || product.image || "https://via.placeholder.com/150",
             title: order.items?.map(item => item.productId?.name || 'Product').join(', '),
             price: order.totalAmount?.toFixed(2),
+            originalPrice: originalTotal.toFixed(2),
+            hasActiveOffer,
             rawOrder: order
         };
     });
@@ -235,10 +251,23 @@ const MyOrder = ({ isEmbedded = false }) => {
 
                                         <div className="flex-1 min-w-0">
                                             <h4 className="text-[var(--primary)] font-bold text-sm mb-1 truncate">Order ID: {order.displayId}</h4>
-                                            <p className="text-gray-600 text-sm mb-2 md:mb-1 line-clamp-1">
+                                            <p className="text-gray-600 text-[13px] mb-2 md:mb-1 line-clamp-1">
                                                 {order.title}
                                             </p>
-                                            <p className="font-bold text-gray-900 text-[16px]">₹{order.price}</p>
+                                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2">
+                                                {order.rawOrder.address && (
+                                                    <p className="text-[11px] text-gray-500 flex items-center gap-1 font-medium">
+                                                        <MapPin className="w-3 h-3 text-[var(--primary)]" /> {order.rawOrder.address.city}
+                                                    </p>
+                                                )}
+                                                <p className="text-[11px] text-gray-500 font-medium">Phone: {order.rawOrder.address?.phone || 'N/A'}</p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <p className="font-bold text-gray-900 text-[16px]">${order.price}</p>
+                                                {order.hasActiveOffer && parseFloat(order.originalPrice) > parseFloat(order.price) && (
+                                                    <span className="text-textSecondary text-xs line-through font-medium">${order.originalPrice}</span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

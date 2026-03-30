@@ -26,10 +26,11 @@ const CheckOut = () => {
   const { addresses } = useSelector(state => state.address);
   const items = cart?.items || [];
 
+  console.log("items", items);
   // Calculate totals
   const subtotal = items.reduce((acc, item) => {
     const variant = item.selectedVariant;
-    const price = variant?.price || 0;
+    const price = variant?.discountPrice || variant?.price || 0;
     return acc + (price * item.quantity);
   }, 0);
 
@@ -80,7 +81,7 @@ const CheckOut = () => {
   }, [defaultAddress]);
 
   React.useEffect(() => {
-    if (useSavedAddress && selectedAddress) {      
+    if (useSavedAddress && selectedAddress) {
       setFormData(prev => ({
         ...prev,
         firstName: selectedAddress.firstName || selectedAddress.firstname || user?.firstName || user?.firstname || prev.firstName,
@@ -176,9 +177,11 @@ const CheckOut = () => {
       const orderData = {
         userId: currentUserId,
         items: items.map(item => ({
-          productId: item.productId._id || item.productId,
+          productId: item.productId?._id || item.productId,
           variantId: item.variantId,
-          quantity: item.quantity
+          quantity: item.quantity,
+          price: item.selectedVariant?.price || 0,
+          discountPrice: item.selectedVariant?.discountPrice !== undefined ? item.selectedVariant.discountPrice : null
         })),
         totalAmount: totalAmount,
         paymentMethod: paymentMethod === 'cod' ? 'COD' : paymentMethod === 'upi' ? 'UPI' : paymentMethod === 'netbanking' ? 'Bank' : 'Stripe',
@@ -218,7 +221,8 @@ const CheckOut = () => {
             navigate(`/order-completed?order_id=${newOrderId}`);
           } else {
             navigate('/order-completed');
-          } }
+          }
+        }
 
 
 
@@ -228,9 +232,9 @@ const CheckOut = () => {
     }
   };
 
-const handleNavigate = () => {
+  const handleNavigate = () => {
     navigate('/profile?tab=Address');
-}
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-[#fafafa]">
@@ -259,7 +263,7 @@ const handleNavigate = () => {
               <div className="bg-white rounded border border-gray-100 p-6 sm:p-8 shadow-sm">
                 <div className='mb-6 border-b border-gray-100 pb-4 flex justify-between items-center'>
                   <h2 className="text-[18px] sm:text-[20px] font-bold text-[var(--text-gray)] ">Billing Details</h2>
-                    <button className='bg-[var(--primary)] text-white py-2 px-5 rounded text-sm' onClick={handleNavigate}>Manage Addresses</button>
+                  <button className='bg-[var(--primary)] text-white py-2 px-5 rounded text-sm' onClick={handleNavigate}>Manage Addresses</button>
                 </div>
                 <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
                   {/* Name Fields */}
@@ -344,7 +348,9 @@ const handleNavigate = () => {
                     const product = item.productId;
                     if (!product) return null;
                     const variant = item.selectedVariant;
-                    const price = variant?.price || 0;
+                    const originalPrice = variant?.price || 0;
+                    const price = variant?.discountPrice || originalPrice;
+                    const hasOffer = price < originalPrice;
                     return (
                       <div key={item._id} className="flex items-start justify-between gap-4">
                         <div className="flex gap-4">
@@ -359,7 +365,14 @@ const handleNavigate = () => {
                             </p>
                           </div>
                         </div>
-                        <span className="text-[15px] font-bold text-[var(--text-gray)] shrink-0">₹{(price * item.quantity).toFixed(2)}</span>
+                        <div className="flex flex-col items-end">
+                          <span className="text-[15px] font-bold text-[var(--text-gray)] shrink-0">${(price * item.quantity).toFixed(2)}</span>
+                          {hasOffer && (
+                            <span className="text-[12px] text-gray-400 line-through font-medium">
+                              ${(originalPrice * item.quantity).toFixed(2)}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     );
                   })}

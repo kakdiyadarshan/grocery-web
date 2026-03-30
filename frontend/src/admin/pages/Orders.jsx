@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { fetchOrders } from '../../redux/slice/order.slice';
+import { fetchOrders, deleteOrder, updateOrderStatus } from '../../redux/slice/order.slice';
 import DataTable from '../component/DataTable';
 import Breadcrumb from '../component/Breadcrumb';
 import { FiCheck, FiX, FiShoppingCart, FiMapPin, FiPackage, FiClock, FiTruck, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
@@ -22,7 +22,7 @@ const Orders = () => {
     const handleStatusUpdate = useCallback(async (id, status) => {
         try {
             setStatusUpdating(id);
-            // await dispatch(updateOrderStatus({ id, status })).unwrap();
+            await dispatch(updateOrderStatus({ id, status })).unwrap();
         } finally {
             setStatusUpdating(null);
         }
@@ -145,8 +145,8 @@ const Orders = () => {
                     <div className='font-medium text-textPrimary'>
                         {data.address?.firstName} {data.address?.lastName}
                     </div>
-                    <div title={`${data.address?.street}, ${data.address?.city}`}>
-                        {data.address?.city}, {data.address?.zipcode}
+                    <div title={`${data.address?.address}, ${data.address?.city}`}>
+                        {data.address?.address}, <br />{data.address?.city}
                     </div>
                 </div>
             )
@@ -158,7 +158,7 @@ const Orders = () => {
     }, [navigate]);
 
     const handleDelete = useCallback((item) => {
-        // dispatch(deleteOrder(item._id));
+        dispatch(deleteOrder(item._id));
     }, [dispatch]);
 
     if (loading) {
@@ -176,7 +176,7 @@ const Orders = () => {
     }
 
     return (
-        <div className="animate-in fade-in duration-700">
+        <>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 md:my-6 my-4">
                 <div className="flex flex-col">
                     <h2 className="text-2xl font-bold text-textPrimary tracking-tight">Orders</h2>
@@ -193,7 +193,7 @@ const Orders = () => {
                 exportFileName="Orders"
                 allowExport={true}
             />
-        </div>
+        </>
     );
 };
 

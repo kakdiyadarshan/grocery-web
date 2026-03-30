@@ -14,7 +14,7 @@ const Cart = ({ isOpen, onClose }) => {
     const cartItems = cart?.items?.filter(item => item?.productId) || [];
     const subtotal = cartItems.reduce((acc, item) => {
         const variant = item.selectedVariant;
-        const price = variant?.price || 0;
+        const price = variant?.discountPrice || variant?.price || 0;
         return acc + (price * item.quantity);
     }, 0);
 
@@ -75,6 +75,11 @@ const Cart = ({ isOpen, onClose }) => {
                             const item = wish.productId;
                             if (!item) return null;
                             const prodId = item._id || item;
+                            const variant = wish.selectedVariant;
+                            const originalPrice = variant?.price || 0;
+                            const price = variant?.discountPrice || originalPrice;
+                            const hasOffer = price < originalPrice;
+
                             return (
                                 <div key={wish._id} className="flex justify-between items-start border-b border-gray-100 pb-8 gap-2">
                                     <div className="flex gap-2 sm:gap-4 flex-1 min-w-0">
@@ -99,7 +104,13 @@ const Cart = ({ isOpen, onClose }) => {
                                                     </span>
                                                 )}
                                             </span>
-                                            <span className="text-[12px] sm:text-[13px] text-gray-500 mt-1 truncate">${wish.selectedVariant?.price || 0} each</span>
+                                            
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="text-[12px] sm:text-[13px] text-gray-500 truncate">${price.toFixed(2)} each</span>
+                                                {hasOffer && (
+                                                    <span className="text-[12px] text-text-secondary line-through">${originalPrice.toFixed(2)}</span>
+                                                )}
+                                            </div>
 
 
 
@@ -122,7 +133,7 @@ const Cart = ({ isOpen, onClose }) => {
                                             </div>
                                         </div>
                                     </div>
-                                    <span className="font-bold text-[var(--primary)] text-[14px] sm:text-[16px] shrink-0 whitespace-nowrap">${((wish.selectedVariant?.price || 0) * wish.quantity).toFixed(2)}</span>
+                                    <span className="font-bold text-[var(--primary)] text-[14px] sm:text-[16px] shrink-0 whitespace-nowrap">${(price * wish.quantity).toFixed(2)}</span>
 
 
                                 </div>

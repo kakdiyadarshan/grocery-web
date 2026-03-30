@@ -122,6 +122,24 @@ export const updateOrderStatus = createAsyncThunk(
     }
 );
 
+export const deleteOrder = createAsyncThunk(
+    'order/deleteOrder',
+    async (orderId, { dispatch, rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.delete(`${BASE_URL}/deleteOrder/${orderId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            dispatch(setAlert({ text: 'Order deleted successfully', type: 'success' }));
+            return orderId;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
 
 const orderSlice = createSlice({
 
@@ -173,12 +191,17 @@ const orderSlice = createSlice({
             .addCase(updateOrderStatus.fulfilled, (state, action) => {
                 state.loading = false;
                 state.currentOrder = { ...state.currentOrder, ...action.payload };
-                // Also update in allorders list if present
                 state.allorders = state.allorders.map(order =>
                     order._id === action.payload._id ? { ...order, ...action.payload } : order
                 );
             })
-            .addCase(updateOrderStatus.rejected, (state) => { state.loading = false; });
+            .addCase(updateOrderStatus.rejected, (state) => { state.loading = false; })
+            .addCase(deleteOrder.pending, (state) => { state.loading = true; })
+            .addCase(deleteOrder.fulfilled, (state, action) => {
+                state.loading = false;
+                state.allorders = state.allorders.filter(order => order._id !== action.payload);
+            })
+            .addCase(deleteOrder.rejected, (state) => { state.loading = false; });
 
 
     }
