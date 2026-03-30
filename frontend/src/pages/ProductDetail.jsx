@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MdKeyboardArrowRight, MdVisibility, MdKeyboardArrowUp, MdKeyboardArrowDown } from "react-icons/md";
 import { AiOutlineHeart, AiFillStar, AiOutlineStar, AiFillHeart } from "react-icons/ai";
 import { IoIosGitCompare } from "react-icons/io";
-import { FiMinus, FiPlus, FiShoppingCart } from "react-icons/fi";
+import { FiArrowRight, FiMinus, FiPlus, FiShoppingCart } from "react-icons/fi";
 import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getProductById, getAllProducts } from '../redux/slice/product.slice';
@@ -12,6 +12,8 @@ import Newsletter from '../component/Newsletter';
 import ProductSlider from '../component/ProductSlider';
 
 import NewsletterImage from '../Image/newsletter.png';
+import ReviewChart from '../admin/component/reviewChart';
+import ReviewDrawer from '../admin/component/ReviewDrawer';
 
 function ProductDetail() {
     const { id } = useParams();
@@ -40,6 +42,7 @@ function ProductDetail() {
     const [selectedVariant, setSelectedVariant] = useState(null);
     const [startIndex, setStartIndex] = useState(0);
     const [activeTab, setActiveTab] = useState('description');
+    const [isReviewDrawerOpen, setIsReviewDrawerOpen] = useState(false);
     const tabsRef = useRef(null);
     const imgRefZoom = useRef(null);
 
@@ -65,6 +68,20 @@ function ProductDetail() {
             imgRefZoom.current.style.transformOrigin = "center center";
         }
     };
+
+    useEffect(() => {
+        // Lock background scroll when drawer is open
+        if (isReviewDrawerOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'auto';
+        }
+
+        // Cleanup on unmount
+        return () => {
+            document.body.style.overflow = 'auto';
+        };
+    }, [isReviewDrawerOpen]);
 
     const scrollToDescription = () => {
         setActiveTab('description');
@@ -318,7 +335,7 @@ function ProductDetail() {
 
 
                         <div className="flex items-center gap-4 mt-6">
-                            <span className="text-base font-semibold text-[#333333]">Size:</span>
+                            {/* <span className="text-base font-semibold text-[#333333]">Size:</span> */}
                             <div className="flex gap-3">
                                 {product.weighstWise?.map((variant) => (
                                     <button
@@ -368,6 +385,7 @@ function ProductDetail() {
                     </div>
 
                     {/* Tab Content */}
+                    {/* Tab Content */}
                     <div className="bg-white rounded-xl">
                         {activeTab === 'description' ? (
                             // Full Description Content
@@ -377,28 +395,21 @@ function ProductDetail() {
                                 />
                             </div>
                         ) : (
-                            // Reviews Content
+                            // Reviews Content - Read only for Admin
                             <div className="animate-fadeIn">
-                                <div className="space-y-10 mb-2">
+                                <div className="mb-8">
+                                    <ReviewChart reviews={product.reviews || []} />
+                                </div>
+                                <div className="space-y-2 mb-2 p-3 relative">
                                     {product.reviews && product.reviews.length > 0 ? (
-                                        product.reviews.map((review, i) => {
-                                            const userName = typeof review.userId === 'object' ? review.userId?.name : 'Verified Customer';
-                                            const userAvatar = typeof review.userId === 'object' && review.userId?.avatar?.url
-                                                ? review.userId.avatar.url
-                                                : `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`;
-
-                                            return (
-                                                <div key={review._id || i} className="flex gap-4 pb-8 border-b border-gray-100 last:border-0">
+                                        <>
+                                            {product.reviews.slice(0, 2).map((review, i) => (
+                                                <div key={i} className="flex gap-4 pb-3 border-b border-gray-100 last:border-0">
                                                     <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-gray-100">
-                                                        <img src={userAvatar} alt={userName} className="w-full h-full object-cover" />
+                                                        <img src={`https://ui-avatars.com/api/?name=${review.user?.name}&background=random`} alt={review.user?.name} className="w-full h-full object-cover" />
                                                     </div>
-                                                    <div className="space-y-1 flex-1">
-                                                        <div className="flex items-center justify-between">
-                                                            <h4 className="font-semibold text-[#1F2937] text-base">{userName}</h4>
-                                                            <span className="text-xs text-gray-400">
-                                                                {new Date(review.createdAt).toLocaleDateString()}
-                                                            </span>
-                                                        </div>
+                                                    <div className="space-y-1">
+                                                        <h4 className="font-semibold text-[#1F2937] text-base">{review.user?.name}</h4>
                                                         <div className="flex items-center gap-1 py-1 text-base sm:text-lg">
                                                             {[...Array(5)].map((_, index) => (
                                                                 <AiFillStar
@@ -410,59 +421,34 @@ function ProductDetail() {
                                                         <p className="text-gray-500 text-sm sm:text-base leading-relaxed">
                                                             {review.comment}
                                                         </p>
+                                                        {review.images && review.images.length > 0 && (
+                                                            <div className="flex gap-2 mt-3 overflow-x-auto pb-1 no-scrollbar">
+                                                                {review.images.map((img, idx) => (
+                                                                    <div key={idx} className="w-16 h-16 rounded-md overflow-hidden border border-gray-100 flex-shrink-0">
+                                                                        <img src={img.url || img} alt="Review" className="w-full h-full object-cover shadow-sm" />
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
-                                            );
-                                        })
+                                            ))}
+                                            {product.reviews.length > 2 && (
+                                                <div className="pt-4">
+                                                    <button
+                                                        onClick={() => setIsReviewDrawerOpen(true)}
+                                                        className="flex items-center gap-2 text-[#00B880] font-bold hover:underline transition-all group"
+                                                    >
+                                                        View all {product.reviews.length} reviews
+                                                        <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </>
                                     ) : (
-                                        <div className="text-center py-10">
-                                            <p className="text-gray-500">No reviews yet. Be the first to review this product!</p>
-                                        </div>
+                                        <p className="text-gray-500 italic pb-10">No reviews yet for this product.</p>
                                     )}
                                 </div>
-
-                                {/* Add a Review Form */}
-                                {/* <div className="pt-4 border-t border-gray-200 space-y-6">
-                                    <div className="space-y-2">
-                                        <h3 className="text-2xl font-semibold text-[#333333]">Add a Review</h3>
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-gray-500">Your rating:</span>
-                                            <div className="flex items-center gap-1 text-orange-400 text-base sm:text-lg">
-                                                <AiFillStar className="" />
-                                                <AiFillStar className="" />
-                                                <AiOutlineStar className=" text-gray-200" />
-                                                <AiOutlineStar className=" text-gray-200" />
-                                                <AiOutlineStar className=" text-gray-200" />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <form className="space-y-4">
-                                        <div className="grid grid-cols-1 gap-4">
-                                            <input
-                                                type="text"
-                                                placeholder="Name"
-                                                className="w-full h-12 px-4 rounded-md border border-gray-200 focus:outline-none focus:border-[#00B880] text-gray-600 placeholder:text-gray-400 transition"
-                                            />
-                                            <input
-                                                type="email"
-                                                placeholder="Email*"
-                                                className="w-full h-12 px-4 rounded-md border border-gray-200 focus:outline-none focus:border-[#00B880] text-gray-600 placeholder:text-gray-400 transition"
-                                            />
-                                            <textarea
-                                                placeholder="Enter Your Comment"
-                                                rows="6"
-                                                className="w-full px-4 py-3 rounded-md border border-gray-200 focus:outline-none focus:border-[#00B880] text-gray-600 placeholder:text-gray-400 transition resize-none"
-                                            ></textarea>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            className="px-8 h-10 bg-[#00B880] hover:bg-[#009A6A] text-white font-semibold rounded-md transition-colors shadow-sm"
-                                        >
-                                            Submit
-                                        </button>
-                                    </form>
-                                </div> */}
                             </div>
                         )}
                     </div>
@@ -484,6 +470,13 @@ function ProductDetail() {
                 <Newsletter className="w-full pt-6 mt-10" />
 
             </div>
+
+            <ReviewDrawer
+                isOpen={isReviewDrawerOpen}
+                onClose={() => setIsReviewDrawerOpen(false)}
+                reviews={product.reviews}
+                productName={product.name}
+            />
         </div>
     );
 }

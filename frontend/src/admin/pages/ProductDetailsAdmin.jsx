@@ -6,6 +6,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getProductById, getAllProducts } from '../../redux/slice/product.slice';
 import ReviewChart from '../component/reviewChart';
+import Breadcrumb from '../component/Breadcrumb';
+import ReviewDrawer from '../component/ReviewDrawer';
 
 function ProductDetailsAdmin() {
     const { id } = useParams();
@@ -31,12 +33,36 @@ function ProductDetailsAdmin() {
     const [isReviewDrawerOpen, setIsReviewDrawerOpen] = useState(false);
     const tabsRef = useRef(null);
 
+    useEffect(() => {
+        // Hide global browser scrollbar on this page
+        document.body.classList.add('no-scrollbar');
+        return () => {
+            document.body.classList.remove('no-scrollbar');
+        };
+    }, []);
+
+    useEffect(() => {
+        // Lock background scroll when drawer is open
+        if (isReviewDrawerOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'auto';
+        }
+
+        // Cleanup on unmount
+        return () => {
+            document.body.style.overflow = 'auto';
+        };
+    }, [isReviewDrawerOpen]);
+
     const scrollToDescription = () => {
         setActiveTab('description');
         setTimeout(() => {
             tabsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
     };
+
+
 
     useEffect(() => {
         if (product?.images?.length > 0) {
@@ -53,15 +79,10 @@ function ProductDetailsAdmin() {
     return (
         <div className="bg-white min-h-screen no-scrollbar">
             {/* ===== Breadcrumbs ===== */}
-            <div className="bg-[#f0f5f3] shadow-sm">
-                <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-4 py-4 sm:py-6 md:py-8 flex items-center flex-wrap gap-1 text-xs sm:text-sm md:text-base text-gray-600 font-medium">
-                    <span className="cursor-pointer hover:text-green-600 transition" onClick={() => navigate('/admin/dashboard')}>Home</span>
-                    <MdKeyboardArrowRight className="text-xl" />
-                    <span className="cursor-pointer hover:text-green-600 transition" onClick={() => navigate('/admin/products')}>{product.category?.categoryName || 'Category'}</span>
-                    <MdKeyboardArrowRight className="text-xl" />
-                    <span className="text-gray-400 truncate max-w-[150px] xs:max-w-none">
-                        {product.name} (Admin Preview)
-                    </span>
+            <div className="max-w-[1440px] mx-auto px-4 md:mt-6 mt-4">
+                <div className="flex flex-col">
+                    <h2 className="text-2xl font-bold text-gray-800 text-textprimary tracking-tight">{product.name}</h2>
+                    <Breadcrumb />
                 </div>
             </div>
 
@@ -227,7 +248,7 @@ function ProductDetailsAdmin() {
                         </div>
 
                         <div className="flex items-center gap-4 mt-6">
-                            <span className="text-base font-semibold text-[#333333]">Size:</span>
+                            {/* <span className="text-base font-semibold text-[#333333]">Size:</span> */}
                             <div className="flex gap-3">
                                 {product.weighstWise?.map((variant) => (
                                     <button
@@ -277,7 +298,7 @@ function ProductDetailsAdmin() {
                                 <div className="mb-8">
                                     <ReviewChart reviews={product.reviews || []} />
                                 </div>
-                                <div className="space-y-2 mb-2 relative">
+                                <div className="space-y-2 mb-2 p-3 relative">
                                     {product.reviews && product.reviews.length > 0 ? (
                                         <>
                                             {product.reviews.slice(0, 2).map((review, i) => (
@@ -354,84 +375,4 @@ function ProductDetailsAdmin() {
 
 export default ProductDetailsAdmin;
 
-// Review Drawer Component
-const ReviewDrawer = ({ isOpen, onClose, reviews, productName }) => {
-    return (
-        <>
-            {/* Backdrop */}
-            <div
-                className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[1000] transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-                onClick={onClose}
-            />
 
-            {/* Drawer */}
-            <div
-                className={`fixed top-0 right-0 h-full w-full max-w-md bg-white z-[1001] shadow-2xl transform transition-transform duration-500 ease-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
-            >
-                {/* Header */}
-                <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-                    <div>
-                        <h2 className="text-xl font-bold text-gray-900">Customer Reviews</h2>
-                        <p className="text-sm text-gray-500 truncate max-w-[280px]">{productName}</p>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-white rounded-full transition-colors border border-transparent hover:border-gray-200"
-                    >
-                        <FiX className="text-2xl text-gray-400 hover:text-gray-600" />
-                    </button>
-                </div>
-
-                {/* Reviews List */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar no-scrollbar">
-                    {reviews?.map((review, i) => (
-                        <div key={i} className="flex flex-wrap gap-2 sm:gap-4 pb-3 border-b border-gray-100 last:border-0">
-                            <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-gray-100">
-                                <img src={`https://ui-avatars.com/api/?name=${review.user?.name}&background=random`} alt={review.user?.name} className="w-full h-full object-cover" />
-                            </div>
-                            <div className="space-y-1">
-                                <h4 className="font-semibold text-[#1F2937] text-base">{review.user?.name}</h4>
-                                <div className="flex items-center gap-1 py-1 text-base sm:text-lg">
-                                    {[...Array(5)].map((_, index) => (
-                                        <AiFillStar
-                                            key={index}
-                                            className={index < review.rating ? "text-orange-400" : "text-gray-200"}
-                                        />
-                                    ))}
-                                </div>
-                                <p className="text-gray-500 text-sm sm:text-base leading-relaxed">
-                                    {review.comment}
-                                </p>
-                                {review.images && review.images.length > 0 && (
-                                    <div className="flex gap-2 mt-3 overflow-x-auto pb-1 no-scrollbar">
-                                        {review.images.map((img, idx) => (
-                                            <div key={idx} className="w-10 h-10 sm:w-16 sm:h-16 rounded-md overflow-hidden border border-gray-100 flex-shrink-0">
-                                                <img src={img.url || img} alt="Review" className="w-full h-full object-cover shadow-sm" />
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    ))}
-                    {(!reviews || reviews.length === 0) && (
-                        <div className="h-full flex flex-col items-center justify-center text-gray-400 gap-4 opacity-60">
-                            <FiMessageSquare size={48} />
-                            <p className="font-medium">No reviews found</p>
-                        </div>
-                    )}
-                </div>
-
-                {/* Footer */}
-                <div className="p-6 border-t border-gray-100 bg-gray-50/30">
-                    <button
-                        onClick={onClose}
-                        className="w-full py-3 bg-gray-900 text-white font-bold rounded-lg hover:bg-black transition-all active:scale-[0.98]"
-                    >
-                        Close
-                    </button>
-                </div>
-            </div>
-        </>
-    );
-};

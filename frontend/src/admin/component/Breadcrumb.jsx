@@ -51,7 +51,10 @@ const Breadcrumb = () => {
             return 'Edit';
         }
 
-        if (isId(segment)) return 'Details';
+        if (isId(segment)) {
+            if (index > 0 && array[index - 1] === 'view') return 'View Details';
+            return 'Details';
+        }
 
         return routeNameMap[segment] ||
             segment.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -62,7 +65,7 @@ const Breadcrumb = () => {
             <ol className="inline-flex items-center space-x-1 md:space-x-3">
                 {pathnames.map((value, index) => {
 
-                    if (value === 'edit' && index + 1 < pathnames.length && isId(pathnames[index + 1])) {
+                    if ((value === 'edit' || value === 'view') && index + 1 < pathnames.length && isId(pathnames[index + 1])) {
                         return null;
                     }
 
