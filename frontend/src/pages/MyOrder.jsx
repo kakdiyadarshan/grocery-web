@@ -102,9 +102,9 @@ const MyOrder = ({ isEmbedded = false }) => {
             case 'pending':
             case 'processing':
             case 'order placed':
-                return 'In Progress';
+            case 'shipped':
             case 'out for delivery':
-                return 'Out for Delivery';
+                return 'In Progress';
             case 'completed':
             case 'delivered':
                 return 'Delivered';
@@ -135,7 +135,7 @@ const MyOrder = ({ isEmbedded = false }) => {
 
         return {
             id: order._id,
-            displayId: `#${(order._id || "").toString().slice(-8).toUpperCase()}`,
+            displayId: `#${(order._id || "").toString().slice(-6).toUpperCase()}`,
             status: getDisplayStatus(order.displayStatus || order.status),
             date: new Date(order.createdAt).toLocaleDateString('en-GB', {
                 day: '2-digit',
@@ -158,6 +158,8 @@ const MyOrder = ({ isEmbedded = false }) => {
     return (
         <>
             <ConfirmDialog
+                isOpen={dialogOpen}
+                onConfirm={handleConfirmCancel}
                 onCancel={handleCancelDialog}
                 orderId={pendingCancelId}
             />
@@ -272,7 +274,7 @@ const MyOrder = ({ isEmbedded = false }) => {
                                     </div>
                                 </div>
                                 <div className="flex shrink-0 ml-2 md:ml-4 items-center justify-center gap-3">
-                                    {order.status.toLowerCase() === 'in progress' && (
+                                    {['pending', 'processing'].includes(order.rawOrder.displayStatus || order.rawOrder.status) && (
                                         <button
                                             onClick={(e) => handleCancelClick(order.id, e)}
                                             disabled={cancellingOrderId === order.id}

@@ -36,14 +36,14 @@ const Wishlist = () => {
 
     if (wishlistLoading) {
         return (
-            <div className="container flex justify-center items-center py-20 font-['Inter',sans-serif]">
+            <div className="container flex justify-center items-center py-20">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)]"></div>
             </div>
         );
     }
 
     return (
-        <div className="container font-['Inter',sans-serif]">
+        <div className="container">
             <div className="bg-white py-8 px-4 mb-4">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
                     <h1 className="text-[26px] sm:text-[28px] font-bold text-left leading-tight">My Wishlist</h1>

@@ -114,11 +114,20 @@ const Orders = () => {
             )
         },
         {
-            header: 'Payment',
+            header: 'Payment Method',
             accessor: 'paymentMethod',
             render: (data) => (
                 <div className="text-sm font-medium text-textPrimary">
                     {data.paymentMethod}
+                </div>
+            )
+        },
+        {
+            header: 'Payment Status',
+            accessor: 'payment',
+            render: (data) => (
+                <div className="text-sm font-medium text-textPrimary">
+                    {data.payment?.status}
                 </div>
             )
         },
