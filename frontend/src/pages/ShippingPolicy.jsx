@@ -1,53 +1,20 @@
-import React from 'react';
-import Subscribe from './Subscribe';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
+import { getAllShipping } from '../redux/slice/shipping.slice';
 import Newsletter from '../component/Newsletter';
 
-const shippingData = [
+const ShippingPolicy = () => {
 
-    {
-        question: "The standard Lorem Ipsum passage",
-        answer: [
-            {
-                type: "paragraph",
-                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi accumsan turpis posuere cursus ultricies. Ut nunc justo, faucibus eget elit quis, vehicula rhoncus nulla. Phasellus convallis sem nec facilisis commodo. Fusce ut molestie turpis. Suspendisse aliquet sed massa in vulputate. Quisque gravida suscipit tincidunt."
-            }
-        ]
-    },
-    {
-        question: "At vero eos et accusamus et iusto odio dignissimos",
-        answer: [
-            {
-                type: "paragraph",
-                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi accumsan turpis posuere cursus ultricies. Ut nunc justo, faucibus eget elit quis, vehicula rhoncus nulla. Phasellus convallis sem nec facilisis commodo. Fusce ut molestie turpis. Suspendisse aliquet sed massa in vulputate. Quisque gravida suscipit tincidunt."
-            }
-        ]
-    },
-    {
-        question: "Certain circumstances and owing to the claims of duty or the obligations",
-        answer: [
-            {
-                type: "paragraph",
-                content: "But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness. No one rejects, dislikes."
-            }
-        ]
-    },
-    {
-        question: "Integer ultrices laoreet nunc in gravida",
-        answer: [
-            {
-                type: "paragraph",
-                content: "Sed lobortis pulvinar viverra. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Mauris suscipit dolor scelerisque, bibendum tellus ac, pharetra sapien. Praesent lacinia scelerisque odio et consequat. In a facilisis lacus. Maecenas vel lobortis tellus."
-            }
-        ]
-    }
+    const dispatch = useDispatch();
+    const { shipping, loading } = useSelector((state) => state.shipping);
 
-];
+    useEffect(() => {
+        dispatch(getAllShipping());
+    }, [dispatch]);
 
-function ShippingPolicy() {
     return (
-        <div className="min-h-screen px-4 sm:px-6 lg:px-8">
+        <div className="w-full">
             <div className="bg-[#f8f9fa] border-b border-gray-100 py-10 md:py-14 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-[1440px] mx-auto px-2 md:px-0 lg:px-4">
                     <h1 className="text-3xl md:text-[40px] font-bold text-[#1a1a1a] mb-3 tracking-tight">Shipping Policy</h1>
@@ -55,47 +22,33 @@ function ShippingPolicy() {
                         <Link to="/" className="hover:text-primary transition-colors">Home</Link>
                         <span className="text-gray-300 font-light">&gt;</span>
                         <span className="text-gray-600">Shipping Policy</span>
-
                     </div>
                 </div>
             </div>
 
-            <main className="container mx-auto py-12 px-4">
-                <div className="space-y-8">
-                    {shippingData.map((faq, index) => (
-                        <div key={index} className="space-y-4">
-                            <h2 className="text-xl md:text-2xl font-semibold text-[var(--text-primary)]">
-                                {faq.question}
-                            </h2>
-                            {faq.answer.map((block, i) => {
-                                if (block.type === 'paragraph') {
-                                    return (
-                                        <p key={i} className="text-sm md:text-base text-[var(--text-secondary)] mt-4 !leading-[1.8rem]">
-                                            {block.content}
-                                        </p>
-                                    );
-                                }
-                                if (block.type === 'list') {
-                                    return (
-                                        <ul key={i} className="list-disc pl-5 md:pl-8 space-y-2 mt-4 text-sm md:text-base text-[var(--text-secondary)] leading-relaxed">
-                                            {block.items.map((item, j) => (
-                                                <li key={j}>{item}</li>
-                                            ))}
-                                        </ul>
-                                    );
-                                }
-                                return null;
-                            })}
+            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 md:px-7 xl:px-0 pt-10 md:pt-16">
+                <div className="max-w-[950px] mx-auto lg:mx-0 px-2 md:px-0 lg:px-4">
+                    {loading ? (
+                        <div className="flex items-center justify-center py-20">
+                            <div className="animate-spin rounded-full h-10 w-10 border-4 border-primary border-t-transparent"></div>
                         </div>
-                    ))}
+                    ) : (
+                        <div className="space-y-12 md:space-y-14">
+                            {shipping?.map(section => (
+                                <div key={section._id || section.id} id={section._id || section.id} className="scroll-mt-8 md:scroll-mt-12">
+                                    <div
+                                        className="text-textSecondary text-sm leading-relaxed [&_p]:mb-2 [&_ul]:list-disc [&_ul]:ml-5 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-5 [&_ol]:mb-2 break-words"
+                                        dangerouslySetInnerHTML={{ __html: section.description }}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
+            </div>
 
-                {/* <Subscribe /> */}
-
-                {/* Newsletter */}
-                <Newsletter className="w-full pt-6 mt-8" />
-            </main>
-
+            {/* Newsletter */}
+            <Newsletter className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-4 py-4 sm:py-6 pt-6 mt-8" />
         </div>
     );
 }

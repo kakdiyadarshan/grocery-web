@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ShoppingCart,
   XCircle,
@@ -20,11 +20,15 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList
 } from 'recharts';
 import ReactApexChart from 'react-apexcharts';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchOrders } from '../../redux/slice/order.slice';
+import { FiPackage, FiClock,  } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 
 
 
 
-const COLORS = ['#228B22', '#b3d498', '#98d4a0',"#70bb70"];
+const COLORS = ['#228B22', '#b3d498', '#98d4a0', "#70bb70"];
 
 const formatCompact = (val) => {
   if (val >= 1000000) return `$${(val / 1000000).toFixed(val % 1000000 === 0 ? 0 : 1)}M`;
@@ -86,6 +90,17 @@ const renderActiveShape = (props) => {
 };
 
 const Dashboard = () => {
+ const navigate = useNavigate();
+  const dispatch = useDispatch()
+
+   const { allorders, loading } = useSelector((state) => state.order);
+
+  useEffect(() => {
+    dispatch(fetchOrders())
+  }, [dispatch])
+
+  console.log('ordersData', allorders);
+
 
   const [primaryColor, setPrimaryColor] = useState('');
 
@@ -159,30 +174,142 @@ const Dashboard = () => {
     }
   };
 
-  const columns = [
-    { header: '#', accessor: 'id' },
-    {
-      header: 'Product Name',
-      accessor: 'name',
-      render: (item) => (
-        <div className="flex items-center gap-3 font-jost">
-          <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-            <Mail className="w-4 h-4 text-emerald-600" />
-          </div>
-          <span className="font-semibold text-[14px] text-slate-700">{item.name}</span>
-        </div>
-      )
-    },
-    { header: 'Joined Date', accessor: 'date' },
-    { header: 'Status', accessor: 'status' },
-  ];
+    const columns = useMemo(() => [
+          {
+              header: 'Order Info',
+              accessor: '_id',
+              searchKey: (data) => data._id + " " + data.user?.username,
+              render: (data) => (
+                  <div className="flex flex-col gap-0.5">
+                      <div className="font-bold text-textPrimary">
+                          #{data._id.slice(-6).toUpperCase()}
+                      </div>
+                      <div className='text-xs text-textSecondary'>
+                          By: {data.userId?.firstname + " " + data.userId?.lastname || 'Unknown User'}
+                      </div>
+                  </div>
+              )
+          },
+          {
+              header: 'Order Date',
+              accessor: 'createdAt',
+              render: (data) => (
+                  <div className="flex items-center gap-2 text-textSecondary">
+                      <FiClock size={12} className="text-textSecondary opacity-60" />
+                      <span className="text-xs font-medium">
+                          {new Date(data.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                  </div>
+              )
+          },
+          {
+              header: 'Items',
+              searchKey: (data) => data.items?.map((item) => item.product?.name).join(' '),
+              accessor: 'items',
+              render: (data) => (
+                  <div className="flex items-center gap-3">
+                      <div className="flex -space-x-3 overflow-hidden">
+                          {data.items?.slice(0, 3).map((item, i) => (
+                              <div
+                                  key={i}
+                                  className="relative inline-block h-9 w-9 rounded-full ring-2 ring-white overflow-hidden bg-gray-100 shadow-sm transition-transform hover:scale-110 hover:z-10"
+                                  title={item.product?.name}
+                              >
+                                  {item.product?.images?.[0]?.url ? (
+                                      <img
+                                          src={item.product.images[0].url}
+                                          alt={item.product.name}
+                                          className="h-full w-full object-cover"
+                                      />
+                                  ) : (
+                                      <div className="h-full w-full flex items-center justify-center text-xs text-gray-400">
+                                          <FiPackage />
+                                      </div>
+                                  )}
+                              </div>
+                          ))}
+  
+                          {data.items?.length > 3 && (
+                              <div className="relative inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-gray-800 bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-500">
+                                  +{data.items.length - 3}
+                              </div>
+                          )}
+                      </div>
+                      <div className='text-xs flex items-center text-gray-500 whitespace-nowrap self-center pl-2 !ml-1'>
+                          {data.items?.length} items
+                      </div>
+                  </div>
+              )
+          },
+          {
+              header: 'Total',
+              accessor: 'totalAmount',
+              render: (data) => (
+                  <div className="text-sm font-medium text-textPrimary">
+                      ${data.totalAmount.toFixed(2)}
+                  </div>
+              )
+          },
+          // {
+          //     header: 'Payment',
+          //     accessor: 'paymentMethod',
+          //     render: (data) => (
+          //         <div className="text-sm font-medium text-textPrimary">
+          //             {data.paymentMethod}
+          //         </div>
+          //     )
+          // },
+          // {
+          //     header: 'Payment Status',
+          //     accessor: 'paymentStatus'
+          // },
+          {
+              header: 'Order Status',
+              accessor: 'status',
+              render: (data) => (
+                  <span className={`px-2 py-0.5 rounded-[4px] text-xs font-medium border capitalize
+                  ${data.status === 'delivered' ? 'bg-green-50 text-green-700 border-green-200' :
+                          data.status === 'processing' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                              data.status === 'shipped' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                                  data.status === 'cancelled' ? 'bg-red-50 text-red-700 border-red-200' :
+                                      'bg-yellow-50 text-yellow-700 border-yellow-200'}`}>
+                      {data.status}
+                  </span>
+              )
+          },
+          // {
+          //     header: 'Shipping',
+          //     searchKey: (data) => `${data.shippingAddress?.firstName} ${data.shippingAddress?.lastName} ${data.shippingAddress?.city} ${data.shippingAddress?.postcode}`,
+          //     accessor: 'shippingAddress',
+          //     render: (data) => (
+          //         <div className='max-w-[150px] text-xs text-textSecondary truncate'>
+          //             <div className='font-medium text-textPrimary'>
+          //                 {data.shippingAddress?.firstName} {data.shippingAddress?.lastName}
+          //             </div>
+          //             <div title={`${data.shippingAddress?.street}, ${data.shippingAddress?.city}`}>
+          //                 {data.shippingAddress?.city}, {data.shippingAddress?.postcode}
+          //             </div>
+          //         </div>
+          //     )
+          // }
+      ], []);
 
-  const tableData = [
-    { id: "1", name: "Strawberry", date: "25 Mar 2026, 12:19 pm", status: "Active" },
-    { id: "2", name: "Wheat flour", date: "25 Mar 2026, 01:45 pm", status: "Active" },
-    { id: "3", name: "Energy drinks", date: "26 Mar 2026, 09:30 am", status: "Rejected" },
-    { id: "4", name: "Fresh Milk", date: "27 Mar 2026, 11:20 am", status: "Active" },
-  ];
+          const handleView = useCallback((item) => {
+              navigate(`/admin/orders/${item._id}`);
+          }, [navigate]);
+
+  // const tableData = [
+  //   ...(ordersData?.map((order, index) => ({
+  //     id: index + 1,
+  //     name: order.userId?.email,
+  //     date: new Date(order.createdAt).toLocaleDateString('en-GB', {
+  //       day: '2-digit',
+  //       month: 'short',
+  //       year: 'numeric'
+  //     }),
+  //     status: order.status
+  //   })) || [])
+  // ];
 
   return (
     <div className="py-8 w-full min-h-screen text-slate-800">
@@ -237,7 +364,7 @@ const Dashboard = () => {
             <h3 className="text-xl font-bold">Orders Analytics</h3>
             <div className="flex items-center gap-6">
               <CustomSelect
-                options={['2026','2025', '2024', '2023']}
+                options={['2026', '2025', '2024', '2023']}
                 defaultValue="2026"
                 onChange={(year) => console.log('Selected year:', year)}
               />
@@ -325,7 +452,7 @@ const Dashboard = () => {
 
       {/* Product Chart*/}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
-       
+
 
         <div className="bg-white rounded-md p-4 border border-slate-100 lg:col-span-1">
           <div className="flex items-center justify-between mb-8">
@@ -357,13 +484,13 @@ const Dashboard = () => {
                   },
                 },
                 colors: [
-                  primaryColor+'65',
-                  primaryColor+'70',
-                  primaryColor+'75',
-                  primaryColor+'80',
-                  primaryColor+'85',
-                  primaryColor+'90',
-                  primaryColor+'95',
+                  primaryColor + '65',
+                  primaryColor + '70',
+                  primaryColor + '75',
+                  primaryColor + '80',
+                  primaryColor + '85',
+                  primaryColor + '90',
+                  primaryColor + '95',
                   primaryColor,
                 ],
                 dataLabels: {
@@ -442,8 +569,8 @@ const Dashboard = () => {
               {activeTimeframe === 'Weekly' ? '$18,200.82' : activeTimeframe === 'Monthly' ? '$45,300.00' : '$264,000.00'}
             </h2>
             <div className="flex items-center px-2 py-1 rounded-full bg-emerald-50 text-emerald-600 text-xs font-bold gap-1 border border-emerald-100">
-               <ArrowUpRight className="w-3 h-3" />
-               {activeTimeframe === 'Weekly' ? '8.24%' : activeTimeframe === 'Monthly' ? '12.5%' : '15.8%'}
+              <ArrowUpRight className="w-3 h-3" />
+              {activeTimeframe === 'Weekly' ? '8.24%' : activeTimeframe === 'Monthly' ? '12.5%' : '15.8%'}
             </div>
           </div>
 
@@ -527,7 +654,7 @@ const Dashboard = () => {
                   }
                 },
                 tooltip: {
-                  custom: function({ series, seriesIndex, dataPointIndex, w }) {
+                  custom: function ({ series, seriesIndex, dataPointIndex, w }) {
                     return '<div className="px-3 py-2 bg-emerald-600 text-white rounded-lg shadow-lg font-bold text-xs">' +
                       '$' + series[seriesIndex][dataPointIndex].toLocaleString() +
                       '</div>'
@@ -558,12 +685,13 @@ const Dashboard = () => {
         <div className="xl:col-span-2 ">
           <div className="bg-white p-4 rounded-md border border-slate-100 h-full">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xl font-bold">Top Selling Products</h3>
+              <h3 className="text-xl font-bold">Recent Orders</h3>
             </div>
             <DataTable
               columns={columns}
-              data={tableData}
-              onDelete={(item) => console.log('Delete:', item)}
+              data={allorders || []}
+                onView={handleView}
+              // onDelete={(item) => console.log('Delete:', item)}
               itemsPerPage={5}
             />
           </div>
