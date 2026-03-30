@@ -64,7 +64,12 @@ const OrderTracking = () => {
     if (data.deliveryContact) return data.deliveryContact;
     if (data.address) {
       const addr = data.address;
-      return `${addr.email} | ${addr.phone}`;
+      return (
+        <div className="flex flex-col gap-1">
+          <p className="text-xs text-textSecondary font-medium">Email: {addr.email}</p>
+          <p className="text-xs text-textSecondary font-medium">Phone: {addr.phone}</p>
+        </div>
+      );
     }
     return '';
   };
@@ -133,8 +138,8 @@ const OrderTracking = () => {
                     <MapPin className="text-[var(--primary)] w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-gray-900 mb-1">{getDeliveryAddress()}</p>
-                    {getDeliveryContact() && <p className="text-xs text-gray-500 font-medium italic">{getDeliveryContact()}</p>}
+                    <p className="text-sm font-bold text-gray-900 mb-2">{getDeliveryAddress()}</p>
+                    {getDeliveryContact()}
                   </div>
                 </div>
               </div>
@@ -144,32 +149,42 @@ const OrderTracking = () => {
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 h-fit">
             <h3 className="text-xl font-bold mb-6 text-gray-900 border-b pb-4">Order Summary</h3>
             <div className="space-y-6 mb-8 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-              {(data.items || []).map((item, i) => (
-                <div key={i} className="flex gap-4 items-center">
-                  <div className="w-20 h-20 bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 shrink-0 shadow-sm">
-                    <img 
-                      src={item.productId?.images?.[0]?.url || item.productId?.images?.[0] || 'https://via.placeholder.com/150?text=Product'} 
-                      alt={item.productId?.name}
-                      className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
-                    />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <p className="font-bold text-gray-900 text-[15px] line-clamp-1">{item.productId?.name || 'Item'}</p>
-                    <p className="text-[12px] text-gray-500 font-medium mt-0.5">
-                      {item.selectedVariant?.weight} {item.selectedVariant?.unit} × {item.quantity}
-                    </p>
-                    <div className="flex justify-between items-center mt-2">
-                       <p className="font-extrabold text-[var(--primary)] text-sm">₹{(item.selectedVariant?.price || 0) * item.quantity}</p>
+              {(data.items || []).map((item, i) => {
+                const variant = item.selectedVariant;
+                const originalPrice = variant?.price || 0;
+                const discountPrice = variant?.discountPrice || originalPrice;
+                const hasOffer = variant?.discountPrice !== null;
+
+                return (
+                  <div key={i} className="flex gap-4 items-center">
+                    <div className="w-20 h-20 bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 shrink-0 shadow-sm">
+                      <img
+                        src={item.productId?.images?.[0]?.url || item.productId?.images?.[0] || 'https://via.placeholder.com/150?text=Product'}
+                        alt={item.productId?.name}
+                        className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
+                      />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="font-bold text-gray-900 text-[15px] line-clamp-1">{item.productId?.name || 'Item'}</p>
+                      <p className="text-[12px] text-gray-500 font-medium mt-0.5">
+                        {item.selectedVariant?.weight} {item.selectedVariant?.unit} × {item.quantity}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <p className="font-extrabold text-[var(--primary)] text-sm">${(discountPrice * item.quantity).toFixed(2)}</p>
+                        {hasOffer && (
+                          <span className="text-[12px] text-textSecondary font-medium line-through">${(originalPrice * item.quantity).toFixed(2)}</span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             
             <div className="pt-6 border-t border-dashed space-y-4">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500 font-medium">Subtotal</span>
-                <span className="text-gray-900 font-bold">₹{data.totalAmount?.toFixed(2)}</span>
+                <span className="text-gray-900 font-bold">${data.totalAmount?.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500 font-medium">Shipping</span>
@@ -178,7 +193,7 @@ const OrderTracking = () => {
               <div className="pt-4 border-t flex justify-between items-center">
                 <span className="text-gray-900 font-black text-lg">Total</span>
                 <div className="text-right">
-                   <span className="text-2xl font-black text-[var(--primary)]">₹{data.totalAmount?.toFixed(2)}</span>
+                   <span className="text-2xl font-black text-[var(--primary)]">${data.totalAmount?.toFixed(2)}</span>
                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Taxes Included</p>
                 </div>
               </div>

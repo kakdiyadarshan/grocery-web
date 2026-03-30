@@ -50,7 +50,7 @@ const OrderCompleted = () => {
 
   const subtotal = orderItems.reduce((acc, item) => {
     const variant = item.selectedVariant;
-    const price = variant?.price || 0;
+    const price = variant?.discountPrice || variant?.price || 0;
     return acc + (price * item.quantity);
   }, 0);
 
@@ -95,15 +95,18 @@ const OrderCompleted = () => {
     if (addr.phone) {
       doc.text(`Phone: ${addr.phone}`, pageW - 14, 36, { align: "right" });
     }
+    if (addr.firstname) {
+      doc.text(`Name: ${addr.firstname} ${addr.lastname}`, pageW - 14, 41, { align: "right" });
+    }
     if (addr.email) {
-      doc.text(`Email: ${addr.email}`, pageW - 14, 41, { align: "right" });
+      doc.text(`Email: ${addr.email}`, pageW - 14, 45, { align: "right" });
     }
 
     // Info Grid
     const infoY = 66;
     const boxW = (pageW - 28 - 9) / 4;
     const infoItems = [
-      { label: "ORDER DATE", value: new Date(currentOrder.createdAt).toLocaleDateString() },
+      { label: "ORDER DATE", value: new Date(currentOrder.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) },
       { label: "STATUS", value: currentOrder.status.toUpperCase() },
       { label: "PAYMENT MODE", value: currentOrder.paymentMethod || "COD" },
       { label: "TOTAL ITEMS", value: String(orderItems.length) },
@@ -128,25 +131,29 @@ const OrderCompleted = () => {
     doc.setFillColor(...green);
     doc.rect(14, tableY, pageW - 28, 10, "F");
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
+    doc.setFontSize(8);
     doc.setTextColor(255, 255, 255);
     doc.text("ITEM", 18, tableY + 7);
-    doc.text("QTY", 140, tableY + 7, { align: "center" });
-    doc.text("PRICE", pageW - 18, tableY + 7, { align: "right" });
+    doc.text("QTY", 100, tableY + 7, { align: "center" });
+    doc.text("PRICE", 135, tableY + 7, { align: "right" });
+    doc.text("SAVINGS", 165, tableY + 7, { align: "right" });
+    doc.text("TOTAL", pageW - 18, tableY + 7, { align: "right" });
 
     // Table Rows
     orderItems.forEach((item, i) => {
       const rowY = tableY + 10 + i * 14;
       const product = item.productId || {};
       const variant = item.selectedVariant;
-      const price = variant?.price || 0;
+      const originalPrice = variant?.price || 0;
+      const discountedPrice = variant?.discountPrice || originalPrice;
+      const savingsPerUnit = originalPrice - discountedPrice;
 
       if (i % 2 === 0) {
         doc.setFillColor(250, 255, 250);
         doc.rect(14, rowY, pageW - 28, 14, "F");
       }
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(9);
+      doc.setFontSize(8.5);
       doc.setTextColor(...darkGray);
       doc.text(product.name || "Product", 18, rowY + 6);
 
@@ -158,10 +165,12 @@ const OrderCompleted = () => {
       }
 
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
+      doc.setFontSize(8.5);
       doc.setTextColor(...darkGray);
-      doc.text(String(item.quantity), 140, rowY + 8, { align: "center" });
-      doc.text(`Rs. ${(price * item.quantity).toFixed(2)}`, pageW - 18, rowY + 8, { align: "right" });
+      doc.text(String(item.quantity), 100, rowY + 8, { align: "center" });
+      doc.text(`$ ${originalPrice.toFixed(2)}`, 135, rowY + 8, { align: "right" });
+      doc.text(`- $ ${savingsPerUnit.toFixed(2)}`, 165, rowY + 8, { align: "right" });
+      doc.text(`$ ${(discountedPrice * item.quantity).toFixed(2)}`, pageW - 18, rowY + 8, { align: "right" });
     });
 
     // Totals
@@ -170,9 +179,9 @@ const OrderCompleted = () => {
     const totX = pageW - 14;
     const labelX = totX - 60;
     const totalsData = [
-      { label: "Subtotal", value: `Rs. ${subtotal.toFixed(2)}` },
-      { label: "Shipping", value: shipping === 0 ? "FREE" : `Rs. ${shipping.toFixed(2)}` },
-      { label: "Tax (8%)", value: `Rs. ${tax.toFixed(2)}` },
+      { label: "Subtotal", value: `$ ${subtotal.toFixed(2)}` },
+      { label: "Shipping", value: shipping === 0 ? "FREE" : `$ ${shipping.toFixed(2)}` },
+      { label: "Tax (8%)", value: `$ ${tax.toFixed(2)}` },
     ];
 
     totalsData.forEach((t, i) => {
@@ -189,7 +198,7 @@ const OrderCompleted = () => {
     doc.setTextColor(...darkGray);
     doc.text("TOTAL AMOUNT", labelX, totalRowY + 2, { align: "left" });
     doc.setTextColor(34, 120, 34);
-    doc.text(`Rs. ${total.toFixed(2)}`, totX, totalRowY + 2, { align: "right" });
+    doc.text(`$ ${total.toFixed(2)}`, totX, totalRowY + 2, { align: "right" });
 
     doc.save(`Invoice_${currentOrder._id}.pdf`);
   };
@@ -207,7 +216,7 @@ const OrderCompleted = () => {
           <p className="text-gray-500 text-[15px] mt-3 max-w-sm mx-auto">
             Your order{" "}
             <span className="font-bold text-[var(--primary)] shadow-sm border border-gray-100 px-2 py-0.5 rounded ml-1 tracking-wide">
-              #{currentOrder?._id?.toString().slice(-8).toUpperCase() || "N/A"}
+              #{currentOrder?._id?.toString().slice(-6).toUpperCase() || "N/A"}
             </span>{" "}
             has been placed successfully.
           </p>
@@ -217,11 +226,11 @@ const OrderCompleted = () => {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 p-8 text-sm border-b border-gray-100 bg-white">
           <div className="flex flex-col gap-1">
             <p className="text-gray-400 text-xs uppercase tracking-wider font-semibold">Date</p>
-            <p className="font-bold text-gray-900">{new Date(currentOrder.createdAt).toLocaleDateString()}</p>
+            <p className="font-bold text-gray-900">{new Date(currentOrder.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
           </div>
           <div className="flex flex-col gap-1">
             <p className="text-gray-400 text-xs uppercase tracking-wider font-semibold">Order ID</p>
-            <p className="font-bold text-gray-900">#{currentOrder?._id?.toString().slice(-8).toUpperCase() || "N/A"}</p>
+            <p className="font-bold text-gray-900">#{currentOrder?._id?.toString().slice(-6).toUpperCase() || "N/A"}</p>
           </div>
           <div className="flex flex-col gap-1">
             <p className="text-gray-400 text-xs uppercase tracking-wider font-semibold">Payment</p>
@@ -238,6 +247,7 @@ const OrderCompleted = () => {
           <p className="text-gray-400 text-xs uppercase tracking-wider font-semibold mb-1">Delivery Address</p>
           <p className="font-bold text-gray-900 text-sm">{deliveryAddress}</p>
           {addr.phone && <p className="text-gray-500 text-xs mt-0.5">Phone: {addr.phone}</p>}
+          {addr.firstname && <p className="text-gray-500 text-xs mt-0.5">Name: {addr.firstname} {addr.lastname}</p>}
           {addr.email && <p className="text-gray-500 text-xs mt-0.5">Email: {addr.email}</p>}
         </div>
 
@@ -250,6 +260,11 @@ const OrderCompleted = () => {
           <div className="space-y-3">
             {orderItems.map((item, i) => {
               const product = item.productId || {};
+              const variant = item.selectedVariant;
+              const originalPrice = variant?.price || 0;
+              const price = variant?.discountPrice || originalPrice;
+              const hasOffer = price < originalPrice;
+
               return (
                 <div key={i} className="flex items-center justify-between text-sm bg-gray-50/50 p-2.5 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">
                   <div className="flex items-center gap-3.5">
@@ -262,17 +277,24 @@ const OrderCompleted = () => {
                     </div>
                     <div className="flex flex-col">
                       <span className="text-gray-900 font-bold block line-clamp-1">{product.name}</span>
-                      {item.selectedVariant && (
+                      {variant && (
                         <span className="text-[10px] font-bold text-[var(--primary)] tracking-tight">
-                          Variant: {item.selectedVariant.weight} {item.selectedVariant.unit}
+                          Weight: {variant.weight} {variant.unit}
                         </span>
                       )}
-                      <span className="text-gray-500 text-xs font-medium mt-0.5">Qty: {item.quantity}</span>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-gray-500 text-xs font-medium">Qty: {item.quantity}</span>
+                        {hasOffer && (
+                          <span className="text-[12px] text-textSecondary line-through">(${originalPrice.toFixed(2)} each)</span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  <span className="font-bold text-gray-900 text-[15px] pr-2">
-                    ₹{((item.selectedVariant?.price || 0) * item.quantity).toFixed(2)}
-                  </span>
+                  <div className="flex flex-col items-end pr-2">
+                    <span className="font-bold text-gray-900 text-[15px]">
+                      ${(price * item.quantity).toFixed(2)}
+                    </span>
+                  </div>
                 </div>
               );
             })}
@@ -283,20 +305,20 @@ const OrderCompleted = () => {
         <div className="bg-gray-50/80 p-8 border-b border-gray-100 text-[15px] space-y-4">
           <div className="flex justify-between items-center text-gray-600 font-medium">
             <span>Subtotal</span>
-            <span className="text-gray-900 font-bold">₹{subtotal.toFixed(2)}</span>
+            <span className="text-gray-900 font-bold">${subtotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between items-center text-gray-600 font-medium">
             <span>Shipping</span>
-            <span className="text-gray-900 font-bold">{shipping === 0 ? "FREE" : `₹${shipping.toFixed(2)}`}</span>
+            <span className="text-gray-900 font-bold">{shipping === 0 ? "FREE" : `$${shipping.toFixed(2)}`}</span>
           </div>
           <div className="flex justify-between items-center text-gray-600 font-medium">
             <span>Estimated Tax</span>
-            <span className="text-gray-900 font-bold">₹{tax.toFixed(2)}</span>
+            <span className="text-gray-900 font-bold">${tax.toFixed(2)}</span>
           </div>
           <div className="flex justify-between items-end pt-5 mt-2 border-t border-gray-200/60">
             <span className="text-gray-900 font-bold text-lg uppercase tracking-wide">Total Amount</span>
             <span className="md:text-[28px] text-[24px] font-black text-[var(--primary)] leading-none tracking-tight">
-              ₹{total.toFixed(2)}
+              ${total.toFixed(2)}
             </span>
           </div>
         </div>

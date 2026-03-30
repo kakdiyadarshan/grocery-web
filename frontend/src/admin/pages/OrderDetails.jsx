@@ -302,9 +302,20 @@ const OrderDetails = () => {
                                         </div>
 
                                         <div className="text-right">
-                                            <p className="font-bold text-textPrimary text-base">${item?.selectedVariant?.price?.toFixed(2)}</p>
+                                            <div className="flex flex-col items-end">
+                                                <p className="font-bold text-textPrimary text-base">
+                                                    ${(item?.selectedVariant?.discountPrice || item?.selectedVariant?.price)?.toFixed(2)}
+                                                </p>
+                                                {item?.selectedVariant?.discountPrice !== null && item?.selectedVariant?.discountPrice < item?.selectedVariant?.price && (
+                                                    <span className="text-[12px] text-textSecondary line-through font-medium">
+                                                        ${item?.selectedVariant?.price?.toFixed(2)}
+                                                    </span>
+                                                )}
+                                            </div>
                                             <p className="text-xs text-textSecondary font-medium mt-0.5">Quantity: {item?.quantity}</p>
-                                            <p className="font-black text-primary mt-2 text-base">${(item?.selectedVariant?.price * item?.quantity)?.toFixed(2)}</p>
+                                            <p className="font-black text-primary mt-2 text-base">
+                                                ${((item?.selectedVariant?.discountPrice || item?.selectedVariant?.price) * item?.quantity)?.toFixed(2)}
+                                            </p>
                                         </div>
                                     </div>
                                 ))}
@@ -361,14 +372,17 @@ const OrderDetails = () => {
                                 <div className="flex flex-col gap-1">
                                     <p className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0"></span> {address.address}</p>
                                     <p className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0"></span> {address.city}, {address.state}</p>
-                                    <p className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0"></span> {address.postcode}, {address.country} </p>
+                                    <p className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0"></span> {address.country} </p>
                                     <p className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0"></span>ZIP : {address.zip}</p>
                                 </div>
                                 <div className="mt-4 pt-4 border-t border-borderColor flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-lg bg-bgMain flex items-center justify-center text-primary border border-borderColor">
                                         <FiTruck size={16} />
                                     </div>
-                                    <p className="font-bold text-textPrimary tracking-tight">{address.phone}</p>
+                                    <div className="flex flex-col">
+                                        <p className="text-[10px] font-bold text-textSecondary uppercase tracking-widest leading-none mb-1">Phone Contact</p>
+                                        <p className="font-bold text-textPrimary tracking-tight">Phone: {address.phone}</p>
+                                    </div>
                                 </div>
                             </div>
                         ) : (
@@ -415,12 +429,12 @@ const OrderDetails = () => {
                     </div>
 
                     {status === 'cancelled' && (
-                        <div className="mt-12 p-6 bg-rose-50 border border-rose-100 rounded-xl flex items-center gap-5 text-rose-600 shadow-sm shadow-rose-100/50">
+                        <div className="mt-12 p-6 bg-rose-50 border border-rose-100 rounded-[4px] flex items-center gap-5 text-rose-600 shadow-sm shadow-rose-100/50">
                             <div className="p-4 bg-rose-100 rounded-full">
                                 <FiXCircle className="text-3xl" />
                             </div>
                             <div>
-                                <p className="font-black text-xl uppercase tracking-tight">Order Revoked</p>
+                                <p className="font-[600] text-lg capitalize tracking-tight">Order Revoked</p>
                                 <p className="text-sm font-medium opacity-90 mt-1">This order was cancelled by the system or administrator. No further logistics will be processed.</p>
                             </div>
                         </div>
