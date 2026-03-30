@@ -24,6 +24,7 @@ const Header = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
@@ -118,9 +119,14 @@ const Header = () => {
       .join('')
     : 'U';
 
-  const handleLogout = () => {
-    dispatch(logout());
+  const handleLogoutClick = () => {
+    setIsLogoutModalOpen(true);
     setIsUserMenuOpen(false);
+  };
+
+  const confirmLogout = () => {
+    dispatch(logout());
+    setIsLogoutModalOpen(false);
   };
 
   const handleSearch = (event) => {
@@ -308,26 +314,26 @@ const Header = () => {
             <form className="hidden md:flex flex-1 justify-center mx-6 lg:mx-12" onSubmit={handleSearch}>
               <div className="relative w-full max-w-2xl" ref={desktopSearchRef}>
                 <div className="flex items-center border border-[var(--primary)] rounded p-[2px]">
-                <input
-                  type="text"
-                  placeholder="Search"
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setIsSuggestionsOpen(true);
-                    setActiveSuggestionIndex(-1);
-                  }}
-                  onFocus={() => setIsSuggestionsOpen(true)}
-                  onKeyDown={handleSuggestionKeyDown}
-                  className="w-full px-4 py-2 outline-none text-[var(--text-gray)] bg-transparent text-sm sm:text-base"
-                />
-                <button
-                  type="submit"
-                  className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors text-white px-6 lg:px-8 py-2 rounded text-sm sm:text-base font-medium"
-                >
-                  Search
-                </button>
-              </div>
+                  <input
+                    type="text"
+                    placeholder="Search"
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setIsSuggestionsOpen(true);
+                      setActiveSuggestionIndex(-1);
+                    }}
+                    onFocus={() => setIsSuggestionsOpen(true)}
+                    onKeyDown={handleSuggestionKeyDown}
+                    className="w-full px-4 py-2 outline-none text-[var(--text-gray)] bg-transparent text-sm sm:text-base"
+                  />
+                  <button
+                    type="submit"
+                    className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors text-white px-6 lg:px-8 py-2 rounded text-sm sm:text-base font-medium"
+                  >
+                    Search
+                  </button>
+                </div>
                 {renderSuggestions()}
               </div>
             </form>
@@ -364,13 +370,13 @@ const Header = () => {
                       {isAuthenticated ? (
                         <>
                           <li>
-                            <Link to="/my-order" className="block px-5 py-1.5 text-[15px] text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors">
-                              My Orders
+                            <Link to="/profile" className="block px-5 py-1.5 text-[15px] text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors">
+                              My Profile
                             </Link>
                           </li>
                           <li>
                             <button
-                              onClick={handleLogout}
+                              onClick={handleLogoutClick}
                               className="w-full text-left block px-5 py-1.5 text-[15px] text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors"
                             >
                               Logout
@@ -543,6 +549,39 @@ const Header = () => {
           <Link to="/blog" onClick={() => setIsMobileMenuOpen(false)} className="text-[15px] font-bold text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors border-b border-gray-50 pb-3">Blog</Link>
         </div>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {isLogoutModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity"
+            onClick={() => setIsLogoutModalOpen(false)}
+          ></div>
+
+          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-[450px] p-8 md:p-10 transform transition-all animate-in fade-in zoom-in duration-200">
+            <div className="text-center">
+              <h3 className="text-xl md:text-2xl font-semibold text-[#1F2937] mb-8">
+                Are you sure you want to signOut?
+              </h3>
+
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  onClick={confirmLogout}
+                  className="flex-1 bg-[#F34E4E] hover:bg-[#E33E3E] text-white font-semibold py-3 px-6 rounded-lg transition-colors shadow-sm active:scale-95"
+                >
+                  SignOut
+                </button>
+                <button
+                  onClick={() => setIsLogoutModalOpen(false)}
+                  className="flex-1 bg-white border border-gray-200 hover:bg-gray-50 text-[#1F2937] font-semibold py-3 px-6 rounded-lg transition-colors active:scale-95"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Cart Drawer Component */}
       <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />

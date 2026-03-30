@@ -194,9 +194,11 @@ function Home() {
                     {banner.title}
                   </h3>
                   <div className='flex items-center gap-1 group/btn'>
-                    <span className='text-sm text-gray-800 border-b border-gray-800 hover:border-none'>
+                    <button
+                      onClick={() => window.location.href = banner.link}
+                      className='text-sm text-gray-800 border-b border-gray-800 hover:border-none'>
                       Shop Now
-                    </span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -263,7 +265,9 @@ function Home() {
                   >
                     {banner.title}
                   </h3>
-                  <button className='bg-[var(--primary)] text-white px-5 py-2.5 sm:py-2.5 rounded-md font-medium text-sm sm:text-base transition-all duration-300 hover:bg-[var(--primary-hover)] transform active:scale-95 shadow-md'>
+                  <button
+                    onClick={() => window.location.href = banner.link}
+                    className='bg-[var(--primary)] text-white px-5 py-2.5 sm:py-2.5 rounded-md font-medium text-sm sm:text-base transition-all duration-300 hover:bg-[var(--primary-hover)] transform active:scale-95 shadow-md'>
                     Shop Now
                   </button>
                 </div>
@@ -294,7 +298,9 @@ function Home() {
               Starting At Only <span className="text-[var(--primary)]">$59.00</span>
             </p>
 
-            <button className='bg-[var(--primary)] text-white px-5 py-2.5 sm:py-2.5 rounded-md font-medium text-sm sm:text-base transition-all duration-300 hover:bg-[var(--primary-hover)] transform active:scale-95 shadow-md'>
+            <button
+              onClick={() => window.location.href = '/shop'}
+              className='bg-[var(--primary)] text-white px-5 py-2.5 sm:py-2.5 rounded-md font-medium text-sm sm:text-base transition-all duration-300 hover:bg-[var(--primary-hover)] transform active:scale-95 shadow-md'>
               Shop Now
             </button>
           </div>
