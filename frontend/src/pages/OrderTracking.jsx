@@ -52,7 +52,7 @@ const OrderTracking = () => {
     );
   }
 
-  const displayId = `#${(data?._id || "").toString().slice(-8).toUpperCase()}`;
+  const displayId = `#${(data?._id || "").toString().slice(-6).toUpperCase()}`;
 
   // Build delivery address from populated address object or use pre-computed string
   const getDeliveryAddress = () => {
@@ -117,20 +117,21 @@ const OrderTracking = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+            <div className="bg-white rounded-[4px] shadow-sm border border-gray-100 p-8">
               <h3 className="text-xl font-bold mb-8 text-gray-900 border-b pb-4">Live Timeline</h3>
 
               <div className="relative">
                 {data.steps.map((step, index) => {
                   const Icon = step.status === "Order Placed" ? Package :
                     step.status === "Processing" ? Package :
-                      step.status === "Out for Delivery" ? Truck : CheckCircle2;
+                      step.status === "Shipped" ? Truck :
+                        step.status === "Out for Delivery" ? Truck : CheckCircle2;
                   return (
                     <div key={index} className="flex gap-6 mb-10 relative">
                       {index < data.steps.length - 1 && (
                         <div className={`absolute left-5 top-10 w-0.5 h-10 -ml-[1px] ${step.isCompleted ? 'bg-[var(--primary)]' : 'bg-gray-100'}`} />
                       )}
-                      <div className={`w-10 h-10 flex items-center justify-center rounded-2xl shrink-0 
+                      <div className={`w-10 h-10 flex items-center justify-center rounded-[4px] shrink-0 
                             ${step.isCompleted ? 'bg-[var(--primary)] text-white shadow-lg shadow-green-100 font-bold' : 'bg-gray-100 text-gray-400'}`}>
                         <Icon className="w-5 h-5" />
                       </div>
@@ -144,9 +145,9 @@ const OrderTracking = () => {
               </div>
 
               <div className="mt-4 pt-8 border-t">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 text-left">Delivery Address</p>
-                <div className="flex items-start gap-4 p-5 bg-gray-50 rounded-2xl border border-gray-100">
-                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-gray-100">
+                <p className="text-xs font-[600] text-textSecondary tracking-widest mb-3 text-left">Delivery Address</p>
+                <div className="flex items-start gap-4 p-5 bg-gray-50 rounded-[4px] border border-gray-100">
+                  <div className="w-10 h-10 bg-white rounded-[4px] flex items-center justify-center shadow-sm border border-gray-100">
                     <MapPin className="text-[var(--primary)] w-5 h-5" />
                   </div>
                   <div>
@@ -158,7 +159,7 @@ const OrderTracking = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 h-fit">
+          <div className="bg-white rounded-[4px] shadow-sm border border-gray-100 p-8 h-fit">
             <h3 className="text-xl font-bold mb-6 text-gray-900 border-b pb-4">Order Summary</h3>
             <div className="space-y-6 mb-8 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
               {(data.items || []).map((item, i) => {
@@ -169,7 +170,7 @@ const OrderTracking = () => {
 
                 return (
                   <div key={i} className="flex gap-4 items-center">
-                    <div className="w-20 h-20 bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 shrink-0 shadow-sm">
+                    <div className="w-20 h-20 bg-gray-50 rounded-[4px] overflow-hidden border border-gray-100 shrink-0 shadow-sm">
                       <img
                         src={item.productId?.images?.[0]?.url || item.productId?.images?.[0] || 'https://via.placeholder.com/150?text=Product'}
                         alt={item.productId?.name}
@@ -206,7 +207,7 @@ const OrderTracking = () => {
                 <span className="text-gray-900 font-black text-lg">Total</span>
                 <div className="text-right">
                    <span className="text-2xl font-black text-[var(--primary)]">${data.totalAmount?.toFixed(2)}</span>
-                   <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Taxes Included</p>
+                   <p className="text-[10px] text-textSecondary font-[600] tracking-tighter">Taxes Included</p>
                 </div>
               </div>
             </div>

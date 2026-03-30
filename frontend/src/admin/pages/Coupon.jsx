@@ -12,26 +12,27 @@ const Coupon = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCoupon, setEditingCoupon] = useState(null);
     const [formData, setFormData] = useState({ code: '', discount: '', expiryDate: '' });
-    
+
     const columns = useMemo(() => [
-        { header: 'Coupon Code', accessor: 'code', 
-            
+        {
+            header: 'Coupon Code', accessor: 'code',
+
         },
         { header: 'Discount (%)', accessor: 'discount', },
-        { 
-            header: 'Expiry Date', 
+        {
+            header: 'Expiry Date',
             accessor: 'expiryDate',
             render: (item) => {
                 const date = new Date(item.expiryDate);
-                return date.toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'short', 
-                    day: 'numeric' 
+                return date.toLocaleDateString('en-IN', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
                 });
             }
         },
-        { 
-            header: 'Status', 
+        {
+            header: 'Status',
             accessor: 'isActive',
             render: (item) => (
                 <span className={`px-2.5 py-1 rounded-[4px] text-xs font-semibold border ${item.isActive ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
@@ -43,7 +44,7 @@ const Coupon = () => {
 
     useEffect(() => {
         dispatch(getAllCoupons());
-    },[dispatch]);
+    }, [dispatch]);
 
     const handleOpenModal = (coupon = null) => {
         if (coupon) {
@@ -67,8 +68,8 @@ const Coupon = () => {
     };
 
     const handleFormChange = (e) => {
-        const { name, value } = 
-        e.target;
+        const { name, value } =
+            e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
@@ -78,7 +79,7 @@ const Coupon = () => {
             alert('Please fill all fields');
             return;
         }
-        
+
         if (editingCoupon) {
             await dispatch(updateCoupon({ id: editingCoupon._id, couponData: formData }));
         } else {
@@ -114,7 +115,7 @@ const Coupon = () => {
             {/* Modal for Create/Edit Coupon */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg max-w-md w-full shadow-lg">
+                    <div className="bg-white rounded-[4px] max-w-md w-full shadow-lg">
                         <div className="flex justify-between items-center p-6 border-b border-gray-200">
                             <h3 className="text-lg font-bold text-gray-800">
                                 {editingCoupon ? 'Edit Coupon' : 'Create Coupon'}
@@ -129,7 +130,7 @@ const Coupon = () => {
 
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-bold text-gray-700 mb-2">
                                     Coupon Code *
                                 </label>
                                 <input
@@ -138,7 +139,7 @@ const Coupon = () => {
                                     value={formData.code}
                                     onChange={handleFormChange}
                                     placeholder="e.g., SAVE20"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                                    className="w-full px-4 py-2 bg-white border border-gray-200 rounded-[4px] text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all text-gray-700"
                                     disabled={editingCoupon ? true : false}
                                 />
                             </div>
@@ -155,7 +156,7 @@ const Coupon = () => {
                                     placeholder="e.g., 20"
                                     min="0"
                                     max="100"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                                    className="w-full px-4 py-2 bg-white border border-gray-200 rounded-[4px] text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all text-gray-700"
                                 />
                             </div>
 
@@ -168,23 +169,15 @@ const Coupon = () => {
                                     name="expiryDate"
                                     value={formData.expiryDate}
                                     onChange={handleFormChange}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                                    className="w-full px-4 py-2 bg-white border border-gray-200 rounded-[4px] text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all text-gray-700"
                                 />
                             </div>
 
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={handleCloseModal}
-                                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                                >
+                            <div className="flex justify-end items-center gap-4 mt-12 mb-2">
+                                <button type="button" onClick={handleCloseModal} className="text-[#596985] font-bold text-sm px-4 py-2.5 transition-colors hover:text-[#1a1a1a]">
                                     Cancel
                                 </button>
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primaryHover transition-colors font-medium disabled:opacity-50"
-                                >
+                                <button type="submit" disabled={loading} className="bg-primary text-white px-8 py-2.5 rounded-[4px] text-sm font-[600] shadow-sm hover:bg-primaryHover transition-all active:scale-95">
                                     {loading ? 'Saving...' : editingCoupon ? 'Update' : 'Create'}
                                 </button>
                             </div>
