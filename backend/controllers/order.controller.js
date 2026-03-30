@@ -115,8 +115,26 @@ exports.getAllOrders = async (req, res) => {
             .populate('items.productId', 'name images weighstWise')
             .sort({ createdAt: -1 });
 
-        const transformedOrders = await Promise.all(orders.map(order => transformAndAutoUpdate(order)));
-        res.status(200).json({ success: true, data: transformedOrders });
+        // Fetch payment information for each order
+        const ordersWithPayments = await Promise.all(orders.map(async (order) => {
+            const payment = await Payment.findOne({ orderId: order._id });
+            const transformedOrder = await transformAndAutoUpdate(order);
+
+            return {
+                ...transformedOrder,
+                payment: payment ? {
+                    _id: payment._id,
+                    paymentMethod: payment.paymentMethod,
+                    amount: payment.amount,
+                    status: payment.status,
+                    upiDetails: payment.upiDetails,
+                    bankDetails: payment.bankDetails,
+                    createdAt: payment.createdAt
+                } : null
+            };
+        }));
+
+        res.status(200).json({ success: true, data: ordersWithPayments });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -129,8 +147,26 @@ exports.getUserOrders = async (req, res) => {
             .populate('items.productId', 'name images weighstWise')
             .sort({ createdAt: -1 });
 
-        const transformedOrders = await Promise.all(orders.map(order => transformAndAutoUpdate(order)));
-        res.status(200).json({ success: true, data: transformedOrders });
+        // Fetch payment information for each order
+        const ordersWithPayments = await Promise.all(orders.map(async (order) => {
+            const payment = await Payment.findOne({ orderId: order._id });
+            const transformedOrder = await transformAndAutoUpdate(order);
+
+            return {
+                ...transformedOrder,
+                payment: payment ? {
+                    _id: payment._id,
+                    paymentMethod: payment.paymentMethod,
+                    amount: payment.amount,
+                    status: payment.status,
+                    upiDetails: payment.upiDetails,
+                    bankDetails: payment.bankDetails,
+                    createdAt: payment.createdAt
+                } : null
+            };
+        }));
+
+        res.status(200).json({ success: true, data: ordersWithPayments });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -149,6 +185,9 @@ exports.getOrderById = async (req, res) => {
 
         const transformed = await transformAndAutoUpdate(order);
 
+        // Fetch payment information
+        const payment = await Payment.findOne({ orderId: req.params.id });
+
         //  Fetch selected address from user's addresses array
         let address = null;
 
@@ -165,7 +204,16 @@ exports.getOrderById = async (req, res) => {
             success: true,
             data: {
                 ...transformed,
-                address // ✅ Now you will get selected address
+                address, // ✅ Now you will get selected address
+                payment: payment ? {
+                    _id: payment._id,
+                    paymentMethod: payment.paymentMethod,
+                    amount: payment.amount,
+                    status: payment.status,
+                    upiDetails: payment.upiDetails,
+                    bankDetails: payment.bankDetails,
+                    createdAt: payment.createdAt
+                } : null
             }
         });
 
@@ -184,12 +232,15 @@ exports.trackOrder = async (req, res) => {
         const transformed = await transformAndAutoUpdate(order);
         const createdAt = new Date(order.createdAt);
 
+        // Fetch payment information
+        const payment = await Payment.findOne({ orderId: req.params.id });
+
         // ✅ Fetch address from user's addresses array
         let address = null;
         if (order.addressId) {
             const user = await User.findOne(
                 { "addresses._id": order.addressId },
-                { "addresses.$": 1 } 
+                { "addresses.$": 1 }
             );
             address = user?.addresses?.[0] || null;
         }
@@ -203,7 +254,20 @@ exports.trackOrder = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            data: { ...transformed, address, steps } // ✅ address added here
+            data: {
+                ...transformed,
+                address, // ✅ address added here
+                payment: payment ? {
+                    _id: payment._id,
+                    paymentMethod: payment.paymentMethod,
+                    amount: payment.amount,
+                    status: payment.status,
+                    upiDetails: payment.upiDetails,
+                    bankDetails: payment.bankDetails,
+                    createdAt: payment.createdAt
+                } : null,
+                steps
+            }
         });
 
     } catch (error) {
