@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { User, Heart, ShoppingBag, Menu, ChevronDown, ChevronUp, AlignLeft, X } from 'lucide-react';
+import { User, Heart, ShoppingBag, Menu, ChevronDown, ChevronUp, AlignLeft, X, Search } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import logo from '../Image/logo.png';
@@ -235,46 +235,60 @@ const Header = () => {
     if (!isSuggestionsOpen) return null;
 
     return (
-      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded z-[70] max-h-80 overflow-y-auto">
+      <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 shadow-md rounded-md z-[70] max-h-[450px] overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
         {debouncedSearchTerm && suggestionProducts.length > 0 ? (
-          <ul className="py-1">
+          <ul className="py-2">
+            <li className="px-4 py-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-50 mb-1">
+              Products Found
+            </li>
             {suggestionProducts.map((product, index) => (
               <li key={product._id}>
                 <button
                   type="button"
                   onClick={() => handleSuggestionSelect(product)}
-                  className={`w-full text-left px-3 py-2 transition-colors flex items-center gap-3 ${activeSuggestionIndex === index ? 'bg-gray-50' : 'hover:bg-gray-50'}`}
+                  className={`w-full text-left px-4 py-2.5 transition-all flex items-center gap-4 ${activeSuggestionIndex === index ? 'bg-gray-50' : 'hover:bg-gray-50'}`}
                 >
-                  <img
-                    src={product.images?.[0]?.url || 'https://via.placeholder.com/80?text=No+Image'}
-                    alt={product.name}
-                    className="w-9 h-9 rounded object-cover border border-gray-100"
-                  />
-                  <span className="min-w-0">
-                    <span className="block text-sm text-[var(--text-gray)] truncate">{highlightMatch(product.name, debouncedSearchTerm)}</span>
-                    <span className="block text-xs text-gray-400 truncate">{highlightMatch(product.category?.categoryName || 'General', debouncedSearchTerm)}</span>
-                  </span>
+                  <div className="w-10 h-10 rounded-lg overflow-hidden border border-gray-100 flex-shrink-0">
+                    <img
+                      src={product.images?.[0]?.url || 'https://via.placeholder.com/80?text=No+Image'}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="block text-[14px] font-semibold text-gray-800 truncate">{highlightMatch(product.name, debouncedSearchTerm)}</span>
+                    <span className="block text-[12px] text-gray-400 font-medium truncate mt-0.5">{highlightMatch(product.category?.categoryName || 'General', debouncedSearchTerm)}</span>
+                  </div>
+                  <div className="text-[14px] font-bold text-[var(--primary)] whitespace-nowrap">
+                    ₹{product.weighstWise?.[0]?.price || 0}
+                  </div>
                 </button>
               </li>
             ))}
-            <li>
+            <li className="mt-1 pt-1 border-t border-gray-50">
               <button
                 type="button"
                 onClick={() => navigate(`/shop?search=${encodeURIComponent(debouncedSearchTerm)}`)}
-                className={`w-full text-left px-3 py-2 text-sm border-t border-gray-100 transition-colors ${activeSuggestionIndex === suggestionProducts.length ? 'bg-gray-50' : 'hover:bg-gray-50'}`}
+                className={`w-full text-left px-4 py-3 text-sm text-[var(--primary)] font-bold transition-colors ${activeSuggestionIndex === suggestionProducts.length ? 'bg-gray-50' : 'hover:bg-gray-50'}`}
               >
-                View all results for "<span className="font-semibold">{debouncedSearchTerm}</span>"
+                View all results for "<span className="italic">{debouncedSearchTerm}</span>"
               </button>
             </li>
           </ul>
         ) : debouncedSearchTerm ? (
-          <p className="px-3 py-2 text-sm text-gray-400">No matching products found.</p>
+          <div className="px-6 py-8 text-center">
+             <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+               <Search className="w-6 h-6 text-gray-300" />
+             </div>
+             <p className="text-sm text-gray-500 font-medium">No results found for "<span className="font-bold">{debouncedSearchTerm}</span>"</p>
+             <p className="text-xs text-gray-400 mt-1">Try check for typos or use different keywords</p>
+          </div>
         ) : recentSearches.length > 0 ? (
-          <div className="py-1">
-            <div className="px-3 py-2 flex items-center justify-between border-b border-gray-100">
-              <span className="text-xs uppercase tracking-wide text-gray-400">Recent searches</span>
-              <button type="button" onClick={clearRecentSearches} className="text-xs text-[var(--primary)] hover:underline">
-                Clear
+          <div className="py-2">
+            <div className="px-4 py-2 flex items-center justify-between border-b border-gray-50 mb-1">
+              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Recent searches</span>
+              <button type="button" onClick={clearRecentSearches} className="text-[11px] font-bold text-rose-500 hover:text-rose-600 transition-colors uppercase tracking-wider">
+                Clear All
               </button>
             </div>
             {recentSearches.map((item) => (
@@ -282,14 +296,23 @@ const Header = () => {
                 key={item}
                 type="button"
                 onClick={() => handleRecentSearchSelect(item)}
-                className="w-full text-left px-3 py-2 text-sm text-[var(--text-gray)] hover:bg-gray-50 transition-colors"
+                className="w-full text-left px-4 py-2.5 text-[14px] text-gray-600 hover:bg-gray-50 flex items-center gap-3 transition-colors group"
               >
+                <div className="w-7 h-7 rounded-md bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-white transition-colors">
+                  <Search className="w-3.5 h-3.5" />
+                </div>
                 {item}
               </button>
             ))}
           </div>
         ) : (
-          <p className="px-3 py-2 text-sm text-gray-400">Type to search products by name, category, or description.</p>
+          <div className="px-6 py-8 text-center">
+             <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+               <Search className="w-6 h-6 text-gray-300" />
+             </div>
+             <p className="text-sm text-gray-500 font-bold">What are you looking for?</p>
+             <p className="text-xs text-gray-400 mt-1">Search by products, categories, or tags</p>
+          </div>
         )}
       </div>
     );
@@ -317,10 +340,11 @@ const Header = () => {
             {/* Search Bar - Desktop */}
             <form className="hidden md:flex flex-1 justify-center mx-6 lg:mx-12" onSubmit={handleSearch}>
               <div className="relative w-full max-w-2xl" ref={desktopSearchRef}>
-                <div className="flex items-center border border-[var(--primary)] rounded p-[2px]">
+                <div className="flex items-center border border-gray-200 rounded-md px-4 py-1.5 focus-within:border-[var(--primary)] focus-within:bg-white focus-within:ring-4 focus-within:ring-[var(--primary-light)] transition-all duration-300">
+                  <Search className="w-5 h-5 text-gray-400 mr-3" />
                   <input
                     type="text"
-                    placeholder="Search"
+                    placeholder="Search for products, categories..."
                     value={searchTerm}
                     onChange={(e) => {
                       setSearchTerm(e.target.value);
@@ -329,11 +353,11 @@ const Header = () => {
                     }}
                     onFocus={() => setIsSuggestionsOpen(true)}
                     onKeyDown={handleSuggestionKeyDown}
-                    className="w-full px-4 py-2 outline-none text-[var(--text-gray)] bg-transparent text-sm sm:text-base"
+                    className="w-full py-1.5 outline-none text-[var(--text-gray)] bg-transparent text-sm sm:text-base placeholder:text-gray-400 font-medium"
                   />
                   <button
                     type="submit"
-                    className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors text-white px-6 lg:px-8 py-2 rounded text-sm sm:text-base font-medium"
+                    className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-all text-white px-6 py-2 rounded-md text-sm font-[500] shadow-sm active:scale-95 whitespace-nowrap ml-2"
                   >
                     Search
                   </button>
@@ -468,10 +492,11 @@ const Header = () => {
           {/* Search Bar - Mobile (Hidden on md and up) */}
           <form className="flex md:hidden mt-4" onSubmit={handleSearch}>
             <div className="relative w-full" ref={mobileSearchRef}>
-              <div className="flex items-center border border-[var(--primary)] rounded p-[2px]">
+              <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-1 focus-within:border-[var(--primary)] focus-within:bg-white transition-all duration-300">
+                <Search className="w-4 h-4 text-gray-400 mr-2" />
                 <input
                   type="text"
-                  placeholder="Search"
+                  placeholder="Search products..."
                   value={searchTerm}
                   onChange={(e) => {
                     setSearchTerm(e.target.value);
@@ -480,9 +505,9 @@ const Header = () => {
                   }}
                   onFocus={() => setIsSuggestionsOpen(true)}
                   onKeyDown={handleSuggestionKeyDown}
-                  className="w-full px-3 py-2 outline-none text-[var(--text-gray)] bg-transparent text-sm"
+                  className="w-full py-2 outline-none text-[var(--text-gray)] bg-transparent text-sm placeholder:text-gray-400 font-medium"
                 />
-                <button type="submit" className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors text-white px-5 py-2 rounded text-sm font-medium">
+                <button type="submit" className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-all text-white px-4 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap ml-2">
                   Search
                 </button>
               </div>
