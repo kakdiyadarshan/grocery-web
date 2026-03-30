@@ -79,7 +79,7 @@ const Header = ({ onToggleSidebar }) => {
             </button>
           </div>
 
-          <Link to={'/admin/profile'} className="flex items-center gap-3 pl-1 md:pl-2 pr-1 rounded-full hover:bg-gray-100 transition-all">
+          <Link to={'/admin/profile'} className="flex items-center gap-3 pl-1 md:pl-2 pr-1 rounded-full transition-all">
             <div className="text-right hidden lg:block">
               <p className="text-sm font-bold text-textPrimary leading-tight">
                 {user?.firstname} {user?.lastname}

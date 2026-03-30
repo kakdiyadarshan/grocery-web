@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -120,18 +120,9 @@ const Category = () => {
         }
     };
 
-    const handleDelete = (category) => {
-        setItemToDelete(category);
-        setIsDeleteModalOpen(true);
-    };
-
-    const confirmDelete = async () => {
-        if (itemToDelete) {
-            await dispatch(deleteCategory(itemToDelete._id));
-            setIsDeleteModalOpen(false);
-            setItemToDelete(null);
-        }
-    };
+    const handleDelete = useCallback(async (category) => {
+        dispatch(deleteCategory(category._id));
+    }, [dispatch]);
 
     const columns = [
         {
@@ -171,16 +162,28 @@ const Category = () => {
                 </div>
             </div>
 
-            <Table
-                columns={columns}
-                data={categories}
-                onEdit={handleOpenModal}
-                onView={handleView}
-                onDelete={handleDelete}
-                itemsPerPage={10}
-                exportFileName="Categories_List"
-                allowExport={true}
-            />
+            <>
+                {loading ? (
+                    <div className="flex items-center justify-center py-20">
+                        <svg className="animate-spin h-8 w-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                    </div>
+                ) : (
+
+                    <Table
+                        columns={columns}
+                        data={categories}
+                        onEdit={handleOpenModal}
+                        onView={handleView}
+                        onDelete={handleDelete}
+                        itemsPerPage={10}
+                        exportFileName="Categories_List"
+                        allowExport={true}
+                    />
+                )}
+            </>
 
             {/* Create/Edit Modal */}
             {isModalOpen && (
@@ -389,15 +392,7 @@ const Category = () => {
                     </div>
                 </div>
             )}
-            {/* Delete Confirmation Modal */}
-            <DeleteModal
-                isOpen={isDeleteModalOpen}
-                onClose={() => setIsDeleteModalOpen(false)}
-                onConfirm={confirmDelete}
-                title="Delete Category"
-                message={`Are you sure you want to delete the category "${itemToDelete?.categoryName}"? This will affect all associated products.`}
-                isLoading={loading}
-            />
+
         </>
     );
 };
