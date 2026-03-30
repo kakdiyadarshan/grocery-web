@@ -158,6 +158,8 @@ const MyOrder = ({ isEmbedded = false }) => {
     return (
         <>
             <ConfirmDialog
+                isOpen={dialogOpen}
+                onConfirm={handleConfirmCancel}
                 onCancel={handleCancelDialog}
                 orderId={pendingCancelId}
             />

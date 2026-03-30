@@ -7,6 +7,27 @@ const Product = require('../models/product.model');
 const User = require('../models/user.model');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
+// Helper to update stock for an order item (variant-aware fallback)
+const adjustProductStock = async (item, delta) => {
+    if (!item || !item.productId || !item.quantity) return;
+
+    if (item.variantId) {
+        await Product.findOneAndUpdate(
+            { _id: item.productId, 'weighstWise._id': item.variantId },
+            { $inc: { 'weighstWise.$.stock': delta } },
+            { new: true }
+        );
+        return;
+    }
+
+    // Fallback: decrement first variant stock for products added without variantId
+    await Product.findOneAndUpdate(
+        { _id: item.productId, 'weighstWise.0': { $exists: true } },
+        { $inc: { 'weighstWise.0.stock': delta } },
+        { new: true }
+    );
+};
+
 // Helper to determine dynamic status based on time
 const calculateDynamicStatus = (order) => {
     if (!order) return 'pending';
@@ -212,13 +233,14 @@ const transformAndAutoUpdate = async (order) => {
 
 exports.createOrder = async (req, res) => {
     try {
-        let { userId, items, totalAmount, couponId, paymentMethod, addressId, upiDetails, bankDetails, addressDetails } = req.body;
+        let { userId, items, totalAmount, couponId, paymentMethod, addressId, upiDetails, bankDetails } = req.body;
+        
         if (!userId || !items || !totalAmount || !paymentMethod) {
             return res.status(400).json({ success: false, message: 'Required fields missing' });
         }
 
         totalAmount = parseFloat(Number(totalAmount).toFixed(2));
-        const order = await Order.create({ userId, items, totalAmount, couponId, paymentMethod, addressId });
+        const order = await Order.create({ userId, items, totalAmount, couponId, paymentMethod, addressId });        
 
         if (paymentMethod === 'Stripe') {
             const session = await stripe.checkout.sessions.create({
@@ -239,9 +261,15 @@ exports.createOrder = async (req, res) => {
             return res.status(200).json({ success: true, data: { orderId: order._id, paymentUrl: session.url } });
         }
 
-        await Cart.findOneAndUpdate({ userId }, { items: [] });
         await Payment.create({ userId, orderId: order._id, paymentMethod, amount: totalAmount, status: 'pending', upiDetails, bankDetails });
         
+        // stock minus variant wise
+        for (const item of items) {
+            await adjustProductStock(item, -item.quantity);
+        }
+
+        await Cart.findOneAndUpdate({ userId }, { items: [] });
+
         const populatedOrder = await Order.findById(order._id).populate('addressId').populate('items.productId');
         res.status(201).json({ success: true, data: await transformAndAutoUpdate(populatedOrder) });
     } catch (error) {
@@ -661,6 +689,10 @@ exports.cancelOrder = async (req, res) => {
         order.status = 'cancelled';
         await order.save();
 
+        // restock variant wise cancelled order
+        for (const item of order.items) {
+            await adjustProductStock(item, +item.quantity);
+        }
         if (order.paymentMethod === 'Stripe') {
             const payment = await Payment.findOne({ orderId: order._id });
             if (payment?.stripePaymentIntentId) {
@@ -689,6 +721,10 @@ exports.handleStripeWebhook = async (req, res) => {
         const order = await Order.findByIdAndUpdate(orderId, { status: 'completed' }, { new: true });
         if (order) {
             await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] });
+            await Payment.create({ userId: order.userId, orderId: order._id, paymentMethod: 'Stripe', amount: order.totalAmount, status: 'completed' });
+            for (const item of order.items) {
+                await adjustProductStock(item, -item.quantity);
+            }
         }
     }
     res.json({ received: true });

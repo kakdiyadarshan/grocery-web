@@ -3,14 +3,18 @@ import { Trash2, ShoppingBag, ArrowRight, Minus, Plus, Home, ChevronRight, Shiel
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getCart, removeFromCart, updateCartQuantity } from '../redux/slice/cart.slice';
+import { getAllCoupons } from '../redux/slice/couponSLice';
 
 const Cart = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { cart, loading } = useSelector((state) => state.cart);
+    const { coupons } = useSelector((state) => state.coupon);
+    
 
     useEffect(() => {
         dispatch(getCart());
+        dispatch(getAllCoupons());
     }, [dispatch]);
 
     const handleRemoveFromCart = (productId, variantId) => {
@@ -31,23 +35,39 @@ const Cart = () => {
     const [couponError, setCouponError] = useState('');
     const [couponLoading, setCouponLoading] = useState(false);
 
-    const validCoupons = {
-        FRESH10: { type: 'percent', value: 10, label: '10% off your order' },
-        SAVE20: { type: 'percent', value: 20, label: '20% off your order' },
-        FREESHIP: { type: 'shipping', value: 0, label: 'Free shipping' },
-    };
+    // Dynamic coupons from API
+    const activeCoupons = (coupons || []).filter(coupon => coupon.isActive);
 
     const handleApplyCoupon = () => {
         const code = couponCode.trim().toUpperCase();
         if (!code) { setCouponError('Please enter a coupon code.'); return; }
+        
         setCouponLoading(true);
         setCouponError('');
+        
         setTimeout(() => {
-            if (validCoupons[code]) {
-                setAppliedCoupon({ code, ...validCoupons[code] });
+            const validCoupon = activeCoupons.find(coupon => coupon.code.toUpperCase() === code);
+            
+            if (validCoupon) {
+                // Check if coupon has expired
+                const expiryDate = new Date(validCoupon.expiryDate);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                if (expiryDate < today) {
+                    setCouponError('This coupon has expired.');
+                    setCouponLoading(false);
+                    return;
+                }
+                
+                setAppliedCoupon({
+                    code: validCoupon.code,
+                    discount: validCoupon.discount,
+                    _id: validCoupon._id
+                });
                 setCouponError('');
             } else {
-                setCouponError('Invalid coupon code. Please try again.');
+                setCouponError('Invalid or inactive coupon code.');
             }
             setCouponLoading(false);
         }, 700);
@@ -67,9 +87,9 @@ const Cart = () => {
     }, 0);
 
     const shippingBase = cartItems.length > 0 ? (subtotal >= 50 ? 0 : 5.99) : 0;
-    const shipping = (appliedCoupon?.type === 'shipping') ? 0 : shippingBase;
+    const shipping = shippingBase;
     const tax = cartItems.length > 0 ? (subtotal * 0.08) : 0; // 8% tax
-    const couponDiscount = appliedCoupon?.type === 'percent' ? (subtotal * appliedCoupon.value) / 100 : 0;
+    const couponDiscount = appliedCoupon ? (subtotal * appliedCoupon.discount) / 100 : 0;
     const total = subtotal + shipping + tax - couponDiscount;
 
 
@@ -229,7 +249,7 @@ const Cart = () => {
                                             <CheckCircle2 size={18} className="text-green-600 shrink-0" />
                                             <div>
                                                 <p className="text-sm font-bold text-green-800 leading-tight">{appliedCoupon.code}</p>
-                                                <p className="text-xs text-green-600 mt-0.5">{appliedCoupon.label}</p>
+                                                <p className="text-xs text-green-600 mt-0.5">{appliedCoupon.discount}% off your order</p>
                                             </div>
                                         </div>
                                         <button
@@ -283,16 +303,25 @@ const Cart = () => {
                                         )}
 
                                         {/* Available coupons hint */}
-                                        <div className="mt-1 flex flex-wrap gap-1.5">
-                                            {Object.keys(validCoupons).map((code) => (
-                                                <button
-                                                    key={code}
-                                                    onClick={() => { setCouponCode(code); setCouponError(''); }}
-                                                    className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-[var(--primary-light)] text-[var(--primary)] rounded-sm border border-[var(--primary)]/20 hover:bg-[var(--primary)] hover:text-white transition-colors"
-                                                >
-                                                    {code}
-                                                </button>
-                                            ))}
+                                        <div className="mt-2">
+                                            <p className="text-xs font-semibold text-[var(--text-secondary)] mb-2 uppercase tracking-wide">Available coupons</p>
+                                            {activeCoupons.length > 0 ? (
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {activeCoupons.slice(0, 4).map((coupon) => (
+                                                        <button
+                                                            key={coupon._id}
+                                                            onClick={() => { setCouponCode(coupon.code); setCouponError(''); }}
+                                                            className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 bg-[var(--primary-light)] text-[var(--primary)] rounded-sm border border-[var(--primary)]/20 hover:bg-[var(--primary)] hover:text-white transition-colors group"
+                                                            title={`${coupon.discount}% off - Expires ${new Date(coupon.expiryDate).toLocaleDateString()}`}
+                                                        >
+                                                            <span>{coupon.code}</span>
+                                                            <span className="text-[9px] opacity-80 group-hover:opacity-100"> ({coupon.discount}%)</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <p className="text-xs text-[var(--text-secondary)] italic">No active coupons available</p>
+                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -322,17 +351,9 @@ const Cart = () => {
                                     {couponDiscount > 0 && (
                                         <div className="flex justify-between text-green-600">
                                             <span className="flex items-center gap-1">
-                                                <Tag size={12} /> Coupon ({appliedCoupon.code})
+                                                <Tag size={12} /> Coupon ({appliedCoupon.code}) - {appliedCoupon.discount}% off
                                             </span>
                                             <span className="font-bold">-${couponDiscount.toFixed(2)}</span>
-                                        </div>
-                                    )}
-                                    {appliedCoupon?.type === 'shipping' && shippingBase > 0 && (
-                                        <div className="flex justify-between text-green-600">
-                                            <span className="flex items-center gap-1">
-                                                <Tag size={12} /> Coupon ({appliedCoupon.code})
-                                            </span>
-                                            <span className="font-bold">-${shippingBase.toFixed(2)}</span>
                                         </div>
                                     )}
                                 </div>
