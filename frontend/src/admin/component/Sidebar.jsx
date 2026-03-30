@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { logout } from '../../redux/slice/auth.slice';
 import LogoutModal from './LogoutModal';
-import { FiHome, FiUsers, FiPackage, FiLogOut, FiX, FiChevronDown,FiShoppingCart,  } from 'react-icons/fi';
+import { FiHome, FiUsers, FiPackage, FiLogOut, FiX, FiChevronDown,FiShoppingCart, FiGrid,  } from 'react-icons/fi';
 import { LuLayers3,LuReceiptIndianRupee ,LuFileText ,LuScroll   } from "react-icons/lu";
 import { FaRegBell } from "react-icons/fa";
 import { RiContactsBook3Line } from "react-icons/ri";

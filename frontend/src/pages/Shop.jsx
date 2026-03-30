@@ -632,7 +632,7 @@ const Shop = () => {
                                                                 <span className="text-[17px] sm:text-[18px] font-[600] text-gray-900 leading-none tracking-tight">
                                                                     ${(Number(product.discountPrice || minPrice) || 0).toFixed(2)}
                                                                 </span>
-                                                            </div>
+                                                            </>
                                                         ) : (
                                                             <span className="text-[18px] sm:text-[20px] font-bold text-[var(--primary)] leading-none tracking-tight">
                                                                 ${(Number(minPrice) || 0).toFixed(2)}
