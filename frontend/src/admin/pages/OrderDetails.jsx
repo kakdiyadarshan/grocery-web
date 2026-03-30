@@ -42,7 +42,7 @@ const TrackingNode = memo(({ title, time, time1, desc, isCompleted, isActive, is
                             }`}>
                             {time}
                         </p>
-                        <p className={`text-[9px] font-semibold uppercase tracking-widest mb-1 transition-colors duration-300 ${isCompleted || isActive
+                        <p className={`text-[9px] font-[600] uppercase tracking-widest mb-1 transition-colors duration-300 ${isCompleted || isActive
                             ? 'text-primary'
                             : 'text-textSecondary opacity-50'
                             }`}>
@@ -79,7 +79,7 @@ const OrderDetails = () => {
             case 'processing': return 'text-blue-600 bg-blue-50 border-blue-200';
             case 'shipped': return 'text-violet-600 bg-violet-50 border-violet-200';
             case 'out for delivery': return 'text-orange-600 bg-orange-50 border-orange-200';
-            case 'delivered': 
+            case 'delivered':
             case 'completed': return 'text-emerald-600 bg-emerald-50 border-emerald-200';
             case 'cancelled': return 'text-rose-600 bg-rose-50 border-rose-200';
             default: return 'text-textSecondary bg-bgMain border-borderColor';
@@ -92,7 +92,7 @@ const OrderDetails = () => {
             case 'processing': return 'text-blue-600';
             case 'shipped': return 'text-violet-600';
             case 'out for delivery': return 'text-orange-600';
-            case 'delivered': 
+            case 'delivered':
             case 'completed': return 'text-emerald-600';
             case 'cancelled': return 'text-rose-600';
             default: return 'text-textSecondary';
@@ -105,7 +105,7 @@ const OrderDetails = () => {
             case 'processing': return <FiBox />;
             case 'shipped': return <FiTruck />;
             case 'out for delivery': return <FiTruck />;
-            case 'delivered': 
+            case 'delivered':
             case 'completed': return <FiCheckCircle />;
             case 'cancelled': return <FiXCircle />;
             default: return <FiClock />;
@@ -177,8 +177,7 @@ const OrderDetails = () => {
 
         return nodes.map(node => {
             const entry = trackingMap[node.id];
-            const timestamp = entry?.timestamp || (node.id === 'pending' ? currentOrder.createdAt : null);
-            const { date, time } = formatDateTime(timestamp);
+            const { date, time } = formatDateTime(entry?.timestamp);
 
             return (
                 <TrackingNode
@@ -384,7 +383,6 @@ const OrderDetails = () => {
                                         <FiTruck size={16} />
                                     </div>
                                     <div className="flex flex-col">
-                                        <p className="text-[10px] font-bold text-textSecondary uppercase tracking-widest leading-none mb-1">Phone Contact</p>
                                         <p className="font-bold text-textPrimary tracking-tight">Phone: {address.phone}</p>
                                     </div>
                                 </div>
@@ -406,7 +404,7 @@ const OrderDetails = () => {
                             </div>
                             <div className="flex justify-between items-center rounded-[4px]">
                                 <span className="text-xs font-bold text-textSecondary capitalize">Status</span>
-                                <span className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border shadow-sm ${payment?.status === 'completed' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                                <span className={`text-[10px] font-[600] capitalize tracking-widest px-2.5 py-1 rounded-[4px] border shadow-sm ${payment?.status === 'completed' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
                                     payment?.status === 'failed' ? 'bg-rose-50 text-rose-600 border-rose-200' :
                                         'bg-amber-50 text-amber-600 border-amber-200'
                                     }`}>
@@ -423,7 +421,7 @@ const OrderDetails = () => {
                     <h3 className="font-[600] text-textPrimary flex items-center gap-2">
                         Execution Workflow
                     </h3>
-                    <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border shadow-sm ${getStatusColor(status)}`}>
+                    <span className={`text-[10px] font-[600] capitalize tracking-widest px-2.5 py-1 rounded-[4px] border shadow-sm ${getStatusColor(status)}`}>
                         {status}
                     </span>
                 </div>
