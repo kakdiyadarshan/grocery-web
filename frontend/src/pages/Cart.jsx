@@ -109,7 +109,7 @@ const Cart = () => {
                     <div className="flex flex-col lg:flex-row gap-8 items-start">
                         <div className="w-full lg:w-2/3 flex flex-col">
                             {/* Table Header (Desktop Only) */}
-                            <div className="hidden md:flex text-gray-400 text-[10px] md:text-xs font-bold tracking-widest border-b border-gray-100 pb-4 mb-6">
+                            <div className="hidden md:flex text-textPrimary text-[10px] md:text-[14px] font-[600] border-b border-gray-100 pb-4 mb-6">
                                 <div className="w-[45%]">Product Details</div>
                                 <div className="w-[20%] text-center">Quantity</div>
                                 <div className="w-[15%] text-center">Price</div>
@@ -149,12 +149,12 @@ const Cart = () => {
                                                             {variant.weight} {variant.unit}
                                                         </p>
                                                     )}
-                                                    <span className="text-[#ff6b6b] text-[11px] font-bold mt-1.5 mb-2.5 tracking-wide uppercase">
+                                                    <span className="text-[#ff6b6b] text-[11px] font-bold mt-1.5 mb-2.5 tracking-wide capitalize">
                                                         {wish.categoryName || item.category?.categoryName || "Category"}
                                                     </span>
                                                     <button
                                                         onClick={() => handleRemoveFromCart(prodId, wish.variantId)}
-                                                        className="text-gray-400 hover:text-red-500 text-xs font-medium transition-colors w-fit text-left"
+                                                        className="text-gray-400 hover:text-red-500 text-xs font-medium transition-colors w-fit text-left hover:text-decoration-line: underline"
                                                     >
                                                         Remove
                                                     </button>
@@ -202,7 +202,7 @@ const Cart = () => {
                                                 {/* Total */}
                                                 <div className="md:w-[36%] flex flex-col items-center justify-center">
                                                     <span className="md:hidden text-gray-400 font-bold text-[10px] uppercase tracking-wider mb-1">Total</span>
-                                                    <span className="text-[var(--text-primary)] text-sm md:text-[15px] font-semibold">${(price * wish.quantity).toFixed(2)}</span>
+                                                    <span className="text-primary text-sm md:text-[15px] font-semibold">${(price * wish.quantity).toFixed(2)}</span>
                                                 </div>
                                             </div>
                                         </div>

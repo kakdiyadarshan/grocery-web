@@ -10,17 +10,20 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 // Helper to determine dynamic status based on time
 const calculateDynamicStatus = (order) => {
     if (!order) return 'pending';
-    if (order.status === 'completed' || order.status === 'cancelled') return order.status;
+    // Use manual status if it's been updated beyond 'pending'
+    if (order.status && order.status !== 'pending') return order.status;
 
     const createdAt = new Date(order.createdAt);
     const now = new Date();
     const diffInMinutes = Math.floor((now - createdAt) / 60000);
 
+    // Dynamic auto-progression only if still 'pending'
     if (diffInMinutes >= 120) return 'completed';
-    if (diffInMinutes >= 60) return 'Out for Delivery';
-    if (diffInMinutes >= 15) return 'Processing';
+    if (diffInMinutes >= 60) return 'out for delivery';
+    if (diffInMinutes >= 45) return 'shipped';
+    if (diffInMinutes >= 15) return 'processing';
 
-    return order.status || 'pending';
+    return 'pending';
 };
 
 // Helper to transform order with aggregated offers
@@ -126,6 +129,15 @@ const getOrderWithOffers = async (orderId) => {
             }
         },
         {
+            $lookup: {
+                from: 'payments',
+                localField: '_id',
+                foreignField: 'orderId',
+                as: 'payment'
+            }
+        },
+        { $unwind: { path: '$payment', preserveNullAndEmptyArrays: true } },
+        {
             $group: {
                 _id: '$_id',
                 userId: { $first: '$userId' },
@@ -136,7 +148,9 @@ const getOrderWithOffers = async (orderId) => {
                 addressId: { $first: '$addressId' },
                 address: { $first: '$address' },
                 createdAt: { $first: '$createdAt' },
-                updatedAt: { $first: '$updatedAt' }
+                updatedAt: { $first: '$updatedAt' },
+                payment: { $first: '$payment' },
+                trackingHistory: { $first: '$trackingHistory' }
             }
         }
     ]);
@@ -218,7 +232,10 @@ exports.createOrder = async (req, res) => {
         }
 
         totalAmount = parseFloat(Number(totalAmount).toFixed(2));
-        const order = await Order.create({ userId, items, totalAmount, couponId, paymentMethod, addressId });
+        const order = await Order.create({ 
+            userId, items, totalAmount, couponId, paymentMethod, addressId,
+            trackingHistory: [{ status: 'pending', description: 'Order successfully placed' }]
+        });
 
         if (paymentMethod === 'Stripe') {
             const session = await stripe.checkout.sessions.create({
@@ -236,6 +253,8 @@ exports.createOrder = async (req, res) => {
                 cancel_url: `${process.env.CLIENT_URL}/checkout`,
                 metadata: { orderId: order._id.toString() }
             });
+
+            await Payment.create({ userId, orderId: order._id, paymentMethod, amount: totalAmount, status: 'pending' });
             return res.status(200).json({ success: true, data: { orderId: order._id, paymentUrl: session.url } });
         }
 
@@ -353,6 +372,15 @@ exports.getAllOrders = async (req, res) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'payments',
+                    localField: '_id',
+                    foreignField: 'orderId',
+                    as: 'payment'
+                }
+            },
+            { $unwind: { path: '$payment', preserveNullAndEmptyArrays: true } },
+            {
                 $group: {
                     _id: '$_id',
                     userId: { $first: '$userId' },
@@ -361,14 +389,15 @@ exports.getAllOrders = async (req, res) => {
                     status: { $first: '$status' },
                     paymentMethod: { $first: '$paymentMethod' },
                     address: { $first: '$address' },
-                    createdAt: { $first: '$createdAt' }
+                    createdAt: { $first: '$createdAt' },
+                    payment: { $first: '$payment' },
+                    trackingHistory: { $first: '$trackingHistory' }
                 }
             },
             { $sort: { createdAt: -1 } }
         ]);
 
-        const ordersWithPayments = await Promise.all(orders.map(async (order) => {
-            const payment = await Payment.findOne({ orderId: order._id });
+        const ordersWithPayments = orders.map(order => {
             order.displayStatus = calculateDynamicStatus(order);
             
             order.items = order.items.map(item => {
@@ -401,11 +430,8 @@ exports.getAllOrders = async (req, res) => {
                 return item;
             });
 
-            return {
-                ...order,
-                payment
-            };
-        }));
+            return order;
+        });
 
         res.status(200).json({ success: true, data: ordersWithPayments });
     } catch (error) {
@@ -516,6 +542,15 @@ exports.getUserOrders = async (req, res) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'payments',
+                    localField: '_id',
+                    foreignField: 'orderId',
+                    as: 'payment'
+                }
+            },
+            { $unwind: { path: '$payment', preserveNullAndEmptyArrays: true } },
+            {
                 $group: {
                     _id: '$_id',
                     userId: { $first: '$userId' },
@@ -524,14 +559,15 @@ exports.getUserOrders = async (req, res) => {
                     status: { $first: '$status' },
                     paymentMethod: { $first: '$paymentMethod' },
                     address: { $first: '$address' },
-                    createdAt: { $first: '$createdAt' }
+                    createdAt: { $first: '$createdAt' },
+                    payment: { $first: '$payment' },
+                    trackingHistory: { $first: '$trackingHistory' }
                 }
             },
             { $sort: { createdAt: -1 } }
         ]);
 
-        const ordersWithPayments = await Promise.all(orders.map(async (order) => {
-            const payment = await Payment.findOne({ orderId: order._id });
+        const ordersWithPayments = orders.map(order => {
             order.displayStatus = calculateDynamicStatus(order);
             
             order.items = order.items.map(item => {
@@ -562,11 +598,8 @@ exports.getUserOrders = async (req, res) => {
                 return item;
             });
 
-            return {
-                ...order,
-                payment
-            };
-        }));
+            return order;
+        });
 
         res.status(200).json({ success: true, data: ordersWithPayments });
     } catch (error) {
@@ -579,14 +612,9 @@ exports.getOrderById = async (req, res) => {
         const order = await getOrderWithOffers(req.params.id);
         if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
         
-        const payment = await Payment.findOne({ orderId: req.params.id });
-        
         return res.status(200).json({ 
             success: true, 
-            data: {
-                ...order,
-                payment
-            }
+            data: order
         });
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message });
@@ -595,7 +623,12 @@ exports.getOrderById = async (req, res) => {
 
 exports.updateOrderStatus = async (req, res) => {
     try {
-        const order = await Order.findByIdAndUpdate(req.params.id, { status: req.body.status }, { new: true });
+        const { status } = req.body;
+        await Order.findByIdAndUpdate(req.params.id, { 
+            status,
+            $push: { trackingHistory: { status, timestamp: new Date(), description: `Order status updated to ${status}` } }
+        });
+        const order = await getOrderWithOffers(req.params.id);
         res.status(200).json({ success: true, data: order });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -619,18 +652,16 @@ exports.trackOrder = async (req, res) => {
         const createdAt = new Date(order.createdAt);
         const steps = [
             { status: "Order Placed", date: createdAt, isCompleted: true },
-            { status: "Processing", date: new Date(createdAt.getTime() + 15 * 60 * 1000), isCompleted: order.displayStatus !== 'pending' },
-            { status: "Out for Delivery", date: new Date(createdAt.getTime() + 60 * 60 * 1000), isCompleted: ['Out for Delivery', 'completed'].includes(order.displayStatus) },
-            { status: "Delivered", date: new Date(createdAt.getTime() + 120 * 60 * 1000), isCompleted: order.displayStatus === 'completed' }
+            { status: "Processing", date: new Date(createdAt.getTime() + 15 * 60 * 1000), isCompleted: ['processing', 'shipped', 'out for delivery', 'delivered', 'completed'].includes(order.displayStatus) },
+            { status: "Shipped", date: new Date(createdAt.getTime() + 45 * 60 * 1000), isCompleted: ['shipped', 'out for delivery', 'delivered', 'completed'].includes(order.displayStatus) },
+            { status: "Out for Delivery", date: new Date(createdAt.getTime() + 60 * 60 * 1000), isCompleted: ['out for delivery', 'delivered', 'completed'].includes(order.displayStatus) },
+            { status: "Delivered", date: new Date(createdAt.getTime() + 120 * 60 * 1000), isCompleted: ['delivered', 'completed'].includes(order.displayStatus) }
         ];
-
-        const payment = await Payment.findOne({ orderId: req.params.id });
 
         res.status(200).json({
             success: true,
             data: {
                 ...order,
-                payment,
                 steps
             }
         });
@@ -689,6 +720,7 @@ exports.handleStripeWebhook = async (req, res) => {
         const order = await Order.findByIdAndUpdate(orderId, { status: 'completed' }, { new: true });
         if (order) {
             await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] });
+            await Payment.findOneAndUpdate({ orderId: order._id }, { status: 'completed' });
         }
     }
     res.json({ received: true });
