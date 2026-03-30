@@ -67,7 +67,7 @@ const Footer = () => {
                         <ul className="flex flex-col gap-3">
                             {categories?.slice(0, 6).map((category) => (
                                 <li key={category._id}>
-                                    <Link to={`/category/${category._id}`} className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">
+                                    <Link to={`/shop?category=${category.categoryName}`} className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">
                                         {category.categoryName}
                                     </Link>
                                 </li>
@@ -77,14 +77,13 @@ const Footer = () => {
 
                     {/* Column 3: Information */}
                     <div>
-                        <h3 className="text-[16px] sm:text-[17px] font-bold text-[var(--text-gray)] mb-6 tracking-wide">Information</h3>
+                        <h3 className="text-[16px] sm:text-[17px] font-bold text-[var(--text-gray)] mb-6 tracking-wide">Quick Links</h3>
                         <ul className="flex flex-col gap-3">
-                            <li><Link to="/policy-buyers" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">Policy for Buyers</Link></li>
-                            <li><Link to="/shipping-refund" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">Shipping & Refund</Link></li>
-                            <li><Link to="/policy-sellers" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">Policy for Sellers</Link></li>
-                            <li><Link to="/delivery-information" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">Delivery Information</Link></li>
-                            <li><Link to="/terms-conditions" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">Terms & Conditions</Link></li>
-                            <li><Link to="/faqs" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">FAQs</Link></li>
+                            <li><Link to="/" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">Home</Link></li>
+                            <li><Link to="/aboutus" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">About Us</Link></li>
+                            <li><Link to="/shop" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">Shop</Link></li>
+                            <li><Link to="/blog" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">Blogs</Link></li>
+                            <li><Link to="/contact" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">Contact</Link></li>
                         </ul>
                     </div>
 
@@ -92,11 +91,10 @@ const Footer = () => {
                     <div>
                         <h3 className="text-[16px] sm:text-[17px] font-bold text-[var(--text-gray)] mb-6 tracking-wide">Need Help ?</h3>
                         <ul className="flex flex-col gap-3">
-                            <li><Link to="/aboutus" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">About Us</Link></li>
-                            <li><Link to="/contact" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">Contact</Link></li>
+                            <li><Link to="/faqs" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">FAQs</Link></li>
+                            <li><Link to="/terms-condition" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">Terms & Conditions</Link></li>
                             <li><Link to="/shipping-policy" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">Shipping Policy</Link></li>
                             <li><Link to="/privacy-policy" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">Privacy Policy</Link></li>
-                            <li><Link to="/sitemap" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">Sitemap</Link></li>
                         </ul>
                     </div>
 
