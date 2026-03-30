@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, memo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getOrderById } from '../../redux/slice/order.slice';
+import { getOrderById, updateOrderStatus } from '../../redux/slice/order.slice';
 import { FiArrowLeft, FiBox, FiCreditCard, FiMapPin, FiTruck, FiCheckCircle, FiClock, FiXCircle } from 'react-icons/fi';
 import CustomSelect from '../component/CustomSelect';
 import { IMAGE_URL } from '../../utils/baseUrl';
@@ -111,7 +111,7 @@ const OrderDetails = () => {
 
     const handleStatusChange = useCallback((val) => {
         if (currentOrder?._id) {
-            // dispatch(updateOrderStatus({ id: currentOrder._id, status: val }));
+            dispatch(updateOrderStatus({ id: currentOrder._id, status: val }));
         }
     }, [dispatch, currentOrder]);
 
@@ -219,7 +219,7 @@ const OrderDetails = () => {
     }
 
     // Destructure after checking currentOrder exists
-    const { user, items, totalAmount, shippingAddress, paymentMethod, paymentStatus, orderStatus, createdAt } = currentOrder;
+    const { userId, items, totalAmount, address, paymentMethod, paymentStatus, status, createdAt } = currentOrder;
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500 md:my-6 my-4">
@@ -241,12 +241,12 @@ const OrderDetails = () => {
                     </div>
                 </div>
 
-                <div className={`px-4 py-1.5 rounded-[4px] text-xs font-black uppercase tracking-widest border flex items-center gap-2 shadow-sm ${getStatusColor(orderStatus)}`}>
-                    {getStatusIcon(orderStatus)} {orderStatus}
+                <div className={`px-4 py-1.5 rounded-[4px] text-xs font-bold capitalize tracking-widest border flex items-center gap-2 shadow-sm ${getStatusColor(status)}`}>
+                    {getStatusIcon(status)} {status}
                 </div>
             </div>
 
-            <div className='bg-card rounded-[4px] shadow-sm border border-borderColor overflow-hidden'>
+            <div className='bg-card rounded-[4px] shadow-sm border border-borderColor'>
                 <div className="px-5 py-4 border-b border-borderColor flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-bgMain/50">
                     <h3 className="font-[600] text-textPrimary flex items-center gap-2">
                         <FiBox className="text-primary" /> Order Management
@@ -254,7 +254,7 @@ const OrderDetails = () => {
                     <div className="flex items-center gap-3 w-full sm:w-auto">
                         <span className="text-xs font-bold text-textSecondary tracking-wider hidden sm:block">Status:</span>
                         <CustomSelect
-                            value={orderStatus}
+                            value={status}
                             onChange={handleStatusChange}
                             options={[
                                 { value: 'pending', label: 'Pending', icon: <FiClock /> },
@@ -285,8 +285,8 @@ const OrderDetails = () => {
                                 {items.map((item, index) => (
                                     <div key={index} className="px-6 py-5 flex gap-5 items-center hover:bg-bgMain/30 transition-colors group">
                                         <div className="w-20 h-20 rounded-lg bg-bgMain overflow-hidden flex-shrink-0 border border-borderColor group-hover:border-primary/30 transition-all shadow-sm">
-                                            {item.product?.images?.[0]?.url ? (
-                                                <img src={item.product.images[0].url} alt={item.product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                            {item.productId?.images?.[0]?.url ? (
+                                                <img src={item.productId.images[0].url} alt={item.productId.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center text-textSecondary opacity-30">
                                                     <FiBox size={30} />
@@ -294,13 +294,17 @@ const OrderDetails = () => {
                                             )}
                                         </div>
                                         <div className="flex-1">
-                                            <h4 className="font-bold text-textPrimary text-base mb-1 group-hover:text-primary transition-colors">{item.product?.name || 'Unknown Product'}</h4>
-                                            <p className="text-[11px] font-bold text-textSecondary uppercase tracking-widest bg-bgMain px-2 py-0.5 rounded w-fit border border-borderColor">ID: {item.product?._id.slice(-8).toUpperCase()}</p>
+                                            <h4 className="font-bold text-textPrimary text-base mb-1 group-hover:text-primary transition-colors">{item.productId?.name || 'Unknown Product'}</h4>
+                                            <p className="text-[11px] font-bold text-textSecondary uppercase tracking-widest bg-bgMain px-2 py-0.5 rounded w-fit border border-borderColor">ID: {item.productId?._id.slice(-8).toUpperCase()}</p>
+                                            <div className='text-textSecondary text-sm font-medium mt-1'>
+                                                {item?.selectedVariant?.weight} {item?.selectedVariant?.unit}
+                                            </div>
                                         </div>
+
                                         <div className="text-right">
-                                            <p className="font-bold text-textPrimary text-base">${item.price?.toFixed(2)}</p>
-                                            <p className="text-xs text-textSecondary font-medium mt-0.5">Quantity: {item.quantity}</p>
-                                            <p className="font-black text-primary mt-2 text-base">${(item.price * item.quantity)?.toFixed(2)}</p>
+                                            <p className="font-bold text-textPrimary text-base">${item?.selectedVariant?.price?.toFixed(2)}</p>
+                                            <p className="text-xs text-textSecondary font-medium mt-0.5">Quantity: {item?.quantity}</p>
+                                            <p className="font-black text-primary mt-2 text-base">${(item?.selectedVariant?.price * item?.quantity)?.toFixed(2)}</p>
                                         </div>
                                     </div>
                                 ))}
@@ -335,11 +339,11 @@ const OrderDetails = () => {
                         <div className="space-y-4">
                             <div className="flex gap-4 items-center">
                                 <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-xl border border-primary/20 shadow-sm">
-                                    {user?.username?.charAt(0).toUpperCase()}
+                                    {userId?.firstname?.charAt(0).toUpperCase() + userId?.lastname?.charAt(0).toUpperCase()}
                                 </div>
                                 <div className="flex-1 overflow-hidden">
-                                    <p className="font-bold text-textPrimary text-base truncate">{user?.username || 'Guest Customer'}</p>
-                                    <p className="text-xs text-textSecondary font-medium truncate">{user?.email}</p>
+                                    <p className="font-bold text-textPrimary text-base truncate">{userId?.firstname + " " + userId?.lastname || 'Guest Customer'}</p>
+                                    <p className="text-xs text-textSecondary font-medium truncate">{userId?.email}</p>
                                 </div>
                             </div>
                         </div>
@@ -350,19 +354,21 @@ const OrderDetails = () => {
                         <h3 className="font-[600] text-textPrimary mb-5 pb-3 border-b border-borderColor flex items-center gap-2">
                             <FiMapPin className="text-primary" /> Shipping Details
                         </h3>
-                        {shippingAddress ? (
+                        {address ? (
                             <div className="text-sm text-textSecondary space-y-2 leading-relaxed">
-                                <p className="font-bold text-textPrimary text-base">{shippingAddress.firstName} {shippingAddress.lastName}</p>
+                                <p className="font-bold text-textPrimary text-base">{address.firstname} {address.lastName}</p>
+                                <p className="font-bold text-textPrimary text-base">{address.email}</p>
                                 <div className="flex flex-col gap-1">
-                                    <p className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0"></span> {shippingAddress.street}</p>
-                                    <p className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0"></span> {shippingAddress.city}, {shippingAddress.state}</p>
-                                    <p className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0"></span> {shippingAddress.postcode}, {shippingAddress.country}</p>
+                                    <p className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0"></span> {address.address}</p>
+                                    <p className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0"></span> {address.city}, {address.state}</p>
+                                    <p className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0"></span> {address.postcode}, {address.country} </p>
+                                    <p className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0"></span>ZIP : {address.zip}</p>
                                 </div>
                                 <div className="mt-4 pt-4 border-t border-borderColor flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-lg bg-bgMain flex items-center justify-center text-primary border border-borderColor">
                                         <FiTruck size={16} />
                                     </div>
-                                    <p className="font-bold text-textPrimary tracking-tight">{shippingAddress.phone}</p>
+                                    <p className="font-bold text-textPrimary tracking-tight">{address.phone}</p>
                                 </div>
                             </div>
                         ) : (
@@ -399,16 +405,16 @@ const OrderDetails = () => {
                     <h3 className="font-[600] text-textPrimary flex items-center gap-2">
                         Execution Workflow
                     </h3>
-                    <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border shadow-sm ${getStatusColor(orderStatus)}`}>
-                        {orderStatus}
+                    <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border shadow-sm ${getStatusColor(status)}`}>
+                        {status}
                     </span>
                 </div>
                 <div className="p-8">
                     <div className="flex flex-row items-start justify-between relative overflow-x-auto pb-4 no-scrollbar min-w-[700px]">
-                        {orderJourneyNodes} 
+                        {orderJourneyNodes}
                     </div>
 
-                    {orderStatus === 'cancelled' && (
+                    {status === 'cancelled' && (
                         <div className="mt-12 p-6 bg-rose-50 border border-rose-100 rounded-xl flex items-center gap-5 text-rose-600 shadow-sm shadow-rose-100/50">
                             <div className="p-4 bg-rose-100 rounded-full">
                                 <FiXCircle className="text-3xl" />

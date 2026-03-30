@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MdKeyboardArrowRight, MdKeyboardArrowUp, MdKeyboardArrowDown } from "react-icons/md";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
-import { FiMinus, FiPlus } from "react-icons/fi";
+import { FiMinus, FiPlus, FiX, FiArrowRight, FiMessageSquare } from "react-icons/fi";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getProductById, getAllProducts } from '../../redux/slice/product.slice';
@@ -28,6 +28,7 @@ function ProductDetailsAdmin() {
     const [selectedVariant, setSelectedVariant] = useState(null);
     const [startIndex, setStartIndex] = useState(0);
     const [activeTab, setActiveTab] = useState('description');
+    const [isReviewDrawerOpen, setIsReviewDrawerOpen] = useState(false);
     const tabsRef = useRef(null);
 
     const scrollToDescription = () => {
@@ -50,7 +51,7 @@ function ProductDetailsAdmin() {
     if (!product) return <div className="min-h-screen flex items-center justify-center">Product not found.</div>;
 
     return (
-        <div className="bg-white min-h-screen">
+        <div className="bg-white min-h-screen no-scrollbar">
             {/* ===== Breadcrumbs ===== */}
             <div className="bg-[#f0f5f3] shadow-sm">
                 <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-4 py-4 sm:py-6 md:py-8 flex items-center flex-wrap gap-1 text-xs sm:text-sm md:text-base text-gray-600 font-medium">
@@ -65,7 +66,7 @@ function ProductDetailsAdmin() {
             </div>
 
             {/* ===== Main Container ===== */}
-            <div className="max-w-[1440px] mx-auto px-4 py-8">
+            <div className="max-w-[1440px] mx-auto px-4 py-8 no-scrollbar">
 
                 {/* Product Details */}
                 <div className="flex flex-col lg:flex-row gap-10">
@@ -159,21 +160,22 @@ function ProductDetailsAdmin() {
                             <div className="flex items-center gap-3">
                                 {/* Discounted Price */}
                                 <span className="text-2xl md:text-3xl font-bold text-[#00B880]">
-                                    ₹{product.discountPrice || (selectedVariant?.price || 0)}
+                                    ${selectedVariant?.discountPrice || selectedVariant?.price || 0}
                                 </span>
 
                                 {/* Original Price */}
-                                {product.discountPrice && (
+                                {selectedVariant?.discountPrice < selectedVariant?.price && (
                                     <span className="text-sm md:text-base text-gray-400 line-through">
-                                        ₹{selectedVariant?.price}
+                                        ${selectedVariant?.price}
                                     </span>
                                 )}
 
-
                                 {/* Discount Badge */}
-                                {product.discountPrice && (
+                                {product.offer && (
                                     <span className="text-xs md:text-sm font-medium text-red-500 bg-[#FFF1F1] px-2 py-1 rounded-md border border-[#FFE4E4]">
-                                        {Math.round(((selectedVariant?.price - product.discountPrice) / selectedVariant?.price) * 100)}% OFF
+                                        {product.offer.offer_type === 'Discount'
+                                            ? `${product.offer.offer_value}%`
+                                            : `$${product.offer.offer_value}`} OFF
                                     </span>
                                 )}
                             </div>
@@ -201,10 +203,20 @@ function ProductDetailsAdmin() {
 
                         {/* Quantity & Stock Status - Static in Admin */}
                         <div className="flex items-center gap-4 mt-6">
-                            <span className="text-base font-semibold text-[#333333]">Quantity:</span>
-                            <span className="bg-[#2E7D32] text-white px-3 py-1 rounded text-sm font-semibold">
-                                In Stock
-                            </span>
+                            <span className="text-base font-semibold text-[#333333]">Stock status:</span>
+                            {selectedVariant?.stock > 10 ? (
+                                <span className="bg-[#2E7D32] text-white px-3 py-1 rounded text-sm font-semibold">
+                                    In Stock ({selectedVariant.stock})
+                                </span>
+                            ) : selectedVariant?.stock > 0 ? (
+                                <span className="bg-[#ed9323] text-white px-3 py-1 rounded text-sm font-semibold">
+                                    Low Stock ({selectedVariant.stock})
+                                </span>
+                            ) : (
+                                <span className="bg-[#D32F2F] text-white px-3 py-1 rounded text-sm font-semibold">
+                                    Out of Stock
+                                </span>
+                            )}
                         </div>
 
                         {/* Note for Admin: Interactive parts removed */}
@@ -221,9 +233,10 @@ function ProductDetailsAdmin() {
                                     <button
                                         key={variant._id}
                                         onClick={() => setSelectedVariant(variant)}
-                                        className={`px-4 py-1 border rounded-md text-sm sm:text-base font-semibold transition ${selectedVariant?._id === variant._id ? 'border-black text-black bg-white' : 'border-gray-200 text-gray-600 hover:border-gray-400'}`}
+                                        className={`px-4 py-1 border rounded-md text-sm sm:text-base font-semibold transition ${selectedVariant?._id === variant._id ? 'border-black text-black bg-white shadow-sm' : variant.stock === 0 ? 'border-gray-100 text-gray-300 opacity-60' : 'border-gray-200 text-gray-600 hover:border-gray-400'}`}
                                     >
                                         {variant.weight} {variant.unit}
+                                        {variant.stock === 0 && <span className="ml-1 text-[10px] uppercase font-bold text-red-400">(OOS)</span>}
                                     </button>
                                 ))}
                             </div>
@@ -232,7 +245,7 @@ function ProductDetailsAdmin() {
                 </div>
 
                 {/* Tabs Section */}
-                <div className="mt-16 pt-6" ref={tabsRef}>
+                <div className="mt-6 sm:mt-10 md:mt-12 pt-6" ref={tabsRef}>
                     {/* Tab Navigation */}
                     <div className="flex gap-4 mb-6 border-b border-gray-200 pb-7">
                         <button
@@ -264,29 +277,51 @@ function ProductDetailsAdmin() {
                                 <div className="mb-8">
                                     <ReviewChart reviews={product.reviews || []} />
                                 </div>
-                                <div className="space-y-10 mb-2">
+                                <div className="space-y-2 mb-2 relative">
                                     {product.reviews && product.reviews.length > 0 ? (
-                                        product.reviews.map((review, i) => (
-                                            <div key={i} className="flex gap-4 pb-8 border-b border-gray-100 last:border-0">
-                                                <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-gray-100">
-                                                    <img src={`https://ui-avatars.com/api/?name=${review.user?.name}&background=random`} alt={review.user?.name} className="w-full h-full object-cover" />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <h4 className="font-semibold text-[#1F2937] text-base">{review.user?.name}</h4>
-                                                    <div className="flex items-center gap-1 py-1 text-base sm:text-lg">
-                                                        {[...Array(5)].map((_, index) => (
-                                                            <AiFillStar
-                                                                key={index}
-                                                                className={index < review.rating ? "text-orange-400" : "text-gray-200"}
-                                                            />
-                                                        ))}
+                                        <>
+                                            {product.reviews.slice(0, 2).map((review, i) => (
+                                                <div key={i} className="flex gap-4 pb-3 border-b border-gray-100 last:border-0">
+                                                    <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-gray-100">
+                                                        <img src={`https://ui-avatars.com/api/?name=${review.user?.name}&background=random`} alt={review.user?.name} className="w-full h-full object-cover" />
                                                     </div>
-                                                    <p className="text-gray-500 text-sm sm:text-base leading-relaxed">
-                                                        {review.comment}
-                                                    </p>
+                                                    <div className="space-y-1">
+                                                        <h4 className="font-semibold text-[#1F2937] text-base">{review.user?.name}</h4>
+                                                        <div className="flex items-center gap-1 py-1 text-base sm:text-lg">
+                                                            {[...Array(5)].map((_, index) => (
+                                                                <AiFillStar
+                                                                    key={index}
+                                                                    className={index < review.rating ? "text-orange-400" : "text-gray-200"}
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                        <p className="text-gray-500 text-sm sm:text-base leading-relaxed">
+                                                            {review.comment}
+                                                        </p>
+                                                        {review.images && review.images.length > 0 && (
+                                                            <div className="flex gap-2 mt-3 overflow-x-auto pb-1 no-scrollbar">
+                                                                {review.images.map((img, idx) => (
+                                                                    <div key={idx} className="w-16 h-16 rounded-md overflow-hidden border border-gray-100 flex-shrink-0">
+                                                                        <img src={img.url || img} alt="Review" className="w-full h-full object-cover shadow-sm" />
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))
+                                            ))}
+                                            {product.reviews.length > 2 && (
+                                                <div className="pt-4">
+                                                    <button
+                                                        onClick={() => setIsReviewDrawerOpen(true)}
+                                                        className="flex items-center gap-2 text-[#00B880] font-bold hover:underline transition-all group"
+                                                    >
+                                                        View all {product.reviews.length} reviews
+                                                        <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </>
                                     ) : (
                                         <p className="text-gray-500 italic pb-10">No reviews yet for this product.</p>
                                     )}
@@ -305,8 +340,98 @@ function ProductDetailsAdmin() {
                     </button>
                 </div>
             </div>
+
+            {/* Review Drawer Overlay */}
+            <ReviewDrawer
+                isOpen={isReviewDrawerOpen}
+                onClose={() => setIsReviewDrawerOpen(false)}
+                reviews={product.reviews}
+                productName={product.name}
+            />
         </div>
     );
 }
 
 export default ProductDetailsAdmin;
+
+// Review Drawer Component
+const ReviewDrawer = ({ isOpen, onClose, reviews, productName }) => {
+    return (
+        <>
+            {/* Backdrop */}
+            <div
+                className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[1000] transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                onClick={onClose}
+            />
+
+            {/* Drawer */}
+            <div
+                className={`fixed top-0 right-0 h-full w-full max-w-md bg-white z-[1001] shadow-2xl transform transition-transform duration-500 ease-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+            >
+                {/* Header */}
+                <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                    <div>
+                        <h2 className="text-xl font-bold text-gray-900">Customer Reviews</h2>
+                        <p className="text-sm text-gray-500 truncate max-w-[280px]">{productName}</p>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="p-2 hover:bg-white rounded-full transition-colors border border-transparent hover:border-gray-200"
+                    >
+                        <FiX className="text-2xl text-gray-400 hover:text-gray-600" />
+                    </button>
+                </div>
+
+                {/* Reviews List */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar no-scrollbar">
+                    {reviews?.map((review, i) => (
+                        <div key={i} className="flex flex-wrap gap-2 sm:gap-4 pb-3 border-b border-gray-100 last:border-0">
+                            <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-gray-100">
+                                <img src={`https://ui-avatars.com/api/?name=${review.user?.name}&background=random`} alt={review.user?.name} className="w-full h-full object-cover" />
+                            </div>
+                            <div className="space-y-1">
+                                <h4 className="font-semibold text-[#1F2937] text-base">{review.user?.name}</h4>
+                                <div className="flex items-center gap-1 py-1 text-base sm:text-lg">
+                                    {[...Array(5)].map((_, index) => (
+                                        <AiFillStar
+                                            key={index}
+                                            className={index < review.rating ? "text-orange-400" : "text-gray-200"}
+                                        />
+                                    ))}
+                                </div>
+                                <p className="text-gray-500 text-sm sm:text-base leading-relaxed">
+                                    {review.comment}
+                                </p>
+                                {review.images && review.images.length > 0 && (
+                                    <div className="flex gap-2 mt-3 overflow-x-auto pb-1 no-scrollbar">
+                                        {review.images.map((img, idx) => (
+                                            <div key={idx} className="w-10 h-10 sm:w-16 sm:h-16 rounded-md overflow-hidden border border-gray-100 flex-shrink-0">
+                                                <img src={img.url || img} alt="Review" className="w-full h-full object-cover shadow-sm" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                    {(!reviews || reviews.length === 0) && (
+                        <div className="h-full flex flex-col items-center justify-center text-gray-400 gap-4 opacity-60">
+                            <FiMessageSquare size={48} />
+                            <p className="font-medium">No reviews found</p>
+                        </div>
+                    )}
+                </div>
+
+                {/* Footer */}
+                <div className="p-6 border-t border-gray-100 bg-gray-50/30">
+                    <button
+                        onClick={onClose}
+                        className="w-full py-3 bg-gray-900 text-white font-bold rounded-lg hover:bg-black transition-all active:scale-[0.98]"
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
+        </>
+    );
+};

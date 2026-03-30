@@ -112,6 +112,7 @@ exports.getAllOrders = async (req, res) => {
     try {
         const orders = await Order.find()
             .populate('userId', 'firstname lastname email')
+            .populate('addressId')
             .populate('items.productId', 'name images weighstWise')
             .sort({ createdAt: -1 });
 
@@ -143,6 +144,7 @@ exports.getAllOrders = async (req, res) => {
 exports.getUserOrders = async (req, res) => {
     try {
         const orders = await Order.find({ userId: req.user.id })
+            .populate('userId', 'firstname lastname email')
             .populate('addressId')
             .populate('items.productId', 'name images weighstWise')
             .sort({ createdAt: -1 });

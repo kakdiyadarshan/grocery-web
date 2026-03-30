@@ -123,34 +123,30 @@ const Orders = () => {
             )
         },
         {
-            header: 'Payment Status',
-            accessor: 'paymentStatus'
-        },
-        {
             header: 'Order Status',
-            accessor: 'orderStatus',
+            accessor: 'status',
             render: (data) => (
                 <span className={`px-2 py-0.5 rounded-[4px] text-xs font-medium border capitalize
-                ${data.orderStatus === 'delivered' ? 'bg-green-50 text-green-700 border-green-200' :
-                        data.orderStatus === 'processing' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                            data.orderStatus === 'shipped' ? 'bg-purple-50 text-purple-700 border-purple-200' :
-                                data.orderStatus === 'cancelled' ? 'bg-red-50 text-red-700 border-red-200' :
+                ${data.status === 'delivered' ? 'bg-green-50 text-green-700 border-green-200' :
+                        data.status === 'processing' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                            data.status === 'shipped' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                                data.status === 'cancelled' ? 'bg-red-50 text-red-700 border-red-200' :
                                     'bg-yellow-50 text-yellow-700 border-yellow-200'}`}>
-                    {data.orderStatus}
+                    {data.status}
                 </span>
             )
         },
         {
             header: 'Shipping',
-            searchKey: (data) => `${data.shippingAddress?.firstName} ${data.shippingAddress?.lastName} ${data.shippingAddress?.city} ${data.shippingAddress?.postcode}`,
-            accessor: 'shippingAddress',
+            searchKey: (data) => `${data.address?.firstName} ${data.address?.lastName} ${data.address?.city} ${data.address?.zipcode}`,
+            accessor: 'address',
             render: (data) => (
                 <div className='max-w-[150px] text-xs text-textSecondary truncate'>
                     <div className='font-medium text-textPrimary'>
-                        {data.shippingAddress?.firstName} {data.shippingAddress?.lastName}
+                        {data.address?.firstName} {data.address?.lastName}
                     </div>
-                    <div title={`${data.shippingAddress?.street}, ${data.shippingAddress?.city}`}>
-                        {data.shippingAddress?.city}, {data.shippingAddress?.postcode}
+                    <div title={`${data.address?.street}, ${data.address?.city}`}>
+                        {data.address?.city}, {data.address?.zipcode}
                     </div>
                 </div>
             )

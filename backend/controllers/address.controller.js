@@ -3,7 +3,7 @@ const User = require("../models/user.model");
 // Add a new address
 exports.addAddress = async (req, res) => {
     try {
-        const { address, city, state, zip, country, phone, email, isDefault } = req.body;
+        const { firstname, lastname, address, city, state, zip, country, phone, email, isDefault } = req.body;
         const userId = req.user._id;
 
         const user = await User.findById(userId);
@@ -18,6 +18,8 @@ exports.addAddress = async (req, res) => {
         const finalIsDefault = user.addresses.length === 0 ? true : !!isDefault;
 
         const newAddress = {
+            firstname,
+            lastname,
             address,
             city,
             state,
@@ -56,7 +58,7 @@ exports.getAddresses = async (req, res) => {
 exports.updateAddress = async (req, res) => {
     try {
         const { addressId } = req.params;
-        const { address, city, state, zip, country, phone, email, isDefault } = req.body;
+        const { firstname, lastname, address, city, state, zip, country, phone, email, isDefault } = req.body;
         const userId = req.user._id;
 
         const user = await User.findById(userId);
@@ -69,6 +71,8 @@ exports.updateAddress = async (req, res) => {
             user.addresses.forEach(a => { a.isDefault = false; });
         }
 
+        addr.firstname = firstname;
+        addr.lastname = lastname;
         addr.address = address;
         addr.city = city;
         addr.state = state;

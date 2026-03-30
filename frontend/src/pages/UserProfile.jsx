@@ -637,8 +637,13 @@ const UserProfile = () => {
                                                         </div>
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex justify-between items-start">
-                                                                <h4 className="font-bold text-textPrimary mb-1 truncate pr-8">{addr.address}</h4>
+                                                                <h4 className="font-bold text-textPrimary mb-1 truncate pr-8">
+                                                                    {addr.firstname} {addr.lastname}
+                                                                </h4>
                                                             </div>
+                                                            <p className="text-sm text-gray-500 mb-1 leading-relaxed">
+                                                                {addr.address}
+                                                            </p>
                                                             <p className="text-sm text-gray-500 line-clamp-2 mb-4 leading-relaxed">
                                                                 {addr.city}, {addr.state} - {addr.zip}<br />
                                                                 {addr.country}
@@ -715,6 +720,8 @@ const UserProfile = () => {
                                         <div className="p-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
                                             <Formik
                                                 initialValues={{
+                                                    firstname: editingAddress?.firstname || '',
+                                                    lastname: editingAddress?.lastname || '',
                                                     address: editingAddress?.address || '',
                                                     city: editingAddress?.city || '',
                                                     state: editingAddress?.state || '',
@@ -725,6 +732,8 @@ const UserProfile = () => {
                                                     isDefault: editingAddress?.isDefault || addresses.length === 0,
                                                 }}
                                                 validationSchema={Yup.object().shape({
+                                                    firstname: Yup.string().required('First name is required'),
+                                                    lastname: Yup.string().required('Last name is required'),
                                                     address: Yup.string().required('Address is required'),
                                                     city: Yup.string().required('City is required'),
                                                     state: Yup.string().required('State is required'),
@@ -737,6 +746,32 @@ const UserProfile = () => {
                                                 {({ isSubmitting, errors, touched }) => (
                                                     <Form className="space-y-6">
                                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                                            <div className="space-y-1">
+                                                                <label className="text-sm font-medium text-textPrimary block mb-2 ml-1">First Name <span className="text-red-500">*</span></label>
+                                                                <Field
+                                                                    name="firstname"
+                                                                    placeholder="First Name"
+                                                                    className={`block w-full px-3 py-3 border rounded-[4px] outline-none transition-all text-sm font-medium bg-gray-50 focus:bg-white text-textPrimary placeholder-gray-400 ${errors.firstname && touched.firstname
+                                                                        ? 'border-red-500 focus:ring-red-100'
+                                                                        : 'border-gray-200 focus:ring-2 focus:ring-green-100 focus:border-primary'
+                                                                        }`}
+                                                                />
+                                                                {errors.firstname && touched.firstname && <div className="mt-1 text-xs text-red-500 ml-1">{errors.firstname}</div>}
+                                                            </div>
+
+                                                            <div className="space-y-1">
+                                                                <label className="text-sm font-medium text-textPrimary block mb-2 ml-1">Last Name <span className="text-red-500">*</span></label>
+                                                                <Field
+                                                                    name="lastname"
+                                                                    placeholder="Last Name"
+                                                                    className={`block w-full px-3 py-3 border rounded-[4px] outline-none transition-all text-sm font-medium bg-gray-50 focus:bg-white text-textPrimary placeholder-gray-400 ${errors.lastname && touched.lastname
+                                                                        ? 'border-red-500 focus:ring-red-100'
+                                                                        : 'border-gray-200 focus:ring-2 focus:ring-green-100 focus:border-primary'
+                                                                        }`}
+                                                                />
+                                                                {errors.lastname && touched.lastname && <div className="mt-1 text-xs text-red-500 ml-1">{errors.lastname}</div>}
+                                                            </div>
+
                                                             <div className="md:col-span-2 space-y-2">
                                                                 <label className="text-sm font-medium text-textPrimary block mb-2 ml-1">Street Address <span className="text-red-500">*</span></label>
                                                                 <Field

@@ -1,4 +1,5 @@
 const Payment = require('../models/payment.model');
+const User = require('../models/user.model'); // Import User to register the model
 
 exports.createPayment = async (req, res) => {
     try {
@@ -33,7 +34,7 @@ exports.updatePaymentStatus = async (req, res) => {
 exports.getPaymentById = async (req, res) => {
     try {
         const { id } = req.params;
-        const payment = await Payment.findById(id);
+        const payment = await Payment.findById(id).populate("userId", "firstname lastname email");
         res.status(200).json({ success: true, message: 'Payment found successfully', data: payment });  
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -42,7 +43,7 @@ exports.getPaymentById = async (req, res) => {
 
 exports.getAllPayments = async (req, res) => {
     try {
-        const payments = await Payment.find();
+        const payments = await Payment.find().populate("userId", "firstname lastname email").sort({ createdAt: -1 });
         res.status(200).json({ success: true, message: 'Payments found successfully', data: payments });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

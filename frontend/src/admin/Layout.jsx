@@ -16,7 +16,7 @@ const Layout = () => {
   };
 
   return (
-    <div className="min-h-screen text-left relative">
+    <div className="min-h-screen text-left relative no-scrollbar">
       {/* Sidebar */}
       <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
 
@@ -27,7 +27,7 @@ const Layout = () => {
         <Header onToggleSidebar={toggleSidebar} />
 
         {/* Content */}
-        <main className="flex-1 px-4 md:px-8 overflow-x-hidden">
+        <main className="flex-1 px-4 md:px-8 overflow-x-hidden no-scrollbar">
           <div>
             {/* <Breadcrumb /> */}
             <Outlet />
