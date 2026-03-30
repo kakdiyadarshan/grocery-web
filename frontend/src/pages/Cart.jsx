@@ -141,11 +141,11 @@ const Cart = () => {
                                                             Weight: {wish.selectedVariant.weight} {wish.selectedVariant.unit}
                                                         </p>
                                                     )}
-                                                    <p className="text-[var(--text-secondary)] font-medium">₹{wish.selectedVariant?.price || 0} each</p>
+                                                    <p className="text-[var(--text-secondary)] font-medium">${wish.selectedVariant?.price || 0} each</p>
 
                                                 </div>
                                                 <span className="font-bold text-xl text-[var(--text-primary)]">
-                                                    ₹{((wish.selectedVariant?.price || 0) * wish.quantity).toFixed(2)}
+                                                    ${((wish.selectedVariant?.price || 0) * wish.quantity).toFixed(2)}
                                                 </span>
 
                                             </div>
@@ -265,18 +265,18 @@ const Cart = () => {
                                 <div className="space-y-4 text-sm font-medium mb-6">
                                     <div className="flex justify-between text-[var(--text-secondary)]">
                                         <span>Subtotal ({cartItems.length} items)</span>
-                                        <span className="text-[var(--text-primary)]">₹{subtotal.toFixed(2)}</span>
+                                        <span className="text-[var(--text-primary)]">${subtotal.toFixed(2)}</span>
                                     </div>
                                     <div className="flex justify-between text-[var(--text-secondary)]">
                                         <span>Estimated Tax (8%)</span>
-                                        <span className="text-[var(--text-primary)]">₹{tax.toFixed(2)}</span>
+                                        <span className="text-[var(--text-primary)]">${tax.toFixed(2)}</span>
                                     </div>
                                     <div className="flex justify-between text-[var(--text-secondary)]">
                                         <span>Shipping</span>
                                         {shipping === 0 ? (
                                             <span className="text-[var(--primary)] font-bold">Free</span>
                                         ) : (
-                                            <span className="text-[var(--text-primary)]">₹{shipping.toFixed(2)}</span>
+                                            <span className="text-[var(--text-primary)]">${shipping.toFixed(2)}</span>
                                         )}
                                     </div>
                                     {couponDiscount > 0 && (
@@ -284,7 +284,7 @@ const Cart = () => {
                                             <span className="flex items-center gap-1">
                                                 <Tag size={12} /> Coupon ({appliedCoupon.code})
                                             </span>
-                                            <span className="font-bold">-₹{couponDiscount.toFixed(2)}</span>
+                                            <span className="font-bold">-${couponDiscount.toFixed(2)}</span>
                                         </div>
                                     )}
                                     {appliedCoupon?.type === 'shipping' && shippingBase > 0 && (
@@ -300,9 +300,9 @@ const Cart = () => {
                                 <div className="border-t border-[var(--border)] pt-4 mb-6">
                                     <div className="flex justify-between items-center">
                                         <span className="text-lg font-bold text-[var(--text-primary)]">Total</span>
-                                        <span className="text-2xl font-bold text-[var(--text-primary)]">₹{total.toFixed(2)}</span>
+                                        <span className="text-2xl font-bold text-[var(--text-primary)]">${total.toFixed(2)}</span>
                                     </div>
-                                    <p className="text-xs text-[var(--text-secondary)] mt-1.5 text-right">Pre-tax currency INR</p>
+                                    <p className="text-xs text-[var(--text-secondary)] mt-1.5 text-right">Pre-tax currency USD </p>
                                 </div>
 
                                 <button onClick={handleclick} className="w-full flex items-center justify-center gap-2 py-4 bg-[var(--primary)] text-white rounded-md font-[500] text-lg hover:bg-[var(--primary-hover)] transition-all duration-300 shadow-md shadow-[var(--primary)]/20 active:scale-95 mb-4 border border-transparent">

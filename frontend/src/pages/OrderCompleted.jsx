@@ -161,7 +161,7 @@ const OrderCompleted = () => {
       doc.setFontSize(9);
       doc.setTextColor(...darkGray);
       doc.text(String(item.quantity), 140, rowY + 8, { align: "center" });
-      doc.text(`Rs. ${(price * item.quantity).toFixed(2)}`, pageW - 18, rowY + 8, { align: "right" });
+      doc.text(`${(price * item.quantity).toFixed(2)}`, pageW - 18, rowY + 8, { align: "right" });
     });
 
     // Totals
@@ -170,9 +170,9 @@ const OrderCompleted = () => {
     const totX = pageW - 14;
     const labelX = totX - 60;
     const totalsData = [
-      { label: "Subtotal", value: `Rs. ${subtotal.toFixed(2)}` },
-      { label: "Shipping", value: shipping === 0 ? "FREE" : `Rs. ${shipping.toFixed(2)}` },
-      { label: "Tax (8%)", value: `Rs. ${tax.toFixed(2)}` },
+      { label: "Subtotal", value: `$. ${subtotal.toFixed(2)}` },
+      { label: "Shipping", value: shipping === 0 ? "FREE" : `$. ${shipping.toFixed(2)}` },
+      { label: "Tax (8%)", value: `$. ${tax.toFixed(2)}` },
     ];
 
     totalsData.forEach((t, i) => {
@@ -189,7 +189,7 @@ const OrderCompleted = () => {
     doc.setTextColor(...darkGray);
     doc.text("TOTAL AMOUNT", labelX, totalRowY + 2, { align: "left" });
     doc.setTextColor(34, 120, 34);
-    doc.text(`Rs. ${total.toFixed(2)}`, totX, totalRowY + 2, { align: "right" });
+    doc.text(`$. ${total.toFixed(2)}`, totX, totalRowY + 2, { align: "right" });
 
     doc.save(`Invoice_${currentOrder._id}.pdf`);
   };
@@ -271,7 +271,7 @@ const OrderCompleted = () => {
                     </div>
                   </div>
                   <span className="font-bold text-gray-900 text-[15px] pr-2">
-                    ₹{((item.selectedVariant?.price || 0) * item.quantity).toFixed(2)}
+                    ${((item.selectedVariant?.price || 0) * item.quantity).toFixed(2)}
                   </span>
                 </div>
               );
@@ -283,20 +283,20 @@ const OrderCompleted = () => {
         <div className="bg-gray-50/80 p-8 border-b border-gray-100 text-[15px] space-y-4">
           <div className="flex justify-between items-center text-gray-600 font-medium">
             <span>Subtotal</span>
-            <span className="text-gray-900 font-bold">₹{subtotal.toFixed(2)}</span>
+            <span className="text-gray-900 font-bold">${subtotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between items-center text-gray-600 font-medium">
             <span>Shipping</span>
-            <span className="text-gray-900 font-bold">{shipping === 0 ? "FREE" : `₹${shipping.toFixed(2)}`}</span>
+            <span className="text-gray-900 font-bold">{shipping === 0 ? "FREE" : `$${shipping.toFixed(2)}`}</span>
           </div>
           <div className="flex justify-between items-center text-gray-600 font-medium">
             <span>Estimated Tax</span>
-            <span className="text-gray-900 font-bold">₹{tax.toFixed(2)}</span>
+            <span className="text-gray-900 font-bold">${tax.toFixed(2)}</span>
           </div>
           <div className="flex justify-between items-end pt-5 mt-2 border-t border-gray-200/60">
             <span className="text-gray-900 font-bold text-lg uppercase tracking-wide">Total Amount</span>
             <span className="md:text-[28px] text-[24px] font-black text-[var(--primary)] leading-none tracking-tight">
-              ₹{total.toFixed(2)}
+              ${total.toFixed(2)}
             </span>
           </div>
         </div>

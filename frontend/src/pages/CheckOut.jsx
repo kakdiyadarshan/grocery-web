@@ -372,15 +372,15 @@ const handleNavigate = () => {
                 <div className="space-y-4 mb-6 border-b border-gray-100 pb-6">
                   <div className="flex items-center justify-between">
                     <span className="text-[14px] font-bold text-gray-500">Subtotal</span>
-                    <span className="text-[15px] font-bold text-[var(--text-gray)]">₹{subtotal.toFixed(2)}</span>
+                    <span className="text-[15px] font-bold text-[var(--text-gray)]">${subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[14px] font-bold text-gray-500">Shipping</span>
-                    <span className="text-[14.5px] font-bold text-[var(--primary)]">{shipping === 0 ? "Free" : `₹${shipping.toFixed(2)}`}</span>
+                    <span className="text-[14.5px] font-bold text-[var(--primary)]">{shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[14px] font-bold text-gray-500">Tax</span>
-                    <span className="text-[15px] font-bold text-[var(--text-gray)]">₹{tax.toFixed(2)}</span>
+                    <span className="text-[15px] font-bold text-[var(--text-gray)]">${tax.toFixed(2)}</span>
                   </div>
 
                 </div>
@@ -388,7 +388,7 @@ const handleNavigate = () => {
                 {/* Total */}
                 <div className="flex items-center justify-between mb-8 pb-3 border-b border-gray-100">
                   <span className="text-[17px] font-bold text-[var(--text-gray)]">Total</span>
-                  <span className="text-[22px] font-bold text-[var(--primary)]">₹{totalAmount.toFixed(2)} <span className="text-sm font-bold text-gray-500">INR</span></span>
+                  <span className="text-[22px] font-bold text-[var(--primary)]">${totalAmount.toFixed(2)} <span className="text-sm font-bold text-gray-500">USD</span></span>
                 </div>
 
 

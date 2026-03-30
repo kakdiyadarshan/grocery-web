@@ -290,14 +290,15 @@ const Shop = () => {
                                 <div className={`transition-all duration-300 overflow-hidden ${expandedFilters.price ? 'mt-4 opacity-100 max-h-[300px]' : 'max-h-0 opacity-0'}`}>
                                     <p className="text-[12px] text-gray-400 mb-4 font-medium flex items-center gap-1.5">
                                         <span className="inline-block w-1 h-1 rounded-full bg-gray-300"></span>
-                                        Highest price is ₹{filterOptions.maxPrice.toFixed(2)}
+                                        Highest price is ${filterOptions.maxPrice.toFixed(2)}
                                     </p>
                                     
                                     <div className="flex items-center gap-2">
                                         <div className="relative flex-1 group">
-                                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[13px] font-medium transition-colors">₹</div>
+                                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[13px] font-medium transition-colors">$</div>
                                             <input
                                                 type="number"
+                                                min="0"
                                                 placeholder="Min"
                                                 value={priceRange.min}
                                                 onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
@@ -306,9 +307,10 @@ const Shop = () => {
                                         </div>
                                         <div className="text-gray-300 font-medium">—</div>
                                         <div className="relative flex-1 group">
-                                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[13px] font-medium transition-colors">₹</div>
+                                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[13px] font-medium transition-colors">$</div>
                                             <input
                                                 type="number"
+                                                min="0"
                                                 placeholder="Max"
                                                 value={priceRange.max}
                                                 onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
@@ -607,15 +609,15 @@ const Shop = () => {
                                                         {hasDiscount ? (
                                                             <>
                                                                 <span className="text-[11px] sm:text-[12px] text-gray-400 line-through font-medium mb-0.5">
-                                                                    ₹{minPrice.toFixed(2)}
+                                                                    ${minPrice.toFixed(2)}
                                                                 </span>
                                                                 <span className="text-[17px] sm:text-[18px] font-[600] text-gray-900 leading-none tracking-tight">
-                                                                    ₹{(Number(product.discountPrice || minPrice) || 0).toFixed(2)}
+                                                                    ${(Number(product.discountPrice || minPrice) || 0).toFixed(2)}
                                                                 </span>
                                                             </>
                                                         ) : (
                                                             <span className="text-[17px] sm:text-[18px] font-[600] text-gray-900 leading-none tracking-tight">
-                                                                ₹{(Number(minPrice) || 0).toFixed(2)}
+                                                                ${(Number(minPrice) || 0).toFixed(2)}
                                                             </span>
                                                         )}
                                                     </div>
