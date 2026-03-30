@@ -29,6 +29,7 @@ const Header = () => {
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const [recentSearches, setRecentSearches] = useState([]);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const userMenuRef = useRef(null);
   const categoryMenuRef = useRef(null);
   const desktopSearchRef = useRef(null);
@@ -119,8 +120,15 @@ const Header = () => {
     : 'U';
 
   const handleLogout = () => {
-    dispatch(logout());
+    setIsLogoutModalOpen(true);
     setIsUserMenuOpen(false);
+  };
+
+  const confirmLogout = () => {
+    dispatch(logout());
+    setIsLogoutModalOpen(false);
+    setIsMobileMenuOpen(false);
+    navigate('/');
   };
 
   const handleSearch = (event) => {
@@ -359,20 +367,42 @@ const Header = () => {
 
                 {/* Dropdown Menu */}
                 {isUserMenuOpen && (
-                  <div className="absolute -right-2 top-full mt-4 w-40 bg-white border border-gray-100 shadow-md z-50 py-3 rounded-sm">
-                    <ul className="flex flex-col gap-1">
+                  <div className="absolute -right-2 top-full mt-4 w-56 bg-white border border-gray-100 shadow-xl z-50 py-2 rounded-lg overflow-hidden animate-fadeIn">
+                    <ul className="flex flex-col">
                       {isAuthenticated ? (
                         <>
+                          {/* User Info Header */}
+                          <li className="px-5 py-3 bg-gray-50/50 border-b border-gray-100 mb-1">
+                            <p className="text-[13px] font-bold text-gray-900 truncate">{userFullName || 'User Account'}</p>
+                            <p className="text-[11px] text-gray-400 truncate mt-0.5">{user?.email}</p>
+                          </li>
+                          
                           <li>
-                            <Link to="/my-order" className="block px-5 py-1.5 text-[15px] text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors">
-                              My Orders
+                            <Link 
+                              to="/profile" 
+                              onClick={() => setIsUserMenuOpen(false)} 
+                              className="flex items-center gap-3 px-5 py-2.5 text-[14px] text-[var(--text-gray)] hover:text-[var(--primary)] hover:bg-gray-50 transition-all font-medium"
+                            >
+                              <User size={17} className="stroke-[1.5]" />
+                              My Profile
                             </Link>
                           </li>
                           <li>
+                            <Link 
+                              to="/my-order" 
+                              onClick={() => setIsUserMenuOpen(false)} 
+                              className="flex items-center gap-3 px-5 py-2.5 text-[14px] text-[var(--text-gray)] hover:text-[var(--primary)] hover:bg-gray-50 transition-all font-medium"
+                            >
+                              <ShoppingBag size={17} className="stroke-[1.5]" />
+                              My Orders
+                            </Link>
+                          </li>
+                          <li className="border-t border-gray-100 mt-1 pt-1">
                             <button
                               onClick={handleLogout}
-                              className="w-full text-left block px-5 py-1.5 text-[15px] text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors"
+                              className="w-full text-left flex items-center gap-3 px-5 py-2.5 text-[14px] text-rose-500 hover:bg-rose-50 transition-all font-semibold"
                             >
+                              <X size={17} className="stroke-[2]" />
                               Logout
                             </button>
                           </li>
@@ -380,13 +410,22 @@ const Header = () => {
                       ) : (
                         <>
                           <li>
-                            <Link to="/login" className="block px-5 py-1.5 text-[15px] text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors">
+                            <Link 
+                              to="/login" 
+                              onClick={() => setIsUserMenuOpen(false)} 
+                              className="flex items-center gap-3 px-5 py-3 text-[14px] text-[var(--text-gray)] hover:text-[var(--primary)] hover:bg-gray-50 transition-all font-bold"
+                            >
+                              <User size={17} className="stroke-[2]" />
                               Login
                             </Link>
                           </li>
-                          <li>
-                            <Link to="/register" className="block px-5 py-1.5 text-[15px] text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors">
-                              Register
+                          <li className="border-t border-gray-50">
+                            <Link 
+                              to="/register" 
+                              onClick={() => setIsUserMenuOpen(false)} 
+                              className="flex items-center gap-3 px-5 py-3 text-[14px] text-[var(--text-gray)] hover:text-[var(--primary)] hover:bg-gray-50 transition-all font-bold"
+                            >
+                              Register Account
                             </Link>
                           </li>
                         </>
@@ -528,21 +567,89 @@ const Header = () => {
         className={`fixed top-0 left-0 h-full w-[80vw] sm:w-[320px] bg-white z-[90] transform transition-transform duration-300 ease-in-out flex flex-col shadow-2xl lg:hidden ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
       >
-        <div className="px-5 py-5 flex items-center justify-between border-b border-gray-100">
-          <h2 className="text-[17px] font-bold text-[var(--text-gray)] tracking-wide">Menu</h2>
+        <div className="px-5 py-5 flex items-center justify-between border-b border-gray-100 bg-gray-50/50">
+          <div className="flex items-center gap-3">
+            {isAuthenticated ? (
+              <>
+                <div className="w-10 h-10 rounded-full bg-[var(--primary)] text-white flex items-center justify-center font-bold">
+                  {userPhotoUrl ? <img src={userPhotoUrl} alt="User" className="w-full h-full rounded-full object-cover" /> : userInitials}
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold text-gray-900 truncate max-w-[150px]">{userFullName || 'Account'}</span>
+                  <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="text-[11px] text-[var(--primary)] font-bold uppercase tracking-wider">View Profile</Link>
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-400">
+                  <User size={20} />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold text-gray-900">Welcome Guest</span>
+                  <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="text-[11px] text-[var(--primary)] font-bold uppercase tracking-wider">Login / Register</Link>
+                </div>
+              </div>
+            )}
+          </div>
           <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-400 hover:text-[var(--primary)] transition-colors">
             <X className="w-6 h-6 stroke-[1.5]" />
           </button>
         </div>
 
         <div className="flex flex-col px-5 py-4 gap-4 overflow-y-auto">
-          <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="text-[15px] font-bold text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors border-b border-gray-50 pb-3">Home</Link>
-          <Link to="/shop" onClick={() => setIsMobileMenuOpen(false)} className="text-[15px] font-bold text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors border-b border-gray-50 pb-3">Shop</Link>
-          <Link to="/aboutus" onClick={() => setIsMobileMenuOpen(false)} className="text-[15px] font-bold text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors border-b border-gray-50 pb-3">About us</Link>
-          <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="text-[15px] font-bold text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors border-b border-gray-50 pb-3">Contact us</Link>
-          <Link to="/blog" onClick={() => setIsMobileMenuOpen(false)} className="text-[15px] font-bold text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors border-b border-gray-50 pb-3">Blog</Link>
+          <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 text-[15px] font-bold text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors border-b border-gray-50 pb-3">Home</Link>
+          <Link to="/shop" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 text-[15px] font-bold text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors border-b border-gray-50 pb-3">Shop</Link>
+          {isAuthenticated && (
+            <>
+              <Link to="/my-order" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 text-[15px] font-bold text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors border-b border-gray-50 pb-3">My Orders</Link>
+            </>
+          )}
+          <Link to="/aboutus" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 text-[15px] font-bold text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors border-b border-gray-50 pb-3">About us</Link>
+          <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 text-[15px] font-bold text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors border-b border-gray-50 pb-3">Contact us</Link>
+          <Link to="/blog" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 text-[15px] font-bold text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors border-b border-gray-50 pb-3">Blog</Link>
+          
+          {isAuthenticated && (
+            <button 
+              onClick={handleLogout} 
+              className="flex items-center gap-3 text-[15px] font-bold text-rose-500 hover:text-rose-600 transition-colors pt-2"
+            >
+              Logout
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {isLogoutModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
+          <div className="bg-white rounded-md shadow-2xl p-6 max-w-sm w-full animate-scaleIn">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center mb-4">
+                <X className="w-8 h-8 text-rose-500" />
+              </div>
+              <h3 className="text-[20px] font-semibold text-gray-900 mb-2">Logout account?</h3>
+              <p className="text-sm text-gray-500 mb-8 leading-relaxed">
+                Are you sure you want to log out of your account? You will need to login again to access your data.
+              </p>
+              
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={() => setIsLogoutModalOpen(false)}
+                  className="flex-1 px-4 py-3 rounded-md border border-gray-200 text-gray-700 font-semibold text-[14px] hover:bg-gray-50 transition-all active:scale-95"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmLogout}
+                  className="flex-1 px-4 py-3 rounded-md bg-rose-500 text-white font-semibold text-[14px] hover:bg-rose-600 transition-all active:scale-95"
+                >
+                  Yes, Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Cart Drawer Component */}
       <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />

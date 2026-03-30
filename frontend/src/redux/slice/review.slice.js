@@ -35,6 +35,26 @@ export const deleteReview = createAsyncThunk(
     }
 );
 
+export const createReview = createAsyncThunk(
+    'review/createReview',
+    async (formData, { rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.post(`${BASE_URL}/addReview`, formData, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            toast.success('Review added successfully');
+            return response.data.review;
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to add review');
+            return rejectWithValue(error.response?.data?.message || 'Failed to add review');
+        }
+    }
+);
+
 const reviewSlice = createSlice({
     name: 'review',
     initialState: {
@@ -67,6 +87,19 @@ const reviewSlice = createSlice({
                 state.reviews = state.reviews.filter(r => r._id !== action.payload);
             })
             .addCase(deleteReview.rejected, (state, action) => {
+                state.error = action.payload;
+            })
+            // Create Review
+            .addCase(createReview.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(createReview.fulfilled, (state, action) => {
+                state.loading = false;
+                state.reviews.unshift(action.payload);
+            })
+            .addCase(createReview.rejected, (state, action) => {
+                state.loading = false;
                 state.error = action.payload;
             });
     }
