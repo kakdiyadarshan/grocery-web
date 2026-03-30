@@ -77,7 +77,7 @@ exports.createOrder = async (req, res) => {
                 payment_method_types: ['card'],
                 line_items: [{
                     price_data: {
-                        currency: 'inr',
+                        currency: 'usd', // changed to USD
                         product_data: { name: `Order ${order._id}` },
                         unit_amount: Math.round(totalAmount * 100),
                     },

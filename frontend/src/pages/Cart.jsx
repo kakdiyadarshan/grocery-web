@@ -318,7 +318,7 @@ const Cart = () => {
                                             <span className="flex items-center gap-1">
                                                 <Tag size={12} /> Coupon ({appliedCoupon.code})
                                             </span>
-                                            <span className="font-bold">-₹{couponDiscount.toFixed(2)}</span>
+                                            <span className="font-bold">-${couponDiscount.toFixed(2)}</span>
                                         </div>
                                     )}
                                     {appliedCoupon?.type === 'shipping' && shippingBase > 0 && (
@@ -336,7 +336,7 @@ const Cart = () => {
                                         <span className="text-lg font-bold text-[var(--text-primary)]">Total</span>
                                         <span className="text-2xl font-bold text-[var(--text-primary)]">${total.toFixed(2)}</span>
                                     </div>
-                                    <p className="text-xs text-[var(--text-secondary)] mt-1.5 text-right">Pre-tax currency INR</p>
+                                    <p className="text-xs text-[var(--text-secondary)] mt-1.5 text-right">Pre-tax currency USD </p>
                                 </div>
 
                                 <button onClick={handleclick} className="w-full flex items-center justify-center gap-2 py-4 bg-[var(--primary)] text-white rounded-md font-[500] text-lg hover:bg-[var(--primary-hover)] transition-all duration-300 shadow-md shadow-[var(--primary)]/20 active:scale-95 mb-4 border border-transparent">

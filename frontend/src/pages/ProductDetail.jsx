@@ -184,13 +184,13 @@ function ProductDetail() {
                             <div className="flex items-center gap-3">
                                 {/* Discounted Price */}
                                 <span className="text-2xl md:text-3xl font-bold text-[#00B880]">
-                                    ₹{selectedVariant?.discountPrice || selectedVariant?.price || 0}
+                                    ${selectedVariant?.discountPrice || selectedVariant?.price || 0}
                                 </span>
 
                                 {/* Original Price */}
                                 {selectedVariant?.discountPrice < selectedVariant?.price && (
                                     <span className="text-sm md:text-base text-gray-400 line-through">
-                                        ₹{selectedVariant?.price}
+                                        ${selectedVariant?.price}
                                     </span>
                                 )}
 
@@ -259,7 +259,7 @@ function ProductDetail() {
                         {/* Subtotal */}
                         <div className="flex items-center gap-2 mt-6">
                             <span className="text-base font-semibold text-[#333333]">Subtotal:</span>
-                            <span className="text-gray-500 text-base">₹{(quantity * (product.discountPrice || (selectedVariant?.price || 0))).toFixed(2)}</span>
+                            <span className="text-gray-500 text-base">${(quantity * (product.discountPrice || (selectedVariant?.price || 0))).toFixed(2)}</span>
                         </div>
 
 

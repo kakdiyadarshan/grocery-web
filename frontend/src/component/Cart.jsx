@@ -99,7 +99,7 @@ const Cart = ({ isOpen, onClose }) => {
                                                     </span>
                                                 )}
                                             </span>
-                                            <span className="text-[12px] sm:text-[13px] text-gray-500 mt-1 truncate">₹{wish.selectedVariant?.price || 0} each</span>
+                                            <span className="text-[12px] sm:text-[13px] text-gray-500 mt-1 truncate">${wish.selectedVariant?.price || 0} each</span>
 
 
 
@@ -122,7 +122,7 @@ const Cart = ({ isOpen, onClose }) => {
                                             </div>
                                         </div>
                                     </div>
-                                    <span className="font-bold text-[var(--primary)] text-[14px] sm:text-[16px] shrink-0 whitespace-nowrap">₹{((wish.selectedVariant?.price || 0) * wish.quantity).toFixed(2)}</span>
+                                    <span className="font-bold text-[var(--primary)] text-[14px] sm:text-[16px] shrink-0 whitespace-nowrap">${((wish.selectedVariant?.price || 0) * wish.quantity).toFixed(2)}</span>
 
 
                                 </div>
@@ -163,7 +163,7 @@ const Cart = ({ isOpen, onClose }) => {
 
                         <div className="flex items-center justify-between mb-2">
                             <span className="font-bold text-[var(--text-gray)] text-[15px] sm:text-[17px] tracking-wide shrink-0">Subtotal</span>
-                            <span className="font-bold text-[var(--primary)] text-[15px] sm:text-[17px] tracking-wide shrink-0 whitespace-nowrap">₹{subtotal.toFixed(2)}</span>
+                            <span className="font-bold text-[var(--primary)] text-[15px] sm:text-[17px] tracking-wide shrink-0 whitespace-nowrap">${subtotal.toFixed(2)}</span>
                         </div>
 
                         <p className="text-[12px] sm:text-[13px] text-[var(--text-gray)] mb-6 opacity-80 break-words">Taxes and shipping calculated at checkout</p>

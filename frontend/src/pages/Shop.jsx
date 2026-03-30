@@ -301,6 +301,7 @@ const Shop = () => {
                                             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[13px] font-medium transition-colors">$</div>
                                             <input
                                                 type="number"
+                                                min="0"
                                                 placeholder="Min"
                                                 value={priceRange.min}
                                                 onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
@@ -312,6 +313,7 @@ const Shop = () => {
                                             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[13px] font-medium transition-colors">$</div>
                                             <input
                                                 type="number"
+                                                min="0"
                                                 placeholder="Max"
                                                 value={priceRange.max}
                                                 onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
@@ -623,12 +625,12 @@ const Shop = () => {
                                                 <div className={`flex items-center justify-between ${viewType === 'list' ? 'pt-2' : 'pt-1'}`}>
                                                     <div className="flex flex-col relative top-0.5">
                                                         {hasDiscount ? (
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-[18px] sm:text-[20px] font-bold text-[var(--primary)] leading-none tracking-tight">
-                                                                    ${(Number(product.discountPrice || minPrice) || 0).toFixed(2)}
-                                                                </span>
-                                                                <span className="text-[13px] sm:text-[14px] text-gray-400 line-through font-medium">
+                                                            <>
+                                                                <span className="text-[11px] sm:text-[12px] text-gray-400 line-through font-medium mb-0.5">
                                                                     ${minPrice.toFixed(2)}
+                                                                </span>
+                                                                <span className="text-[17px] sm:text-[18px] font-[600] text-gray-900 leading-none tracking-tight">
+                                                                    ${(Number(product.discountPrice || minPrice) || 0).toFixed(2)}
                                                                 </span>
                                                             </div>
                                                         ) : (
