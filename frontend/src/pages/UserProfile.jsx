@@ -12,6 +12,7 @@ import { BASE_URL } from '../utils/baseUrl';
 import CustomSelect from '../admin/component/CustomSelect';
 import MyOrder from './MyOrder';
 import { ArrowLeft } from 'lucide-react';
+import DeleteModal from '../admin/component/DeleteModal';
 
 const UserProfile = () => {
     const dispatch = useDispatch();
@@ -32,6 +33,8 @@ const UserProfile = () => {
 
     const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
     const [editingAddress, setEditingAddress] = useState(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [addressToDelete, setAddressToDelete] = useState(null);
 
     const token = localStorage.getItem('token');
     const location = useLocation();
@@ -158,9 +161,21 @@ const UserProfile = () => {
         }
     };
 
-    const handleDeleteAddress = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this address?")) return;
-        dispatch(deleteAddress(id));
+    const handleDeleteAddress = (id) => {
+        setAddressToDelete(id);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDeleteAddress = async () => {
+        if (addressToDelete) {
+            try {
+                await dispatch(deleteAddress(addressToDelete)).unwrap();
+                setIsDeleteModalOpen(false);
+                setAddressToDelete(null);
+            } catch (error) {
+                // error toast handled by slice
+            }
+        }
     };
 
     const handleSetDefaultAddress = (id) => {
@@ -899,6 +914,15 @@ const UserProfile = () => {
                     </div>
                 </div>
             </div>
+            {/* Delete Address Modal */}
+            <DeleteModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => { setIsDeleteModalOpen(false); setAddressToDelete(null); }}
+                onConfirm={confirmDeleteAddress}
+                title="Delete Address"
+                message="Are you sure you want to delete this address? This action cannot be undone and the address will be permanently removed from your profile."
+                isLoading={submitLoading}
+            />
         </div>
     );
 };

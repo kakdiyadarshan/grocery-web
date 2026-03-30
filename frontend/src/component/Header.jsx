@@ -364,8 +364,8 @@ const Header = () => {
                       {isAuthenticated ? (
                         <>
                           <li>
-                            <Link to="/my-order" className="block px-5 py-1.5 text-[15px] text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors">
-                              My Orders
+                            <Link to="/profile" className="block px-5 py-1.5 text-[15px] text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors">
+                              Profile
                             </Link>
                           </li>
                           <li>
