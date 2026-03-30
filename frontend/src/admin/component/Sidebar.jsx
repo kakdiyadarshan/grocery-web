@@ -8,6 +8,7 @@ import { MdCategory } from 'react-icons/md';
 import { LuNotebookPen, LuNotebookTabs } from "react-icons/lu";
 import { FaRegBell } from "react-icons/fa";
 import { RiContactsBook3Line } from "react-icons/ri";
+import { TbRosetteDiscount } from 'react-icons/tb';
 
 
 const Sidebar = ({ isOpen, onClose }) => {
@@ -68,6 +69,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         },
         { name: 'Subscribe', icon: <FaRegBell />, path: '/admin/subscribe' },
         { name: 'Offers', icon: <FiGrid />, path: '/admin/offers' },
+        { name: 'Coupons', icon: <TbRosetteDiscount  />, path: '/admin/coupons' },
          { name: 'Contact Us', icon: <RiContactsBook3Line />, path: '/admin/contact-us' }
     ];
 
