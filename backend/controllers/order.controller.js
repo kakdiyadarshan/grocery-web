@@ -111,18 +111,24 @@ exports.createOrder = async (req, res) => {
 exports.getAllOrders = async (req, res) => {
     try {
         const orders = await Order.find()
-            .populate('userId', 'firstname lastname email')
-            .populate('addressId')
+            .populate('userId', 'firstname lastname email addresses')
             .populate('items.productId', 'name images weighstWise')
             .sort({ createdAt: -1 });
 
-        // Fetch payment information for each order
-        const ordersWithPayments = await Promise.all(orders.map(async (order) => {
+        // Fetch payment and address information for each order
+        const ordersWithPaymentsAndAddresses = await Promise.all(orders.map(async (order) => {
             const payment = await Payment.findOne({ orderId: order._id });
             const transformedOrder = await transformAndAutoUpdate(order);
 
+            // Fetch selected address from user's addresses array
+            let address = null;
+            if (order.addressId && order.userId?.addresses) {
+                address = order.userId.addresses.find(addr => addr._id.toString() === order.addressId.toString()) || null;
+            }
+
             return {
                 ...transformedOrder,
+                address, // ✅ Now you will get selected address
                 payment: payment ? {
                     _id: payment._id,
                     paymentMethod: payment.paymentMethod,
@@ -135,7 +141,7 @@ exports.getAllOrders = async (req, res) => {
             };
         }));
 
-        res.status(200).json({ success: true, data: ordersWithPayments });
+        res.status(200).json({ success: true, data: ordersWithPaymentsAndAddresses });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -144,18 +150,24 @@ exports.getAllOrders = async (req, res) => {
 exports.getUserOrders = async (req, res) => {
     try {
         const orders = await Order.find({ userId: req.user.id })
-            .populate('userId', 'firstname lastname email')
-            .populate('addressId')
+            .populate('userId', 'firstname lastname email ')
             .populate('items.productId', 'name images weighstWise')
             .sort({ createdAt: -1 });
 
-        // Fetch payment information for each order
-        const ordersWithPayments = await Promise.all(orders.map(async (order) => {
+        // Fetch payment and address information for each order
+        const ordersWithPaymentsAndAddresses = await Promise.all(orders.map(async (order) => {
             const payment = await Payment.findOne({ orderId: order._id });
             const transformedOrder = await transformAndAutoUpdate(order);
 
+            // Fetch selected address from user's addresses array
+            let address = null;
+            if (order.addressId && order.userId?.addresses) {
+                address = order.userId.addresses.find(addr => addr._id.toString() === order.addressId.toString()) || null;
+            }
+
             return {
                 ...transformedOrder,
+                address, // ✅ Now you will get selected address
                 payment: payment ? {
                     _id: payment._id,
                     paymentMethod: payment.paymentMethod,
@@ -168,7 +180,7 @@ exports.getUserOrders = async (req, res) => {
             };
         }));
 
-        res.status(200).json({ success: true, data: ordersWithPayments });
+        res.status(200).json({ success: true, data: ordersWithPaymentsAndAddresses });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
