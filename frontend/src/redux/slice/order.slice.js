@@ -104,6 +104,24 @@ export const cancelOrder = createAsyncThunk(
     }
 );
 
+export const updateOrderStatus = createAsyncThunk(
+    'order/updateOrderStatus',
+    async ({ id, status }, { dispatch, rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.put(`${BASE_URL}/updateOrderStatus/${id}`, { status }, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            dispatch(setAlert({ text: 'Order status updated successfully', type: 'success' }));
+            return response.data.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
 
 const orderSlice = createSlice({
 
@@ -150,15 +168,17 @@ const orderSlice = createSlice({
             })
             .addCase(getOrderById.rejected, (state) => { state.loading = false; })
 
-            .addCase(cancelOrder.pending, (state) => { state.loading = true; })
-            .addCase(cancelOrder.fulfilled, (state, action) => {
+            .addCase(cancelOrder.rejected, (state) => { state.loading = false; })
+            .addCase(updateOrderStatus.pending, (state) => { state.loading = true; })
+            .addCase(updateOrderStatus.fulfilled, (state, action) => {
                 state.loading = false;
-                const cancelledOrder = action.payload;
-                state.orders = state.orders.map(order => 
-                    order._id === cancelledOrder._id ? cancelledOrder : order
+                state.currentOrder = { ...state.currentOrder, ...action.payload };
+                // Also update in allorders list if present
+                state.allorders = state.allorders.map(order =>
+                    order._id === action.payload._id ? { ...order, ...action.payload } : order
                 );
             })
-            .addCase(cancelOrder.rejected, (state) => { state.loading = false; })
+            .addCase(updateOrderStatus.rejected, (state) => { state.loading = false; });
 
 
     }

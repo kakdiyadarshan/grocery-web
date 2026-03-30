@@ -43,6 +43,8 @@ const userSchema = new mongoose.Schema({
     },
     addresses: [
         {
+            firstname: { type: String },
+            lastname: { type: String },
             address: { type: String, required: true },
             city: { type: String, required: true },
             state: { type: String, required: true },
@@ -68,4 +70,4 @@ const userSchema = new mongoose.Schema({
 
 
 userSchema.index({ email: 1, role: 1 }, { unique: true });
-module.exports = mongoose.model("user", userSchema);
+module.exports = mongoose.model("User", userSchema);
