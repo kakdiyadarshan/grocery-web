@@ -440,25 +440,6 @@ const Product = () => {
 
                                         <div className="space-y-1.5">
                                             <label className="text-sm font-semibold text-gray-700 block">
-                                                Description <span className="text-red-500 font-bold">*</span>
-                                            </label>
-                                            <div className={`rounded-[4px] border ${formik.touched.description && formik.errors.description ? 'border-red-400' : 'border-gray-200 hover:border-gray-300'} focus-within:border-primary transition-all bg-white quill-wrapper-fix relative`}>
-                                                <ReactQuill
-                                                    theme="snow"
-                                                    value={formik.values.description}
-                                                    onChange={(val) => formik.setFieldValue('description', val)}
-                                                    onBlur={() => formik.setFieldTouched('description', true)}
-                                                    modules={quillModules}
-                                                    placeholder="Product details..."
-                                                    style={{ minHeight: '150px' }}
-                                                    className="quill-responsive bg-white"
-                                                />
-                                            </div>
-                                            {formik.touched.description && formik.errors.description && <p className="text-xs text-red-500 mt-1">{formik.errors.description}</p>}
-                                        </div>
-
-                                        <div className="space-y-1.5">
-                                            <label className="text-sm font-semibold text-gray-700 block">
                                                 SKU (Stock Keeping Unit) <span className="text-xs font-normal text-gray-400">(Optional)</span>
                                             </label>
                                             <div className="flex gap-2">
@@ -469,7 +450,7 @@ const Product = () => {
                                                     onChange={formik.handleChange}
                                                     onBlur={formik.handleBlur}
                                                     value={formik.values.sku}
-                                                    className="flex-grow px-4 py-2.5 border border-gray-200 rounded-[4px] outline-none transition-all bg-gray-50/50 focus:bg-white text-gray-900 text-sm focus:border-primary"
+                                                    className="flex-grow px-4 py-2.5 w-full border border-gray-200 rounded-[4px] outline-none transition-all bg-gray-50/50 focus:bg-white text-gray-900 text-sm focus:border-primary"
                                                 />
                                                 <button
                                                     type="button"
@@ -484,6 +465,49 @@ const Product = () => {
                                                 >
                                                     Generate
                                                 </button>
+                                            </div>
+                                        </div>
+                                        <div className="border-t border-gray-100">
+                                            <label className="text-sm font-semibold text-gray-700 block mb-3">Product Tags <span className="text-xs font-normal text-gray-400">(Optional)</span></label>
+                                            <div className="flex flex-wrap gap-3">
+                                                {[
+                                                    { value: 'featured', label: 'Featured', icon: <FiStar size={13} />, color: 'emerald' },
+                                                    { value: 'best_selling', label: 'Best Selling', icon: <FiAward size={13} />, color: 'green' }
+                                                ].map(tag => {
+                                                    const isChecked = formik.values.tags.includes(tag.value);
+                                                    return (
+                                                        <label
+                                                            key={tag.value}
+                                                            className={`flex items-center gap-2 px-4 py-2.5 border-2 rounded-lg cursor-pointer transition-all select-none text-sm font-semibold ${isChecked
+                                                                ? tag.color === 'emerald'
+                                                                    ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                                                                    : 'border-green-500 bg-green-50 text-green-700'
+                                                                : 'border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-300'
+                                                                }`}
+                                                        >
+                                                            <input
+                                                                type="checkbox"
+                                                                className="hidden"
+                                                                checked={isChecked}
+                                                                onChange={() => {
+                                                                    const current = formik.values.tags;
+                                                                    const updated = isChecked
+                                                                        ? current.filter(t => t !== tag.value)
+                                                                        : [...current, tag.value];
+                                                                    formik.setFieldValue('tags', updated);
+                                                                }}
+                                                            />
+                                                            <span className={isChecked ? (tag.color === 'emerald' ? 'text-emerald-500' : 'text-green-500') : 'text-gray-400'}>
+                                                                {tag.icon}
+                                                            </span>
+                                                            {tag.label}
+                                                            {isChecked && (
+                                                                <span className={`ml-1 w-4 h-4 rounded-full flex items-center justify-center text-white text-[9px] font-black ${tag.color === 'emerald' ? 'bg-emerald-500' : 'bg-green-500'
+                                                                    }`}>✓</span>
+                                                            )}
+                                                        </label>
+                                                    );
+                                                })}
                                             </div>
                                         </div>
                                     </div>
@@ -509,7 +533,7 @@ const Product = () => {
                                                         <div className="space-y-3">
                                                             {formik.values.weighstWise.map((variation, index) => (
                                                                 <div key={index} style={{ zIndex: formik.values.weighstWise.length - index }} className="flex gap-2 items-start bg-gray-50/80 p-4 rounded-xl border border-gray-100 relative group transition-all hover:bg-gray-100/50">
-                                                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 flex-grow">
+                                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-grow">
                                                                         <div className="space-y-1">
                                                                             <label className="text-[10px] font-bold text-gray-400  ml-1">Weight</label>
                                                                             <input
@@ -584,7 +608,7 @@ const Product = () => {
                                             <label className="text-sm font-semibold text-gray-700 block">
                                                 Product Images {!isEditMode && <span className="text-red-500 font-bold">* (Min 4)</span>}
                                             </label>
-                                            <div className="grid grid-cols-4 gap-2">
+                                            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-5 lg:grid-cols-4 gap-2">
                                                 {imagePreviews.map((preview, index) => (
                                                     <div key={index} className="relative aspect-square rounded-lg overflow-hidden border group">
                                                         <img src={preview.url} alt="preview" className="w-full h-full object-cover" />
@@ -618,49 +642,23 @@ const Product = () => {
                                     </div>
                                 </div>
 
-                                {/* Tags Section */}
-                                <div className="mt-6 pt-5 border-t border-gray-100">
-                                    <label className="text-sm font-semibold text-gray-700 block mb-3">Product Tags <span className="text-xs font-normal text-gray-400">(Optional)</span></label>
-                                    <div className="flex flex-wrap gap-3">
-                                        {[
-                                            { value: 'featured', label: 'Featured', icon: <FiStar size={13} />, color: 'emerald' },
-                                            { value: 'best_selling', label: 'Best Selling', icon: <FiAward size={13} />, color: 'green' }
-                                        ].map(tag => {
-                                            const isChecked = formik.values.tags.includes(tag.value);
-                                            return (
-                                                <label
-                                                    key={tag.value}
-                                                    className={`flex items-center gap-2 px-4 py-2.5 border-2 rounded-lg cursor-pointer transition-all select-none text-sm font-semibold ${isChecked
-                                                        ? tag.color === 'emerald'
-                                                            ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                                                            : 'border-green-500 bg-green-50 text-green-700'
-                                                        : 'border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-300'
-                                                        }`}
-                                                >
-                                                    <input
-                                                        type="checkbox"
-                                                        className="hidden"
-                                                        checked={isChecked}
-                                                        onChange={() => {
-                                                            const current = formik.values.tags;
-                                                            const updated = isChecked
-                                                                ? current.filter(t => t !== tag.value)
-                                                                : [...current, tag.value];
-                                                            formik.setFieldValue('tags', updated);
-                                                        }}
-                                                    />
-                                                    <span className={isChecked ? (tag.color === 'emerald' ? 'text-emerald-500' : 'text-green-500') : 'text-gray-400'}>
-                                                        {tag.icon}
-                                                    </span>
-                                                    {tag.label}
-                                                    {isChecked && (
-                                                        <span className={`ml-1 w-4 h-4 rounded-full flex items-center justify-center text-white text-[9px] font-black ${tag.color === 'emerald' ? 'bg-emerald-500' : 'bg-green-500'
-                                                            }`}>✓</span>
-                                                    )}
-                                                </label>
-                                            );
-                                        })}
+                                <div className="mt-6 space-y-1.5">
+                                    <label className="text-sm font-semibold text-gray-700 block">
+                                        Description <span className="text-red-500 font-bold">*</span>
+                                    </label>
+                                    <div className={`rounded-[4px] border ${formik.touched.description && formik.errors.description ? 'border-red-400' : 'border-gray-200 hover:border-gray-300'} focus-within:border-primary transition-all bg-white quill-wrapper-fix relative`}>
+                                        <ReactQuill
+                                            theme="snow"
+                                            value={formik.values.description}
+                                            onChange={(val) => formik.setFieldValue('description', val)}
+                                            onBlur={() => formik.setFieldTouched('description', true)}
+                                            modules={quillModules}
+                                            placeholder="Product details..."
+                                            style={{ minHeight: '150px' }}
+                                            className="quill-responsive bg-white"
+                                        />
                                     </div>
+                                    {formik.touched.description && formik.errors.description && <p className="text-xs text-red-500 mt-1">{formik.errors.description}</p>}
                                 </div>
 
                                 <div className="mt-8 border-t pt-6">
