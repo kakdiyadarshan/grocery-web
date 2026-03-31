@@ -23,7 +23,7 @@ const OrderCompleted = () => {
           const token = localStorage.getItem('token');
           await fetch(`${BASE_URL}/verifyStripeSession`, {
             method: 'POST',
-            headers: { 
+            headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${token}`
             },
@@ -74,6 +74,8 @@ const OrderCompleted = () => {
     ? `${addr.address}, ${addr.city}, ${addr.state} - ${addr.zip}, ${addr.country}`
     : "Address not available";
 
+  const couponId = currentOrder.couponId || {};
+
   const subtotal = orderItems.reduce((acc, item) => {
     const variant = item.selectedVariant;
     const price = variant?.discountPrice || variant?.price || 0;
@@ -112,11 +114,11 @@ const OrderCompleted = () => {
     const pageH = doc.internal.pageSize.getHeight();
 
     // ── Colors ───────────────────────────────────────────────────
-    const green      = [34, 139, 34];
-    const darkGray   = [30, 30, 30];
-    const lightGray  = [247, 248, 249];
-    const midGray    = [100, 105, 110];
-    const white      = [255, 255, 255];
+    const green = [34, 139, 34];
+    const darkGray = [30, 30, 30];
+    const lightGray = [247, 248, 249];
+    const midGray = [100, 105, 110];
+    const white = [255, 255, 255];
     const borderGray = [230, 230, 230];
 
     // ── HEADER BAND ──────────────────────────────────────────────
@@ -210,9 +212,9 @@ const OrderCompleted = () => {
           year: "numeric",
         }),
       },
-      { label: "STATUS",  value: currentOrder.status.toUpperCase() },
+      { label: "STATUS", value: currentOrder.status.toUpperCase() },
       { label: "PAYMENT", value: currentOrder.paymentMethod || "COD" },
-      { label: "ITEMS",   value: String(orderItems.length) },
+      { label: "ITEMS", value: String(orderItems.length) },
     ];
     const boxW = (pageW - 28 - 9) / 4;
 
@@ -235,16 +237,16 @@ const OrderCompleted = () => {
     });
 
     // ── TABLE ─────────────────────────────────────────────────────
-    const tY   = metaY + 26;
+    const tY = metaY + 26;
     const rowH = 16;
 
     // Column center/anchor positions
     const col = {
-      itemLeft:    16,
-      qtyCenter:   105,
+      itemLeft: 16,
+      qtyCenter: 105,
       priceCenter: 135,
-      savCenter:   160,
-      totalRight:  pageW - 14,
+      savCenter: 160,
+      totalRight: pageW - 14,
     };
 
     // Table header
@@ -255,20 +257,20 @@ const OrderCompleted = () => {
     doc.setFontSize(7.5);
     doc.setTextColor(...white);
     const thY = tY + 5;
-    doc.text("ITEM",       col.itemLeft,    thY, { align: "left", baseline: "middle" });
-    doc.text("QTY",        col.qtyCenter,   thY, { align: "center", baseline: "middle" });
+    doc.text("ITEM", col.itemLeft, thY, { align: "left", baseline: "middle" });
+    doc.text("QTY", col.qtyCenter, thY, { align: "center", baseline: "middle" });
     doc.text("UNIT PRICE", col.priceCenter, thY, { align: "center", baseline: "middle" });
-    doc.text("SAVINGS",    col.savCenter,   thY, { align: "center", baseline: "middle" });
-    doc.text("TOTAL",      col.totalRight,  thY, { align: "right", baseline: "middle" });
+    doc.text("SAVINGS", col.savCenter, thY, { align: "center", baseline: "middle" });
+    doc.text("TOTAL", col.totalRight, thY, { align: "right", baseline: "middle" });
 
     // Table rows
     orderItems.forEach((item, i) => {
-      const rY          = tY + 10 + i * rowH;
-      const product     = item.productId || {};
-      const variant     = item.selectedVariant;
-      const origPrice   = variant?.price || 0;
-      const discPrice   = variant?.discountPrice || origPrice;
-      const savings     = origPrice - discPrice;
+      const rY = tY + 10 + i * rowH;
+      const product = item.productId || {};
+      const variant = item.selectedVariant;
+      const origPrice = variant?.price || 0;
+      const discPrice = variant?.discountPrice || origPrice;
+      const savings = origPrice - discPrice;
 
       // Alternating stripe
       if (i % 2 !== 0) {
@@ -324,15 +326,23 @@ const OrderCompleted = () => {
 
     // ── TOTALS BOX ────────────────────────────────────────────────
     const tableBottom = tY + 10 + orderItems.length * rowH;
-    const totBoxX  = pageW / 2 + 10;
-    const totBoxW  = pageW - 14 - totBoxX;
-    const totBoxY  = tableBottom + 10;
+    const totBoxX = pageW / 2 + 10;
+    const totBoxW = pageW - 14 - totBoxX;
+    const totBoxY = tableBottom + 10;
     const totLineH = 9;
 
     const totalsData = [
-      { label: "Subtotal",  value: `$${subtotal.toFixed(2)}` },
-      { label: "Shipping",  value: shipping === 0 ? "FREE" : `$${shipping.toFixed(2)}` },
-      { label: "Tax (8%)",  value: `$${tax.toFixed(2)}` },
+      { label: "Subtotal", value: `$${subtotal.toFixed(2)}` },
+      { label: "Shipping", value: shipping === 0 ? "FREE" : `$${shipping.toFixed(2)}` },
+      { label: "Tax (8%)", value: `$${tax.toFixed(2)}` },
+      ...(couponId && couponId.code
+        ? [
+          {
+            label: "Coupon",
+            value: `- $${((subtotal * couponId.discount) / 100).toFixed(2)}`
+          }
+        ]
+        : []),
     ];
 
     const totBoxH = totalsData.length * totLineH + 22;
@@ -466,11 +476,11 @@ const OrderCompleted = () => {
           </h3>
           <div className="space-y-3">
             {orderItems.map((item, i) => {
-              const product      = item.productId || {};
-              const variant      = item.selectedVariant;
+              const product = item.productId || {};
+              const variant = item.selectedVariant;
               const originalPrice = variant?.price || 0;
-              const price        = variant?.discountPrice || originalPrice;
-              const hasOffer     = price < originalPrice;
+              const price = variant?.discountPrice || originalPrice;
+              const hasOffer = price < originalPrice;
 
               return (
                 <div
@@ -538,6 +548,14 @@ const OrderCompleted = () => {
             <span>Estimated Tax</span>
             <span className="text-gray-900 font-bold">${tax.toFixed(2)}</span>
           </div>
+          {couponId && couponId.code && (
+            <div className="flex justify-between text-primary font-medium">
+              <span className="flex items-center gap-1">
+                Coupon ({couponId.code}) - {couponId.discount}% off
+              </span>
+              <span className="font-[600]">-${((subtotal * couponId.discount) / 100).toFixed(2)}</span>
+            </div>
+          )}
           <div className="flex justify-between items-end pt-5 mt-2 border-t border-gray-200/60">
             <span className="text-gray-900 font-bold text-lg uppercase tracking-wide">
               Total Amount
