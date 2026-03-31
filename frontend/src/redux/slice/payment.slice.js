@@ -32,6 +32,22 @@ export const fetchPayments = createAsyncThunk(
     }
 );
 
+// Update payment status (for admin)
+export const updatePaymentStatus = createAsyncThunk(
+    'payment/updatePaymentStatus',
+    async ({ id, status }, { dispatch, rejectWithValue }) => {
+        try {
+            const response = await axios.put(`${BASE_URL}/updatePaymentStatus/${id}`, { status }, {
+                headers: { Authorization: `Bearer ${getToken()}` },
+            });
+            dispatch(setAlert({ text: 'Payment status updated successfully', type: 'success' }));
+            return response.data.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
 const paymentSlice = createSlice({
     name: 'payment',
     initialState,
@@ -49,6 +65,19 @@ const paymentSlice = createSlice({
             .addCase(fetchPayments.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
+            })
+            .addCase(updatePaymentStatus.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(updatePaymentStatus.fulfilled, (state, action) => {
+                state.loading = false;
+                const index = state.payments.findIndex((p) => p._id === action.payload._id);
+                if (index !== -1) {
+                    state.payments[index] = action.payload;
+                }
+            })
+            .addCase(updatePaymentStatus.rejected, (state) => {
+                state.loading = false;
             });
     },
 });

@@ -252,7 +252,7 @@ const Dashboard = () => {
 
     return Object.values(productCounts)
       .sort((a, b) => b.quantity - a.quantity)
-      .slice(0, 7);
+      .slice(0, 6);
   }, [allorders]);
 
   const [activeTimeframe, setActiveTimeframe] = useState('Weekly');

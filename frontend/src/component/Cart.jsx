@@ -122,7 +122,11 @@ const Cart = ({ isOpen, onClose }) => {
                                                         <Minus className="w-3.5 h-3.5" />
                                                     </button>
                                                     <span className="text-[14px] sm:text-[15px] font-medium shrink-0">{wish.quantity}</span>
-                                                    <button onClick={() => handleUpdateQuantity(prodId, wish.variantId, wish.quantity + 1)} className="text-gray-400 hover:text-[var(--primary)] shrink-0 transition-colors">
+                                                    <button
+                                                        onClick={() => handleUpdateQuantity(prodId, wish.variantId, wish.quantity + 1)}
+                                                        disabled={variant?.stock !== undefined && wish.quantity >= variant.stock}
+                                                        className={`text-gray-400 hover:text-[var(--primary)] shrink-0 transition-colors ${variant?.stock !== undefined && wish.quantity >= variant.stock ? 'opacity-30 cursor-not-allowed' : ''}`}
+                                                    >
                                                         <Plus className="w-3.5 h-3.5" />
                                                     </button>
                                                 </div>
@@ -130,6 +134,17 @@ const Cart = ({ isOpen, onClose }) => {
                                                 <button onClick={() => handleRemove(prodId, wish.variantId)} className="bg-[var(--primary)] text-white w-8 h-8 sm:w-9 sm:h-9 rounded flex items-center justify-center hover:bg-[var(--primary-hover)] transition-colors shrink-0">
                                                     <Trash2 className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px]" />
                                                 </button>
+
+                                                {variant?.stock !== undefined && wish.quantity > variant.stock && (
+                                                    <span className="text-[10px] text-red-500 font-bold w-full mt-1">
+                                                        * Exceeds stock ({variant.stock} available)
+                                                    </span>
+                                                )}
+                                                {variant?.stock <= 0 && (
+                                                    <span className="text-[10px] text-red-500 font-bold w-full mt-1">
+                                                        * Out of Stock
+                                                    </span>
+                                                )}
 
                                             </div>
                                         </div>

@@ -258,7 +258,12 @@ const Header = () => {
                     />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <span className="block text-[14px] font-semibold text-gray-800 truncate">{highlightMatch(product.name, debouncedSearchTerm)}</span>
+                    <div className="flex items-center gap-2">
+                        <span className="block text-[14px] font-semibold text-gray-800 truncate">{highlightMatch(product.name, debouncedSearchTerm)}</span>
+                        {product.weighstWise?.every(w => w.stock <= 0) && (
+                            <span className="text-[9px] bg-red-100 text-red-500 font-bold px-1.5 py-0.5 rounded uppercase shrink-0">Sold Out</span>
+                        )}
+                    </div>
                     <span className="block text-[12px] text-gray-400 font-medium truncate mt-0.5">{highlightMatch(product.category?.categoryName || 'General', debouncedSearchTerm)}</span>
                   </div>
                   <div className="text-[14px] font-bold text-[var(--primary)] whitespace-nowrap">

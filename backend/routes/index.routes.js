@@ -24,6 +24,8 @@ const { createCoupon, getAllCoupons, deleteCoupon, getCouponById, updateCoupon }
 const { createOrder, getAllOrders, getOrderById, updateOrderStatus, deleteOrder, getUserOrders, cancelOrder, trackOrder, handleStripeWebhook, verifyStripeSession } = require('../controllers/order.controller');
 const { getOrderMonthlyAnalytics, getRevenueAnalytics } = require('../controllers/dashboard.controller');
 const { createPayment, getPaymentById, getAllPayments, deletePayment, getPaymentByUserId, getPaymentByOrderId } = require('../controllers/payment.controller');
+const { createOrder, getAllOrders, getOrderById, updateOrderStatus, deleteOrder, getUserOrders, cancelOrder, trackOrder, handleStripeWebhook, getOrderMonthlyAnalytics, getRevenueAnalytics,verifyStripeSession } = require('../controllers/order.controller');
+const { createPayment, getPaymentById, getAllPayments, updatePaymentStatus, deletePayment, getPaymentByUserId, getPaymentByOrderId } = require('../controllers/payment.controller');
 const { addAddress, getAddresses, updateAddress, deleteAddress, setDefaultAddress } = require('../controllers/address.controller');
 const { createOfferBanner, getAllOfferBanners, updateOfferBanner, deleteOfferBanner } = require('../controllers/offerbanner.controller');
 const { createBanner, getAllBanners, updateBanner, deleteBanner } = require('../controllers/banner.controller');
@@ -192,6 +194,7 @@ indexRoutes.get('/revenue-analytics', auth, authorizeRoles('admin'), getRevenueA
 indexRoutes.post('/createPayment', auth, createPayment);
 indexRoutes.get('/getPayment/:id', auth, authorizeRoles('admin'), getPaymentById);
 indexRoutes.get('/getAllPayments', auth, authorizeRoles('admin'), getAllPayments);
+indexRoutes.put('/updatePaymentStatus/:id', auth, authorizeRoles('admin'), updatePaymentStatus);
 indexRoutes.delete('/deletePayment/:id', auth, authorizeRoles('admin'), deletePayment);
 indexRoutes.get('/getPaymentByUserId/:userId', auth, authorizeRoles('admin'), getPaymentByUserId);
 indexRoutes.get('/getPaymentByOrderId/:orderId', auth, authorizeRoles('admin'), getPaymentByOrderId);
