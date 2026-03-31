@@ -308,7 +308,7 @@ const MyOrder = ({ isEmbedded = false }) => {
                             </div>
                             <h3 className="text-gray-900 font-bold text-lg mb-1">No Orders Found</h3>
                             <p className="text-gray-500 mb-6">Looks like you haven't placed any orders yet.</p>
-                            <Link to="/category" className="inline-flex items-center justify-center px-6 py-2 bg-[var(--primary)] text-white font-bold rounded-lg hover:bg-[var(--primary-hover)] transition-all">
+                            <Link to="/shop" className="inline-flex items-center justify-center px-6 py-2 bg-[var(--primary)] text-white font-bold rounded-lg hover:bg-[var(--primary-hover)] transition-all">
                                 Start Shopping
                             </Link>
                         </div>

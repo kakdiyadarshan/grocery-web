@@ -15,6 +15,7 @@ const Shop = () => {
     const { products = [], loading = false } = useSelector((state) => state.product || {});
     const { categories: apiCategories = [] } = useSelector((state) => state.category || {});
     const { wishlist } = useSelector((state) => state.wishlist || {});
+    const { isAuthenticated } = useSelector((state) => state.auth || {});
     const wishlistItems = wishlist?.items || [];
     const [searchParams, setSearchParams] = useSearchParams();
     const categoryParam = searchParams.get('category');
@@ -44,8 +45,10 @@ const Shop = () => {
     useEffect(() => {
         dispatch(getAllProducts());
         dispatch(getAllCategories());
-        dispatch(getWishlist());
-    }, [dispatch]);
+        if (isAuthenticated) {
+            dispatch(getWishlist());
+        }
+    }, [dispatch, isAuthenticated]);
 
     useEffect(() => {
         if (categoryParam) {
