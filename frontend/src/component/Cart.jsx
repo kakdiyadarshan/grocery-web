@@ -11,11 +11,12 @@ const Cart = ({ isOpen, onClose }) => {
     const [showInstructions, setShowInstructions] = useState(false);
     const [instructions, setInstructions] = useState('');
 
-    const cartItems = cart?.items?.filter(item => item?.productId) || [];
+    const cartItems = cart?.items?.filter(item => item?.productId && (item.productId.name || item.productId.productName)) || [];
     const subtotal = cartItems.reduce((acc, item) => {
         const variant = item.selectedVariant;
-        const price = variant?.discountPrice || variant?.price || 0;
-        return acc + (price * item.quantity);
+        const price = Number(variant?.discountPrice || variant?.price || 0);
+        const quantity = Number(item.quantity || 0);
+        return acc + (price * quantity);
     }, 0);
 
 
@@ -97,14 +98,14 @@ const Cart = ({ isOpen, onClose }) => {
                                             </span>
 
                                             <span className="text-[14px] sm:text-[15px] font-medium leading-snug text-[var(--text-gray)] mt-0.5 break-words line-clamp-2">
-                                                {item.name || item.productName} 
+                                                {item.name || item.productName}
                                                 {(wish.selectedVariant || item.weighstWise?.[0]) && (
                                                     <span className="text-xs font-bold text-[var(--primary)] ml-1">
                                                         ({(wish.selectedVariant || item.weighstWise?.[0])?.weight} {(wish.selectedVariant || item.weighstWise?.[0])?.unit})
                                                     </span>
                                                 )}
                                             </span>
-                                            
+
                                             <div className="flex items-center gap-2 mt-1">
                                                 <span className="text-[12px] sm:text-[13px] text-gray-500 truncate">${price.toFixed(2)} each</span>
                                                 {hasOffer && (
@@ -133,7 +134,7 @@ const Cart = ({ isOpen, onClose }) => {
                                             </div>
                                         </div>
                                     </div>
-                                    <span className="font-bold text-[var(--primary)] text-[14px] sm:text-[16px] shrink-0 whitespace-nowrap">${(price * wish.quantity).toFixed(2)}</span>
+                                    <span className="font-bold text-[var(--primary)] text-[14px] sm:text-[16px] shrink-0 whitespace-nowrap">${(price * (Number(wish.quantity) || 0)).toFixed(2)}</span>
 
 
                                 </div>
