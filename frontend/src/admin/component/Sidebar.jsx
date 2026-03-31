@@ -3,8 +3,8 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { logout } from '../../redux/slice/auth.slice';
 import LogoutModal from './LogoutModal';
-import { FiHome, FiUsers, FiPackage, FiLogOut, FiX, FiChevronDown,FiShoppingCart, FiGrid,  } from 'react-icons/fi';
-import { LuLayers3,LuReceiptIndianRupee ,LuFileText ,LuScroll   } from "react-icons/lu";
+import { FiHome, FiUsers, FiPackage, FiLogOut, FiX, FiChevronDown, FiShoppingCart, FiGrid, } from 'react-icons/fi';
+import { LuLayers3, LuReceiptIndianRupee, LuFileText, LuScroll } from "react-icons/lu";
 import { FaRegBell } from "react-icons/fa";
 import { RiContactsBook3Line } from "react-icons/ri";
 import { MdOutlineReviews } from "react-icons/md";
@@ -44,27 +44,30 @@ const Sidebar = ({ isOpen, onClose }) => {
 
     const menuItems = [
         { name: 'Dashboard', icon: <FiHome />, path: '/admin/dashboard' },
-        { name: 'Products', icon: <FiPackage />, path: '/admin/products' },
-        { name: 'Category', icon: <LuLayers3 />, path: '/admin/categories' },
         { name: 'Orders', icon: <FiShoppingCart />, path: '/admin/orders' },
         { name: 'Transactions', icon: <LuReceiptIndianRupee />, path: '/admin/transactions' },
+        { name: 'Products', icon: <FiPackage />, path: '/admin/products' },
+        { name: 'Category', icon: <LuLayers3 />, path: '/admin/categories' },
         { name: 'Coupons', icon: <RiCoupon2Line />, path: '/admin/coupons' },
         { name: 'Offers', icon: <PiSealPercentLight />, path: '/admin/offers' },
-
-        {
-            name: 'Blogs',
-            icon: <LuFileText />,
-            subItems: [
-                { name: 'All Blogs', icon: <IoNewspaperOutline />, path: '/admin/blogs' },
-                { name: 'Blog Categories', icon: <PiNewspaperClipping />, path: '/admin/blog-categories' }
-            ]
-        },
         {
             name: 'Banner',
             icon: <FaRegImages />,
             subItems: [
                 { name: 'Main Banners', icon: <BsCardImage />, path: '/admin/banners' },
                 { name: 'Offer Banners', icon: <BsCardImage />, path: '/admin/offerbanners' },
+            ]
+        },
+        { name: 'Users', icon: <FiUsers />, path: '/admin/users' },
+        { name: 'Reviews', icon: <MdOutlineReviews />, path: '/admin/reviews' },
+        { name: 'Subscribe', icon: <FaRegBell />, path: '/admin/subscribe' },
+        { name: 'Contact Us', icon: <FaHeadset />, path: '/admin/contact-us' },
+        {
+            name: 'Blogs',
+            icon: <LuFileText />,
+            subItems: [
+                { name: 'All Blogs', icon: <IoNewspaperOutline />, path: '/admin/blogs' },
+                { name: 'Blog Categories', icon: <PiNewspaperClipping />, path: '/admin/blog-categories' }
             ]
         },
         {
@@ -77,10 +80,6 @@ const Sidebar = ({ isOpen, onClose }) => {
                 { name: 'Shipping Policy', icon: <TbTruckDelivery />, path: '/admin/shipping-policy' },
             ]
         },
-        { name: 'Users', icon: <FiUsers />, path: '/admin/users' },
-        { name: 'Reviews', icon: <MdOutlineReviews />, path: '/admin/reviews' },
-        { name: 'Subscribe', icon: <FaRegBell />, path: '/admin/subscribe' },
-        { name: 'Contact Us', icon: <FaHeadset />, path: '/admin/contact-us' }
     ];
 
     return (
