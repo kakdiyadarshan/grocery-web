@@ -26,6 +26,9 @@ import { getAllProducts } from '../../redux/slice/product.slice';
 import { FiPackage, FiClock, } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { getAllCategories } from '../../redux/slice/category.slice';
+import { Sparklines, SparklinesBars, SparklinesLine } from 'react-sparklines';
+
+
 
 const COLORS = ['#228B22', '#fbbf24', '#ef4444', "#70bb70"];
 
@@ -155,103 +158,103 @@ const Dashboard = () => {
   };
 
   const pieData = useMemo(() => {
-    if (!products || products.length === 0) return [
-      { name: 'In Stock', value: 0 },
-      { name: 'Low Stock', value: 0 },
-      { name: 'Out of Stock', value: 0 }
+    if (!allorders || allorders.length === 0) return [
+      { name: 'COD', value: 0 },
+      { name: 'Stripe', value: 0 },
+      { name: 'Bank / UPI', value: 0 }
     ];
 
-    let inStock = 0;
-    let lowStock = 0;
-    let outOfStock = 0;
+    let cod = 0;
+    let stripe = 0;
+    let bankUpi = 0;
 
-    products.forEach(p => {
-      const totalStock = p.weighstWise?.reduce((sum, v) => sum + (v.stock || 0), 0) || 0;
-      if (totalStock === 0) outOfStock++;
-      else if (totalStock <= 10) lowStock++;
-      else inStock++;
+    allorders.forEach(o => {
+      if (o.status === 'cancelled') return;
+      if (o.paymentMethod === 'COD') cod++;
+      else if (o.paymentMethod === 'Stripe') stripe++;
+      else bankUpi++;
     });
 
-    const hasData = inStock > 0 || lowStock > 0 || outOfStock > 0;
-    
-    // If absolutely no products have stock configuration, show fallback so chart isn't empty visually
+    const hasData = cod > 0 || stripe > 0 || bankUpi > 0;
+
+    // If absolutely no payment methods have been processed, show fallback so chart isn't empty visually
     if (!hasData) return [
-      { name: 'In Stock', value: 1 },
-      { name: 'Low Stock', value: 0 },
-      { name: 'Out of Stock', value: 0 }
+      { name: 'COD', value: 1 },
+      { name: 'Stripe', value: 0 },
+      { name: 'Bank / UPI', value: 0 }
     ];
 
     return [
-      { name: 'In Stock', value: inStock },
-      { name: 'Low Stock', value: lowStock },
-      { name: 'Out of Stock', value: outOfStock }
+      { name: 'COD', value: cod },
+      { name: 'Stripe', value: stripe },
+      { name: 'Bank / UPI', value: bankUpi }
     ];
-  }, [products]);
+  }, [allorders]);
 
   const categoryDistribution = useMemo(() => {
     if (!allorders || !categories) return { names: [], counts: [] };
-    
+
     const countsMap = {};
     categories.forEach(c => { countsMap[c._id] = 0; });
-    
+
     allorders.forEach(order => {
-        if (order.status === 'cancelled') return;
-        order.items?.forEach(item => {
-            const product = item.productId || item.product;
-            if (product && product.category) {
-                const catId = product.category._id || product.category;
-                if (countsMap[catId] !== undefined) {
-                    countsMap[catId] += item.quantity || 1;
-                }
-            }
-        });
+      if (order.status === 'cancelled') return;
+      order.items?.forEach(item => {
+        const product = item.productId || item.product;
+        if (product && product.category) {
+          const catId = product.category._id || product.category;
+          if (countsMap[catId] !== undefined) {
+            countsMap[catId] += item.quantity || 1;
+          }
+        }
+      });
     });
 
     const sorted = categories
-        .map(c => ({ name: c.categoryName, count: countsMap[c._id] || 0 }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 8)
-        .reverse();
-    
+      .map(c => ({ name: c.categoryName, count: countsMap[c._id] || 0 }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8)
+      .reverse();
+
     return {
-       names: sorted.map(c => c.name),
-       counts: sorted.map(c => c.count)
+      names: sorted.map(c => c.name),
+      counts: sorted.map(c => c.count)
     };
   }, [allorders, categories]);
 
   const topSellingProducts = useMemo(() => {
     if (!allorders) return [];
-    
+
     const productCounts = {};
-    
+
     allorders.forEach(order => {
-        if (order.status === 'cancelled') return;
-        order.items?.forEach(item => {
-            const product = item.productId || item.product;
-            if (product && product._id) {
-                if (!productCounts[product._id]) {
-                    productCounts[product._id] = {
-                        name: product.name,
-                        img: product.images?.[0]?.url || '🛒',
-                        quantity: 0,
-                        revenue: 0
-                    };
-                }
-                const qty = item.quantity || 1;
-                const price = item.price || item.selectedVariant?.price || item.selectedVariant?.discountPrice || product.weighstWise?.[0]?.price || 0;
-                productCounts[product._id].quantity += qty;
-                productCounts[product._id].revenue += qty * price;
-            }
-        });
+      if (order.status === 'cancelled') return;
+      order.items?.forEach(item => {
+        const product = item.productId || item.product;
+        if (product && product._id) {
+          if (!productCounts[product._id]) {
+            productCounts[product._id] = {
+              name: product.name,
+              img: product.images?.[0]?.url || '🛒',
+              quantity: 0,
+              revenue: 0
+            };
+          }
+          const qty = item.quantity || 1;
+          const price = item.price || item.selectedVariant?.price || item.selectedVariant?.discountPrice || product.weighstWise?.[0]?.price || 0;
+          productCounts[product._id].quantity += qty;
+          productCounts[product._id].revenue += qty * price;
+        }
+      });
     });
 
     return Object.values(productCounts)
-        .sort((a, b) => b.quantity - a.quantity)
-        .slice(0, 6);
+      .sort((a, b) => b.quantity - a.quantity)
+      .slice(0, 7);
   }, [allorders]);
 
   const [activeTimeframe, setActiveTimeframe] = useState('Weekly');
-  
+
   const analyticsData = revenueAnalytics || {
     Weekly: {
       categories: ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'],
@@ -405,22 +408,25 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
         <MetricCard
           title="Total Orders"
-          value={allorders.length}      
+          value={allorders.length}
           icon={<ShoppingCart className="text-[var(--primary)]" />}
+          sparklineData={allorders.map(order => order.totalAmount)}
           bgColor="bg-emerald-50"
           borderColor="border-[var(--primary)]"
         />
         <MetricCard
           title="Order Cancelled"
-          value={allorders.filter(order => order.status === 'cancelled').length}      
+          value={allorders.filter(order => order.status === 'cancelled').length}
           icon={<XCircle className="text-[var(--primary)]" />}
+          sparklineData={allorders.filter(order => order.status === 'cancelled').map(order => order.totalAmount)}
           bgColor="bg-emerald-50"
           borderColor="border-[var(--primary)]"
         />
         <MetricCard
           title="Order Completed"
-          value={allorders.filter(order => order.status === 'delivered' || order.status === 'completed').length}         
+          value={allorders.filter(order => order.status === 'delivered' || order.status === 'completed').length}
           icon={<CheckCircle2 className="text-[var(--primary)]" />}
+          sparklineData={allorders.filter(order => order.status === 'delivered' || order.status === 'completed').map(order => order.totalAmount)}
           bgColor="bg-emerald-50"
           borderColor="border-[var(--primary)]"
         />
@@ -428,6 +434,7 @@ const Dashboard = () => {
           title="Order Pending"
           value={allorders.filter(order => order.status === 'pending' || order.status === 'processing' || order.status === 'shipped' || order.status === 'out for delivery').length}
           icon={<Clock className="text-[var(--primary)]" />}
+          sparklineData={allorders.filter(order => order.status === 'pending' || order.status === 'processing' || order.status === 'shipped' || order.status === 'out for delivery').map(order => order.totalAmount)}
           bgColor="bg-emerald-50"
           borderColor="border-[var(--primary)]"
         />
@@ -488,7 +495,7 @@ const Dashboard = () => {
         {/* Employees Activity */}
         <div className="bg-white rounded-md p-6 border border-slate-100">
           <div className="flex items-center justify-between mb-8">
-            <h3 className="text-xl font-bold">Product Analytics</h3>
+            <h3 className="text-xl font-bold">Payment Methods</h3>
             {/* <button className="p-1 hover:bg-slate-50 rounded-lg">
               <MoreVertical className="w-5 h-5 text-slate-400" />
             </button> */}
@@ -519,9 +526,9 @@ const Dashboard = () => {
               </ResponsiveContainer>
             </div>
             <div className="grid grid-cols-3 gap-2 w-full place-items-center">
-              <ActivityLegend dotColor="bg-[var(--primary)]" label="In Stock" />
-              <ActivityLegend dotColor="bg-amber-400" label="Low Stock" />
-              <ActivityLegend dotColor="bg-red-500" label="Out of Stock" />
+              <ActivityLegend dotColor="bg-[var(--primary)]" label="COD" />
+              <ActivityLegend dotColor="bg-yellow-500" label="Stripe" />
+              <ActivityLegend dotColor="bg-red-500" label="Bank / UPI" />
             </div>
           </div>
         </div>
@@ -578,6 +585,13 @@ const Dashboard = () => {
                   axisBorder: { show: false },
                   axisTicks: { show: false },
                   labels: { show: false }
+                },
+                tooltip: {
+                  custom: function ({ series, seriesIndex, dataPointIndex, w }) {
+                    return '<div class="px-3 py-2 bg-white border border-slate-100 rounded-lg shadow-lg font-bold text-xs text-slate-700">' +
+                      w.globals.labels[dataPointIndex] + ': <span style="color: ' + primaryColor + '">' + series[seriesIndex][dataPointIndex] + ' Units</span>' +
+                      '</div>';
+                  }
                 },
                 yaxis: {
                   labels: {
@@ -645,11 +659,10 @@ const Dashboard = () => {
             <h2 className="sm:text-3xl text-xl font-bold">
               ${analyticsData[activeTimeframe]?.total?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
             </h2>
-            <div className={`flex items-center px-2 py-1 rounded-full text-xs font-bold gap-1 border ${
-              analyticsData[activeTimeframe]?.growth >= 0 
-                ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
-                : 'bg-red-50 text-red-600 border-red-100'
-            }`}>
+            <div className={`flex items-center px-2 py-1 rounded-full text-xs font-bold gap-1 border ${analyticsData[activeTimeframe]?.growth >= 0
+              ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+              : 'bg-red-50 text-red-600 border-red-100'
+              }`}>
               {analyticsData[activeTimeframe]?.growth >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
               {Math.abs(analyticsData[activeTimeframe]?.growth || 0).toFixed(2)}%
             </div>
@@ -709,7 +722,7 @@ const Dashboard = () => {
                     top: 0,
                     right: 0,
                     bottom: 0,
-                    left: 0
+                    left: 10
                   }
                 },
                 xaxis: {
@@ -736,9 +749,9 @@ const Dashboard = () => {
                 },
                 tooltip: {
                   custom: function ({ series, seriesIndex, dataPointIndex, w }) {
-                    return '<div className="px-3 py-2 bg-emerald-600 text-white rounded-lg shadow-lg font-bold text-xs">' +
+                    return '<div class="px-3 py-2 bg-emerald-600 text-white rounded-lg shadow-lg font-bold text-xs">' +
                       '$' + series[seriesIndex][dataPointIndex].toLocaleString() +
-                      '</div>'
+                      '</div>';
                   },
                   fixed: {
                     enabled: false,
@@ -774,6 +787,7 @@ const Dashboard = () => {
               onView={handleView}
               itemsPerPage={6}
               hidePagination={true}
+              hideSearch={true}
             />
           </div>
         </div>
@@ -784,17 +798,17 @@ const Dashboard = () => {
             <h3 className="text-xl font-bold">Top Selling Products</h3>
             {/* <button className="text-xs font-semibold text-slate-400 hover:text-emerald-500 transition-colors">See all</button> */}
           </div>
-          <div className="space-y-6">
+          <div className="space-y-7">
             {topSellingProducts.length > 0 ? topSellingProducts.map((p, i) => (
-              <RecentOrderRow 
-                key={i} 
-                name={p.name} 
-                price={`$${p.revenue.toFixed(2)}`} 
+              <RecentOrderRow
+                key={i}
+                name={p.name}
+                price={`$${p.revenue.toFixed(2)}`}
                 img={
-                  p.img !== '🛒' 
-                    ? <img src={p.img} alt={p.name} className="w-full h-full object-cover" /> 
+                  p.img !== '🛒'
+                    ? <img src={p.img} alt={p.name} className="w-full h-full object-cover" />
                     : '🛒'
-                } 
+                }
               />
             )) : (
               <p className="text-sm text-slate-500">No products sold yet.</p>
@@ -807,7 +821,7 @@ const Dashboard = () => {
 };
 
 // UI Components
-const MetricCard = ({ title, value, percentage, isPositive, icon, bgColor, borderColor }) => (
+const MetricCard = ({ title, value, percentage, isPositive, icon, bgColor, borderColor, sparklineData }) => (
   <div
     className={`p-6 bg-white  border ${borderColor}  
       relative overflow-hidden group 
@@ -839,7 +853,12 @@ const MetricCard = ({ title, value, percentage, isPositive, icon, bgColor, borde
       </div>
     </div>
 
-
+    {/* Bottom */}
+    <div className="flex items-center gap-2 relative z-10">
+      <Sparklines data={sparklineData}>
+        <SparklinesLine color="green" />
+      </Sparklines>
+    </div>
   </div>
 );
 
@@ -853,7 +872,7 @@ const ActivityLegend = ({ dotColor, label }) => (
 
 
 const RecentOrderRow = ({ name, price, img }) => (
-  <div className="flex items-center justify-between group cursor-pointer">
+  <div className="flex items-center justify-between group ">
     <div className="flex items-center gap-3">
       <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-2xl group-hover:bg-white group-hover:shadow-sm transition-all overflow-hidden">{img}</div>
       <span className="font-bold text-sm line-clamp-1 max-w-[120px]">{name}</span>
