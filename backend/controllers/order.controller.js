@@ -810,7 +810,7 @@ exports.handleStripeWebhook = async (req, res) => {
         const order = await Order.findByIdAndUpdate(orderId, { status: 'completed' }, { new: true });
         if (order) {
             await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] });
-            await Payment.findOneAndUpdate({ orderId: order._id }, { status: 'completed' });
+            await Payment.findOneAndUpdate({ orderId: order._id }, { status: 'paid' });
 
             // Notify user and admin
             await emitUserNotification({
@@ -852,7 +852,7 @@ exports.verifyStripeSession = async (req, res) => {
                 order.status = 'completed';
                 await order.save();
                 
-                await Payment.findOneAndUpdate({ orderId: order._id }, { status: 'completed' });
+                await Payment.findOneAndUpdate({ orderId: order._id }, { status: 'paid' });
                 await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] });
             }
             return res.status(200).json({ success: true, message: 'Payment verified', data: order });
@@ -861,6 +861,9 @@ exports.verifyStripeSession = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Payment not completed or session invalid' });
     } catch (error) {
         console.error("verifyStripeSession error:", error);
+    }
+};
+
 exports.getOrderMonthlyAnalytics = async (req, res) => {
     try {
         const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
