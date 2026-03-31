@@ -15,7 +15,7 @@ import Newsletter from '../component/Newsletter';
 import { getAllCategories } from '../redux/slice/category.slice';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { getAllProducts, getFeaturedProducts } from '../redux/slice/product.slice';
+import { getAllProducts, getBestSellingProducts, getFeaturedProducts } from '../redux/slice/product.slice';
 import { fetchOfferBanners } from '../redux/slice/offerbanner.slice';
 
 
@@ -23,7 +23,7 @@ function Home() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { categories: apiCategories } = useSelector((state) => state.category);
-  const { products: apiProducts, featuredProducts } = useSelector((state) => state.product);
+  const { products: apiProducts, featuredProducts, bestSellingProducts } = useSelector((state) => state.product);
   const { offerbanners } = useSelector((state) => state.offerbanner);
 
   useEffect(() => {
@@ -31,6 +31,7 @@ function Home() {
     dispatch(getAllProducts());
     dispatch(getFeaturedProducts());
     dispatch(fetchOfferBanners());
+    dispatch(getBestSellingProducts());
   }, [dispatch]);
 
   const scrollRef = useRef(null);
@@ -310,7 +311,7 @@ function Home() {
         <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-4 py-4 sm:py-6 md:py-8">
 
           {/* 8. Top Selling Products Slider (Responsive Grid UI) */}
-          <ProductSlider title="Top Selling Products" products={apiProducts} className="mt-6" />
+          <ProductSlider title="Top Selling Products" products={bestSellingProducts} className="mt-6" />
 
           {/* 9. Newsletter */}
           <Newsletter className="w-full pt-6 mt-8" />

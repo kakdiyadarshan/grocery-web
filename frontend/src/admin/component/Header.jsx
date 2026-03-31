@@ -10,6 +10,7 @@ import { FaUserCheck } from "react-icons/fa";
 import { RiShoppingBag4Line } from "react-icons/ri";
 import { FaStar } from "react-icons/fa6";
 import SearchModal from './SearchModal';
+import { initSocketConnection, disconnectSocket } from '../../utils/socketService';
 
 const Header = ({ onToggleSidebar }) => {
 
@@ -38,7 +39,19 @@ const Header = ({ onToggleSidebar }) => {
   useEffect(() => {
     dispatch(fetchUserProfile());
     dispatch(fetchNotifications());
+  }, [dispatch]);
 
+  useEffect(() => {
+    if (user?._id) {
+      const token = localStorage.getItem('token');
+      initSocketConnection(dispatch, user._id, token);
+    }
+    return () => {
+      disconnectSocket();
+    };
+  }, [dispatch, user?._id]);
+
+  useEffect(() => {
     // Shortcut listener for Searching
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
@@ -60,7 +73,7 @@ const Header = ({ onToggleSidebar }) => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('click', handleClickOutside);
     };
-  }, [dispatch, isNotificationOpen]);
+  }, [isNotificationOpen]);
 
   const handleMarkSeen = (e, id) => {
     e.stopPropagation();

@@ -174,8 +174,8 @@ const MyOrder = ({ isEmbedded = false }) => {
             <div className={`${isEmbedded ? 'w-full px-0 py-0' : 'container mx-auto px-4 py-8 max-w-5xl'}`}>
                 {!isEmbedded && (
                     <div className=" py-8">
-                        <div className=" mx-auto px-4 lg:px-6">
-                            <h1 className="text-[28px] sm:text-[32px] font-bold text-[#1e5066] mb-3 text-left">My Orders</h1>
+                        <div className=" mx-auto pr-4 lg:pr-6">
+                            <h1 className="text-[28px] sm:text-[32px] font-bold text-textPrimary mb-3 text-left">My Orders</h1>
                             <div className="flex items-center gap-1 text-[14px] text-gray-500 font-medium">
                                 <Link to="/" className="hover:text-[var(--primary)] transition-colors">Home</Link>
                                 <ChevronRight className="w-4 h-4 text-gray-400" />

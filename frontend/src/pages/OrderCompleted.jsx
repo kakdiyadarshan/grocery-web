@@ -74,6 +74,8 @@ const OrderCompleted = () => {
     ? `${addr.address}, ${addr.city}, ${addr.state} - ${addr.zip}, ${addr.country}`
     : "Address not available";
 
+  const couponId = currentOrder.couponId || {};
+
   const subtotal = orderItems.reduce((acc, item) => {
     const variant = item.selectedVariant;
     const price = variant?.discountPrice || variant?.price || 0;

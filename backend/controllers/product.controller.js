@@ -150,8 +150,34 @@ exports.getAllProducts = async (req, res) => {
             {
                 $lookup: {
                     from: 'reviews',
-                    localField: '_id',
-                    foreignField: 'productId',
+                    let: { productId: '$_id' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$productId', '$$productId'] } } },
+                        {
+                            $lookup: {
+                                from: 'users',
+                                localField: 'userId',
+                                foreignField: '_id',
+                                as: 'user'
+                            }
+                        },
+                        { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+                        {
+                            $addFields: {
+                                'user.name': {
+                                    $trim: {
+                                        input: {
+                                            $concat: [
+                                                { $ifNull: ['$user.firstname', ''] },
+                                                ' ',
+                                                { $ifNull: ['$user.lastname', ''] }
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ],
                     as: 'reviews'
                 }
             }
@@ -333,8 +359,34 @@ exports.getProductById = async (req, res) => {
             {
                 $lookup: {
                     from: 'reviews',
-                    localField: '_id',
-                    foreignField: 'productId',
+                    let: { productId: '$_id' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$productId', '$$productId'] } } },
+                        {
+                            $lookup: {
+                                from: 'users',
+                                localField: 'userId',
+                                foreignField: '_id',
+                                as: 'user'
+                            }
+                        },
+                        { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+                        {
+                            $addFields: {
+                                'user.name': {
+                                    $trim: {
+                                        input: {
+                                            $concat: [
+                                                { $ifNull: ['$user.firstname', ''] },
+                                                ' ',
+                                                { $ifNull: ['$user.lastname', ''] }
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ],
                     as: 'reviews'
                 }
             },
@@ -533,8 +585,34 @@ exports.getFeaturedProducts = async (req, res) => {
             {
                 $lookup: {
                     from: 'reviews',
-                    localField: '_id',
-                    foreignField: 'productId',
+                    let: { productId: '$_id' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$productId', '$$productId'] } } },
+                        {
+                            $lookup: {
+                                from: 'users',
+                                localField: 'userId',
+                                foreignField: '_id',
+                                as: 'user'
+                            }
+                        },
+                        { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+                        {
+                            $addFields: {
+                                'user.name': {
+                                    $trim: {
+                                        input: {
+                                            $concat: [
+                                                { $ifNull: ['$user.firstname', ''] },
+                                                ' ',
+                                                { $ifNull: ['$user.lastname', ''] }
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ],
                     as: 'reviews'
                 }
             },
@@ -813,7 +891,7 @@ exports.importProducts = async (req, res) => {
 exports.getBestSellingProducts = async (req, res) => {
     try {
         const today = new Date();
-        const limit = parseInt(req.query.limit) || 10;
+        const limit = parseInt(req.query.limit) || 100;
 
         // Step 1: Identify best selling product IDs from the Order collection
         const bestSellingStage = await Order.aggregate([
@@ -830,7 +908,7 @@ exports.getBestSellingProducts = async (req, res) => {
         ]);
 
         if (bestSellingStage.length === 0) {
-            return res.status(200).json({ success: true, data: [] });
+            return res.status(200).json({ success: true, products: [] });
         }
 
         const productIds = bestSellingStage.map(item => item._id);
@@ -935,7 +1013,7 @@ exports.getBestSellingProducts = async (req, res) => {
             return product ? { ...product, totalSold: soldStats.soldCount } : null;
         }).filter(p => p !== null);
 
-        res.status(200).json({ success: true, data: sortedProducts });
+        res.status(200).json({ success: true, products: sortedProducts });
 
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

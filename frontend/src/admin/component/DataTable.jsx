@@ -48,7 +48,7 @@ const getStatusStyles = (status) => {
 
 const Table = ({ columns = [], data = [], onEdit, onView, onDelete, itemsPerPage = 10, extraActions,
     manualPagination = false, manualTotalPages, manualCurrentPage, onManualPageChange,
-    manualRowsPerPage, onManualRowsPerPageChange, manualTotalItems, onSearch, hidePagination = false,
+    manualRowsPerPage, onManualRowsPerPageChange, manualTotalItems, onSearch, hidePagination = false, hideSearch = false,
     exportFileName = "table_data",
     allowExport = false
 }) => {
@@ -207,7 +207,7 @@ const Table = ({ columns = [], data = [], onEdit, onView, onDelete, itemsPerPage
             <div className="w-full bg-white rounded-[4px] my-5 shadow-sm border border-gray-100 overflow-hidden transition-colors duration-300 font-jost">
                 {/* Top Controls */}
                 <div className="p-3 flex flex-col md:flex-row justify-between items-center gap-4 border-b border-gray-100">
-                    <div className="relative w-full md:w-72">
+                    {!hideSearch && <div className="relative w-full md:w-72">
                         <input
                             type="text"
                             placeholder="Search..."
@@ -223,7 +223,7 @@ const Table = ({ columns = [], data = [], onEdit, onView, onDelete, itemsPerPage
                         <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                             <FiSearch className="text-gray-400" size={16} />
                         </div>
-                    </div>
+                    </div>}
 
                     {allowExport && (
                         <div className="flex items-center gap-2 w-full md:w-auto">
@@ -359,7 +359,7 @@ const Table = ({ columns = [], data = [], onEdit, onView, onDelete, itemsPerPage
                 </div>
 
                 {/* Pagination Footer */}
-                <div className={`p-3 border-t  border-gray-100 bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-4 text-sm ${hidePagination ? 'hidden' : ''} ${data.length > 10 ? '' : 'hidden'}`}>
+                <div className={`p-3 border-t  border-gray-100 bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-4 text-sm ${hidePagination ? 'hidden' : ''}`}>
                     <div className='flex items-center gap-3'>
                         <span className="text-gray-500 font-medium">Rows per page:</span>
                         <select

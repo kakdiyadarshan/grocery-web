@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
-import { fetchPayments } from '../../redux/slice/payment.slice';
+import { fetchPayments, updatePaymentStatus } from '../../redux/slice/payment.slice';
 import { FiDownload, FiHash, FiClock, FiUser, FiInfo, FiDollarSign } from 'react-icons/fi';
 import DataTable from '../component/DataTable';
 import { useDispatch, useSelector } from 'react-redux';
@@ -13,6 +13,9 @@ const Transactions = () => {
         dispatch(fetchPayments());
     }, [dispatch]);
 
+    const handleStatusChange = useCallback((id, status) => {
+        dispatch(updatePaymentStatus({ id, status }));
+    }, [dispatch]);
 
     const columns = useMemo(() => [
         {
@@ -43,19 +46,35 @@ const Transactions = () => {
         },
         {
             header: 'User',
-            searchKey: (row) => `${row.userId?.firstname + " " + row.userId?.lastname} ${row.userId?.email}`,
-            exportValue: (row) => `${row.userId?.firstname + " " + row.userId?.lastname}`,
+            searchKey: (row) => {
+                const user = row.userId;
+                if (!user || typeof user !== 'object') return 'Unknown';
+                return `${user.firstname || ''} ${user.lastname || ''} ${user.email || ''}`.trim();
+            },
+            exportValue: (row) => {
+                const user = row.userId;
+                if (!user || typeof user !== 'object') return 'Unknown';
+                return `${user.firstname || ''} ${user.lastname || ''}`.trim() || 'Unknown';
+            },
             accessor: 'user',
-            render: (row) => (
-                <div className="flex flex-col">
-                    <span className="text-sm font-medium text-textPrimary">
-                        {row.userId?.firstname + " " + row.userId?.lastname || 'Unknown'}
-                    </span>
-                    <span className="text-xs text-textSecondary">
-                        {row.userId?.email}
-                    </span>
-                </div>
-            )
+            render: (row) => {
+                const user = row.userId;
+                const hasUser = user && typeof user === 'object';
+                const fullName = hasUser ? `${user.firstname || ''} ${user.lastname || ''}`.trim() : 'Unknown';
+
+                return (
+                    <div className="flex flex-col">
+                        <span className="text-sm font-medium text-textPrimary">
+                            {fullName || 'Unknown'}
+                        </span>
+                        {hasUser && user.email && (
+                            <span className="text-xs text-textSecondary">
+                                {user.email}
+                            </span>
+                        )}
+                    </div>
+                );
+            }
         },
         {
             header: 'Payment Method',
@@ -72,9 +91,24 @@ const Transactions = () => {
         },
         {
             header: 'Status',
-            accessor: 'status'
+            accessor: 'status',
+            render: (row) => (
+                <select
+                    value={row.status}
+                    onChange={(e) => handleStatusChange(row._id, e.target.value)}
+                    className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border-none focus:ring-0 cursor-pointer ${row.status === 'completed' ? 'bg-green-100 text-green-800' :
+                        row.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            row.status === 'failed' ? 'bg-red-100 text-red-800' :
+                                'bg-gray-100 text-gray-800'
+                        }`}
+                >
+                    <option value="pending">Pending</option>
+                    <option value="completed">Completed</option>
+                    <option value="failed">Failed</option>
+                </select>
+            )
         }
-    ], []);
+    ], [handleStatusChange]);
 
     if (loading) {
         return (

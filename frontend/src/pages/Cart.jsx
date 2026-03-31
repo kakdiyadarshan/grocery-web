@@ -198,7 +198,7 @@ const Cart = () => {
                                             {/* Responsive grid for Quantity, Price, Total on mobile, flex row on desktop */}
                                             <div className="grid grid-cols-3 md:flex md:w-[55%] gap-4 md:gap-0 items-center">
                                                 {/* Quantity */}
-                                                <div className="md:w-[36%] flex flex-col md:flex-row items-center justify-center gap-2">
+                                                <div className="md:w-[36%] flex flex-col items-center justify-center gap-2">
                                                     <span className="md:hidden text-gray-400 font-bold text-[10px] uppercase tracking-wider mb-1">Quantity</span>
                                                     <div className="flex items-center gap-1.5 md:gap-3">
                                                         <button
@@ -215,11 +215,17 @@ const Cart = () => {
                                                         />
                                                         <button
                                                             onClick={() => handleUpdateQuantity(prodId, wish.variantId, wish.quantity + 1)}
-                                                            className="text-gray-500 hover:text-[var(--primary)] font-bold text-lg px-2 transition-colors"
+                                                            disabled={variant?.stock !== undefined && wish.quantity >= variant.stock}
+                                                            className={`text-gray-500 hover:text-[var(--primary)] font-bold text-lg px-2 transition-colors ${variant?.stock !== undefined && wish.quantity >= variant.stock ? 'opacity-30 cursor-not-allowed' : ''}`}
                                                         >
                                                             <Plus size={14} strokeWidth={2.5} />
                                                         </button>
                                                     </div>
+                                                    {variant?.stock !== undefined && wish.quantity >= variant.stock && (
+                                                        <span className="text-[10px] text-orange-500 font-bold mt-1">
+                                                            {wish.quantity > variant.stock ? `Only ${variant.stock} left` : 'Max stock reached'}
+                                                        </span>
+                                                    )}
                                                 </div>
 
                                                 {/* Price */}

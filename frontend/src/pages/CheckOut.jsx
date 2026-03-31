@@ -259,7 +259,7 @@ const CheckOut = () => {
       {/* Breadcrumb / Page Title */}
       <div className="bg-gray-50 py-8 border-b border-gray-100">
         <div className="container mx-auto px-4 lg:px-6">
-          <h1 className="text-[28px] sm:text-[32px] font-bold text-[#1e5066] mb-3">Checkout</h1>
+          <h1 className="text-[28px] sm:text-[32px] font-bold text-textPrimary mb-3">Checkout</h1>
           <div className="flex items-center gap-2 text-[14px] text-gray-500 font-medium">
             <Link to="/" className="hover:text-[var(--primary)] transition-colors">Home</Link>
             <ChevronRight className="w-4 h-4 text-gray-400" />
