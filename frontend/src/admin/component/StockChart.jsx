@@ -203,7 +203,7 @@ const StockChart = ({ products, noContainer = false }) => {
 
     if (noContainer) {
         return (
-            <div id="chart" className="w-full h-full overflow-x-auto custom-scrollbar">
+            <div id="chart" className="w-full h-full overflow-x-auto custom-scrollbar no-scrollbar">
                 <div style={{ width: `${minChartWidth}px`, minWidth: '100%' }}>
                     <Chart options={options} series={series} type="bar" height={chartHeight} />
                 </div>
@@ -212,11 +212,11 @@ const StockChart = ({ products, noContainer = false }) => {
     }
 
     return (
-        <div className="bg-white p-6 rounded-[4px] shadow-sm border border-gray-100 w-full overflow-hidden">
+        <div className="bg-white p-6 rounded-[4px] shadow-sm border border-gray-100 w-full overflow-hidden no-scrollbar">
             <h3 className="text-sm font-bold text-gray-800 tracking-tight mb-4 flex items-center gap-2">
                 <div className="w-6 h-[2px] bg-primary" /> Product Variation Stocks
             </h3>
-            <div id="chart" className="w-full overflow-x-auto custom-scrollbar">
+            <div id="chart" className="w-full overflow-x-auto custom-scrollbar no-scrollbar">
                 <div style={{ width: `${minChartWidth}px`, minWidth: '100%' }}>
                     <Chart options={options} series={series} type="bar" height={chartHeight} />
                 </div>
