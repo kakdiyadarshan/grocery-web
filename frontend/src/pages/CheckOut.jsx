@@ -22,9 +22,19 @@ const CheckOut = () => {
 
   const navigate = useNavigate();
   const { user } = useSelector(state => state.auth);
-  const { cart } = useSelector(state => state.cart);
+  const { cart, appliedCoupon } = useSelector(state => state.cart);
   const { addresses } = useSelector(state => state.address);
   const items = cart?.items || [];
+
+  const appliedCouponData = React.useMemo(() => {
+    if (appliedCoupon) return appliedCoupon;
+    try {
+      const stored = localStorage.getItem('appliedCoupon');
+      return stored ? JSON.parse(stored) : null;
+    } catch (err) {
+      return null;
+    }
+  }, [appliedCoupon]);
 
   console.log("items", items);
   // Calculate totals
@@ -37,7 +47,8 @@ const CheckOut = () => {
 
   const shipping = items.length > 0 ? (subtotal >= 50 ? 0 : 5.99) : 0;
   const tax = items.length > 0 ? (subtotal * 0.08) : 0;
-  const totalAmount = parseFloat((subtotal + shipping + tax).toFixed(2));
+  const couponDiscount = appliedCouponData ? (subtotal * appliedCouponData.discount) / 100 : 0;
+  const totalAmount = parseFloat(Math.max(0, subtotal + shipping + tax - couponDiscount).toFixed(2));
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -184,6 +195,8 @@ const CheckOut = () => {
           discountPrice: item.selectedVariant?.discountPrice !== undefined ? item.selectedVariant.discountPrice : null
         })),
         totalAmount: totalAmount,
+        couponCode: appliedCouponData?.code || null,
+        couponDiscount: couponDiscount,
         paymentMethod: paymentMethod === 'cod' ? 'COD' : paymentMethod === 'upi' ? 'UPI' : paymentMethod === 'netbanking' ? 'Bank' : 'Stripe',
         addressId: selectedAddress?._id || null,
         addressDetails: {
@@ -395,6 +408,13 @@ const CheckOut = () => {
                     <span className="text-[14px] font-bold text-gray-500">Tax</span>
                     <span className="text-[15px] font-bold text-[var(--text-gray)]">${tax.toFixed(2)}</span>
                   </div>
+
+                  {couponDiscount > 0 && (
+                    <div className="flex items-center justify-between text-green-600">
+                      <span className="text-[14px] font-bold">Coupon ({appliedCouponData?.code})</span>
+                      <span className="text-[15px] font-bold">-${couponDiscount.toFixed(2)}</span>
+                    </div>
+                  )}
 
                 </div>
 
