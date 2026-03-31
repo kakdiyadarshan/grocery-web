@@ -171,6 +171,15 @@ const getOrderWithOffers = async (orderId) => {
         },
         {
             $lookup: {
+                from: 'coupons',
+                localField: 'couponId',
+                foreignField: '_id',
+                as: 'couponId'
+            }
+        },
+        { $unwind: { path: '$couponId', preserveNullAndEmptyArrays: true } },
+        {
+            $lookup: {
                 from: 'payments',
                 localField: '_id',
                 foreignField: 'orderId',
@@ -191,7 +200,8 @@ const getOrderWithOffers = async (orderId) => {
                 createdAt: { $first: '$createdAt' },
                 updatedAt: { $first: '$updatedAt' },
                 payment: { $first: '$payment' },
-                trackingHistory: { $first: '$trackingHistory' }
+                trackingHistory: { $first: '$trackingHistory' },
+                couponId: { $first: '$couponId' }
             }
         }
     ]);
@@ -432,6 +442,15 @@ exports.getAllOrders = async (req, res) => {
             },
             {
                 $lookup: {
+                    from: 'coupons',
+                    localField: 'couponId',
+                    foreignField: '_id',
+                    as: 'couponId'
+                }
+            },
+            { $unwind: { path: '$couponId', preserveNullAndEmptyArrays: true } },
+            {
+                $lookup: {
                     from: 'payments',
                     localField: '_id',
                     foreignField: 'orderId',
@@ -450,7 +469,8 @@ exports.getAllOrders = async (req, res) => {
                     address: { $first: '$address' },
                     createdAt: { $first: '$createdAt' },
                     payment: { $first: '$payment' },
-                    trackingHistory: { $first: '$trackingHistory' }
+                    trackingHistory: { $first: '$trackingHistory' },
+                    couponId: { $first: '$couponId' }
                 }
             },
             { $sort: { createdAt: -1 } }
@@ -602,6 +622,15 @@ exports.getUserOrders = async (req, res) => {
             },
             {
                 $lookup: {
+                    from: 'coupons',
+                    localField: 'couponId',
+                    foreignField: '_id',
+                    as: 'couponId'
+                }
+            },
+            { $unwind: { path: '$couponId', preserveNullAndEmptyArrays: true } },
+            {
+                $lookup: {
                     from: 'payments',
                     localField: '_id',
                     foreignField: 'orderId',
@@ -620,7 +649,8 @@ exports.getUserOrders = async (req, res) => {
                     address: { $first: '$address' },
                     createdAt: { $first: '$createdAt' },
                     payment: { $first: '$payment' },
-                    trackingHistory: { $first: '$trackingHistory' }
+                    trackingHistory: { $first: '$trackingHistory' },
+                    couponId: { $first: '$couponId' }
                 }
             },
             { $sort: { createdAt: -1 } }
