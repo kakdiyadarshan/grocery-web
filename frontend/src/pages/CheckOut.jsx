@@ -8,7 +8,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { BASE_URL } from '../utils/baseUrl';
 import { toast } from 'sonner';
 import { createOrder as triggerCreateOrder } from '../redux/slice/order.slice';
-import { clearCart } from '../redux/slice/cart.slice';
+import { clearCart, removeCoupon } from '../redux/slice/cart.slice';
 import { fetchAddresses } from '../redux/slice/address.slice';
 
 
@@ -222,6 +222,9 @@ const CheckOut = () => {
       if (triggerCreateOrder.fulfilled.match(resultAction)) {
         const data = resultAction.payload.data;
         const newOrderId = data?.orderId || data?.order?._id || data?._id;
+
+        dispatch(removeCoupon());
+
         if (data?.paymentUrl) {
           // Clear cart before stripe redirect
           dispatch(clearCart());

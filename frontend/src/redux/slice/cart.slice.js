@@ -86,6 +86,24 @@ export const removeFromCart = createAsyncThunk(
     }
 );
 
+export const applyCouponFromServer = createAsyncThunk(
+    'cart/applyCouponFromServer',
+    async ({ code }, { rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.post(`${BASE_URL}/applyCoupon`, { code }, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            return response.data.data;
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || error.message || 'Unable to apply coupon.';
+            return rejectWithValue(errorMessage);
+        }
+    }
+);
+
 export const clearCart = createAsyncThunk(
     'cart/clearCart',
     async (_, { dispatch, rejectWithValue }) => {
@@ -138,7 +156,13 @@ const cartSlice = createSlice({
             })
             .addCase(clearCart.fulfilled, (state, action) => {
                 state.cart = action.payload;
-            });
+            })
+            .addCase(applyCouponFromServer.pending, (state) => { state.loading = true; })
+            .addCase(applyCouponFromServer.fulfilled, (state, action) => {
+                state.loading = false;
+                state.appliedCoupon = action.payload;
+            })
+            .addCase(applyCouponFromServer.rejected, (state) => { state.loading = false; });
 
     }
 });
