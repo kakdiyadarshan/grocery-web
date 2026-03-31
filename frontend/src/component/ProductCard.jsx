@@ -27,7 +27,12 @@ const ProductCard = ({ product }) => {
 
     const handleAddToCart = (e) => {
         e.stopPropagation();
-        dispatch(addToCart({ productId: product._id, quantity: 1 }));
+        if (isOutOfStock) return;
+        dispatch(addToCart({
+            productId: product._id,
+            variantId: variant?._id,
+            quantity: 1
+        }));
     };
 
     const handleQuickView = (e) => {
@@ -38,7 +43,8 @@ const ProductCard = ({ product }) => {
     const image = product.images?.[0]?.url || product.image;
     const hoverImage = product.images?.[1]?.url || product.hoverImage;
     const title = product.name || product.title;
-    const variant = product.weighstWise?.[0];
+    const variant = product.weighstWise?.find(v => v.stock > 0) || product.weighstWise?.[0];
+    const isOutOfStock = variant?.stock === 0;
     const initialPrice = variant?.price || 0;
     const currentPrice = variant?.discountPrice || initialPrice;
 
@@ -56,21 +62,28 @@ const ProductCard = ({ product }) => {
             onClick={() => navigate(`/product-details/${product._id}`)}
             className="group relative bg-white border border-gray-200 rounded-lg p-3 sm:p-4 flex flex-col cursor-pointer transition-all duration-300 hover:border-[var(--primary)] hover:shadow-xl hover:shadow-green-50/50"
         >
-            {/* Discount Badge */}
-            {discount && (
-                <span className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 bg-[#FF4F4F] text-white text-[9px] sm:text-[12px] font-bold px-1.5 py-0.5 rounded shadow-sm">
-                    -{product.offer?.offer_type === "Fixed" ? `$${discount}` : `${discount}%`}
-                </span>
-            )}
+            {/* Badges */}
+            <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 flex flex-col gap-2">
+                {discount && !isOutOfStock && (
+                    <span className="bg-[#FF4F4F] text-white text-[9px] sm:text-[12px] font-bold px-1.5 py-0.5 rounded shadow-sm">
+                        -{product.offer?.offer_type === "Fixed" ? `$${discount}` : `${discount}%`}
+                    </span>
+                )}
+                {isOutOfStock && (
+                    <span className="bg-red-500 text-white text-[9px] sm:text-[11px] font-bold px-2 py-0.5 rounded shadow-md uppercase tracking-wider">
+                        Out of Stock
+                    </span>
+                )}
+            </div>
 
             {/* Product Image */}
             <div className="h-36 sm:h-44 flex items-center justify-center mb-3 sm:mb-4 overflow-hidden relative">
                 <img
                     src={image}
                     alt={title}
-                    className={`max-w-full max-h-full object-contain transition-all duration-500 ${hoverImage ? 'group-hover:opacity-0 group-hover:scale-110' : 'group-hover:scale-110'}`}
+                    className={`max-w-full max-h-full object-contain transition-all duration-500 ${isOutOfStock ? '' : ''} ${hoverImage && !isOutOfStock ? 'group-hover:opacity-0 group-hover:scale-110' : 'group-hover:scale-110'}`}
                 />
-                {hoverImage && (
+                {hoverImage && !isOutOfStock && (
                     <img
                         src={hoverImage}
                         alt={title}
@@ -91,8 +104,12 @@ const ProductCard = ({ product }) => {
                         {isInWishlist ? <AiFillHeart size={18} /> : <AiOutlineHeart size={18} />}
                     </button>
                     <button
-                        title="Add to Cart"
-                        className="w-8 h-8 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-500 hover:bg-[var(--primary)] hover:text-white transition-all transform active:scale-90"
+                        title={isOutOfStock ? "Out of Stock" : "Add to Cart"}
+                        disabled={isOutOfStock}
+                        className={`w-8 h-8 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center transition-all transform active:scale-90 ${isOutOfStock
+                            ? 'text-gray-300 cursor-not-allowed'
+                            : 'text-gray-500 hover:bg-[var(--primary)] hover:text-white'
+                            }`}
                         onClick={handleAddToCart}
                     >
                         <AiOutlineShoppingCart size={18} />
