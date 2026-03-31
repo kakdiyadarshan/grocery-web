@@ -21,7 +21,7 @@ const { createOffer, getAllOffers, getOfferById, updateOffer, deleteOffer } = re
 const { createFAQ, getAllFAQs, getFAQById, updateFAQ, deleteFAQ } = require('../controllers/faq.controller');
 const { createReview, getReviewById, getAllReviews, deleteReview } = require('../controllers/review.controller');
 const { createCoupon, getAllCoupons, deleteCoupon, getCouponById, updateCoupon } = require('../controllers/coupon.controller');
-const { createOrder, getAllOrders, getOrderById, updateOrderStatus, deleteOrder, getUserOrders, cancelOrder, trackOrder, handleStripeWebhook } = require('../controllers/order.controller');
+const { createOrder, getAllOrders, getOrderById, updateOrderStatus, deleteOrder, getUserOrders, cancelOrder, trackOrder, handleStripeWebhook, verifyStripeSession } = require('../controllers/order.controller');
 const { createPayment, getPaymentById, getAllPayments, deletePayment, getPaymentByUserId, getPaymentByOrderId } = require('../controllers/payment.controller');
 const { addAddress, getAddresses, updateAddress, deleteAddress, setDefaultAddress } = require('../controllers/address.controller');
 const { createOfferBanner, getAllOfferBanners, updateOfferBanner, deleteOfferBanner } = require('../controllers/offerbanner.controller');
@@ -200,6 +200,7 @@ indexRoutes.put('/address-default/:addressId', auth, setDefaultAddress);
 
 // Stripe Webhook
 indexRoutes.post('/stripe-webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
+indexRoutes.post('/verifyStripeSession', auth, verifyStripeSession);
 
 module.exports = indexRoutes;
 

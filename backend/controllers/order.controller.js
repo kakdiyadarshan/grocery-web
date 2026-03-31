@@ -776,3 +776,31 @@ exports.handleStripeWebhook = async (req, res) => {
     }
     res.json({ received: true });
 };
+
+exports.verifyStripeSession = async (req, res) => {
+    try {
+        const { sessionId } = req.body;
+        if (!sessionId) return res.status(400).json({ success: false, message: 'Session ID is required' });
+
+        const session = await stripe.checkout.sessions.retrieve(sessionId);
+        
+        if (session.payment_status === 'paid') {
+            const orderId = session.metadata.orderId;
+            const order = await Order.findById(orderId);
+            
+            if (order && order.status !== 'completed') {
+                order.status = 'completed';
+                await order.save();
+                
+                await Payment.findOneAndUpdate({ orderId: order._id }, { status: 'completed' });
+                await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] });
+            }
+            return res.status(200).json({ success: true, message: 'Payment verified', data: order });
+        }
+        
+        return res.status(400).json({ success: false, message: 'Payment not completed or session invalid' });
+    } catch (error) {
+        console.error("verifyStripeSession error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
