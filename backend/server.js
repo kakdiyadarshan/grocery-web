@@ -10,6 +10,9 @@ dns.setServers(["1.1.1.1", "8.8.8.8"]);
 const indexRouter = require('./routes/index.routes');
 
 const app = express();
+const http = require('http');
+const { Server } = require("socket.io");
+const { initializeSocket } = require('./socketManager/socketManager');
 const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
@@ -29,7 +32,18 @@ app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
 app.use('/api', indexRouter);
 
-app.listen(PORT, () => {
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : 'http://localhost:3000',
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    credentials: true
+  }
+});
+
+initializeSocket(io);
+
+server.listen(PORT, () => {
   connectDB();
   console.log(`Server running on port ${PORT}`);
 });

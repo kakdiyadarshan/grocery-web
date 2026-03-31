@@ -298,7 +298,6 @@ const OrderDetails = () => {
                                         </div>
                                         <div className="flex-1">
                                             <h4 className="font-bold text-textPrimary text-base mb-1 group-hover:text-primary transition-colors">{item.productId?.name || 'Unknown Product'}</h4>
-                                            <p className="text-[11px] font-bold text-textSecondary uppercase tracking-widest bg-bgMain px-2 py-0.5 rounded w-fit border border-borderColor">ID: {item.productId?._id.slice(-6).toUpperCase()}</p>
                                             <div className='text-textSecondary text-sm font-medium mt-1'>
                                                 {item?.selectedVariant?.weight} {item?.selectedVariant?.unit}
                                             </div>

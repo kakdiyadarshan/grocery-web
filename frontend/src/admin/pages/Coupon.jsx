@@ -22,6 +22,7 @@ const Coupon = () => {
         {
             header: 'Expiry Date',
             accessor: 'expiryDate',
+            searchKey: (item) => new Date(item.expiryDate).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }),
             render: (item) => {
                 const date = new Date(item.expiryDate);
                 return date.toLocaleDateString('en-IN', {
@@ -34,6 +35,7 @@ const Coupon = () => {
         {
             header: 'Status',
             accessor: 'isActive',
+            searchKey: (item) => item.isActive ? 'Active' : 'Inactive',
             render: (item) => (
                 <span className={`px-2.5 py-1 rounded-[4px] text-xs font-semibold border ${item.isActive ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
                     {item.isActive ? 'Active' : 'Inactive'}

@@ -303,13 +303,14 @@ const Product = () => {
         {
             header: 'SKU',
             accessor: 'sku',
-            render: (row) => <span className="text-[10px] font-mono font-bold text-gray-500 bg-gray-50 px-2 py-1 rounded border border-gray-100 uppercase">{row.sku || '-'}</span>,
+            render: (row) => <span className="text-[10px] font-bold text-gray-500 bg-gray-50 px-2 py-1 rounded border border-gray-100 uppercase">{row.sku || '-'}</span>,
             sortable: true
         },
-        { header: 'Category', accessor: 'category.categoryName', exportValue: (row) => `${row.category?.categoryName}` || '-', render: (row) => row.category?.categoryName || '-' },
+        { header: 'Category', accessor: 'category.categoryName', exportValue: (row) => `${row.category?.categoryName}` || '-', render: (row) => row.category?.categoryName || '-', searchKey: (row) => `${row.category?.categoryName}`.trim() },
         {
             header: 'Price Range',
             accessor: 'weighstWise',
+            searchKey: (row) => `${row.weighstWise.map(w => w.price)}`.trim(),
             exportValue: (row) => {
                 const variantPrices = row.weighstWise.map(v => `${v.weight}${v.unit}: $${v.price}`).join(', ');
                 const prices = row.weighstWise.map(w => w.price);
@@ -328,6 +329,7 @@ const Product = () => {
         {
             header: 'Rating',
             accessor: 'reviews',
+            searchKey: (row) => `${row.reviews.map(r => r.rating)}`.trim(),
             exportValue: (row) => {
                 if (!row.reviews || row.reviews.length === 0) return '0.0';
                 const avgRating = row.reviews.reduce((acc, rev) => acc + (rev.rating || 0), 0) / row.reviews.length;

@@ -6,6 +6,7 @@ const Address = require('../models/address.model');
 const Product = require('../models/product.model');
 const User = require('../models/user.model');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const { emitRoleNotification, emitUserNotification } = require('../socketManager/socketManager');
 
 // Helper to update stock for an order item (variant-aware fallback)
 const adjustProductStock = async (item, delta) => {
@@ -307,6 +308,17 @@ exports.createOrder = async (req, res) => {
         }
 
         await Cart.findOneAndUpdate({ userId }, { items: [] });
+
+        // Notify Admins about new order
+        await emitRoleNotification({
+            designations: ['admin'],
+            event: 'notify',
+            data: {
+                type: 'new_order',
+                message: `New Order Received: #${order._id.toString().slice(-6).toUpperCase()}`,
+                payload: { orderId: order._id }
+            }
+        });
 
         const populatedOrder = await Order.findById(order._id).populate('addressId').populate('items.productId');
         res.status(201).json({ success: true, data: await transformAndAutoUpdate(populatedOrder) });
@@ -676,6 +688,33 @@ exports.updateOrderStatus = async (req, res) => {
             $push: { trackingHistory: { status, timestamp: new Date(), description: `Order status updated to ${status}` } }
         });
         const order = await getOrderWithOffers(req.params.id);
+
+        // Notify User about status update
+        if (order) {
+            await emitUserNotification({
+                userId: order.userId?._id || order.userId,
+                event: 'notify',
+                data: {
+                    type: 'order_status',
+                    message: `Order #${order._id.toString().slice(-6).toUpperCase()} status updated to: ${status}`,
+                    payload: { orderId: order._id, status }
+                }
+            });
+
+            // If completed or delivered, also notify admin for summary
+            if (status === 'completed' || status === 'delivered') {
+                await emitRoleNotification({
+                    designations: ['admin'],
+                    event: 'notify',
+                    data: {
+                        type: 'order_completed',
+                        message: `Order #${order._id.toString().slice(-6).toUpperCase()} has been delivered successfully.`,
+                        payload: { orderId: order._id }
+                    }
+                });
+            }
+        }
+
         res.status(200).json({ success: true, data: order });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -772,6 +811,27 @@ exports.handleStripeWebhook = async (req, res) => {
         if (order) {
             await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] });
             await Payment.findOneAndUpdate({ orderId: order._id }, { status: 'completed' });
+
+            // Notify user and admin
+            await emitUserNotification({
+                userId: order.userId,
+                event: 'notify',
+                data: {
+                    type: 'order_status',
+                    message: `Payment successful! Order #${order._id.toString().slice(-6).toUpperCase()} is now being processed.`,
+                    payload: { orderId: order._id, status: 'completed' }
+                }
+            });
+
+            await emitRoleNotification({
+                designations: ['admin'],
+                event: 'notify',
+                data: {
+                    type: 'new_order',
+                    message: `Payment received for Order #${order._id.toString().slice(-6).toUpperCase()}. (Stripe)`,
+                    payload: { orderId: order._id }
+                }
+            });
         }
     }
     res.json({ received: true });
