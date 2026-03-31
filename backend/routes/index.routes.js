@@ -20,7 +20,7 @@ const { uploadShippingImage, saveAllShippingPolicies, getAllShippingPolicies, ge
 const { createOffer, getAllOffers, getOfferById, updateOffer, deleteOffer } = require('../controllers/offerController');
 const { createFAQ, getAllFAQs, getFAQById, updateFAQ, deleteFAQ } = require('../controllers/faq.controller');
 const { createReview, getReviewById, getAllReviews, deleteReview } = require('../controllers/review.controller');
-const { createCoupon, getAllCoupons, deleteCoupon, getCouponById, updateCoupon } = require('../controllers/coupon.controller');
+const { createCoupon, getAllCoupons, deleteCoupon, getCouponById, updateCoupon, applyCoupon } = require('../controllers/coupon.controller');
 const { createOrder, getAllOrders, getOrderById, updateOrderStatus, deleteOrder, getUserOrders, cancelOrder, trackOrder, handleStripeWebhook, getOrderMonthlyAnalytics, getRevenueAnalytics,verifyStripeSession } = require('../controllers/order.controller');
 const { createPayment, getPaymentById, getAllPayments, deletePayment, getPaymentByUserId, getPaymentByOrderId } = require('../controllers/payment.controller');
 const { addAddress, getAddresses, updateAddress, deleteAddress, setDefaultAddress } = require('../controllers/address.controller');
@@ -174,6 +174,7 @@ indexRoutes.get('/getAllCoupons', auth, authorizeRoles('admin', 'user'), getAllC
 indexRoutes.delete('/deleteCoupon/:id', auth, authorizeRoles('admin'), deleteCoupon);
 indexRoutes.get('/getCoupon/:id', auth, authorizeRoles('admin', 'user'), getCouponById);
 indexRoutes.put('/updateCoupon/:id', auth, authorizeRoles('admin'), updateCoupon);
+indexRoutes.post('/applyCoupon', auth, authorizeRoles('admin', 'user'), applyCoupon);
 
 // Order Routes
 indexRoutes.post('/createOrder', auth, createOrder);
