@@ -8,7 +8,7 @@ const { createCategory, getAllCategories, getCategoryById, updateCategory, delet
 const { getCart, addToCart, updateCartQuantity, removeFromCart, clearCart } = require('../controllers/cart.controller');
 
 const { getWishlist, addToWishlist, removeFromWishlist } = require('../controllers/wishlist.controller');
-const { createProduct, getAllProducts, getProductById, updateProduct, deleteProduct, getFeaturedProducts, importProducts } = require('../controllers/product.controller');
+const { createProduct, getAllProducts, getProductById, updateProduct, deleteProduct, getFeaturedProducts, importProducts, getBestSellingProducts } = require('../controllers/product.controller');
 const { auth, authorizeRoles } = require('../middleware/auth.middleware');
 const { uploadPrivacyImage, saveAllPrivacyPolicies, getAllPrivacyPolicies, getPrivacyPolicyById } = require('../controllers/privacy.controller');
 const { addNewBlogCategoryController, getAllBlogCategoryController, getBlogCategoryByIdController, updateBlogCategoryController, deleteBlogCategoryController } = require('../controllers/blog.category.controller');
@@ -56,6 +56,7 @@ indexRoutes.delete('/deleteCategory/:id', auth, authorizeRoles('admin'), deleteC
 indexRoutes.post('/createProduct', auth, authorizeRoles('admin'), upload.array('images', 10), createProduct);
 indexRoutes.get('/getAllProducts', getAllProducts);
 indexRoutes.get('/getFeaturedProducts', getFeaturedProducts);
+indexRoutes.get('/getBestSellingProducts', getBestSellingProducts);
 indexRoutes.get('/getProductById/:id', getProductById);
 indexRoutes.put('/updateProduct/:id', auth, authorizeRoles('admin'), upload.array('images', 10), updateProduct);
 indexRoutes.delete('/deleteProduct/:id', auth, authorizeRoles('admin'), deleteProduct);
