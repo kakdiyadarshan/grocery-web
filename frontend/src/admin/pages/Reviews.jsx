@@ -32,6 +32,8 @@ const Reviews = () => {
         {
             header: "Product",
             accessor: "product",
+            searchKey: (row) => row.productId?.name,
+            exportValue: (row) => row.productId?.name,
             render: (row) => (
                 <div className="flex items-center">
                     <img src={`${IMAGE_URL}/${row.productId?.images?.[0]?.public_id}`} alt={row.productId?.name} className="w-12 h-12 object-cover rounded-lg" />
@@ -44,6 +46,8 @@ const Reviews = () => {
         {
             header: "User",
             accessor: "user",
+            searchKey: (row) => row.userId?.firstname + " " + row.userId?.lastname,
+            exportValue: (row) => row.userId?.firstname + " " + row.userId?.lastname,
             render: (row) => (
                 <div className="flex items-center gap-2">
                     {row.userId?.photo?.url ? (
@@ -130,6 +134,8 @@ const Reviews = () => {
                 onView={handleView}
                 onDelete={(item) => dispatch(deleteReview(item._id))}
                 itemsPerPage={10}
+                exportFileName="Reviews"
+                allowExport={true}
             />
 
             {isModalOpen && setSelectedReview && (

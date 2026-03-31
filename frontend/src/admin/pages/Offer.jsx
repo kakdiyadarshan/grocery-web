@@ -151,6 +151,7 @@ const Offers = () => {
         {
             header: 'Start Date',
             accessor: 'offer_start_date',
+            searchKey: (item) => new Date(item.offer_start_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }),
             exportValue: (item) => `${new Date(item.offer_start_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })}`,
             render: (item) => (
                 <div className="text-xs">
@@ -163,6 +164,7 @@ const Offers = () => {
         {
             header: 'Expired Date',
             accessor: 'offer_end_date',
+            searchKey: (item) => new Date(item.offer_end_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }),
             exportValue: (item) => `${new Date(item.offer_end_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })}`,
             render: (item) => (
                 <div className="text-xs">
@@ -175,6 +177,14 @@ const Offers = () => {
         {
             header: 'Status',
             accessor: 'status',
+            searchKey: (item) => {
+                const today = new Date();
+                const startDate = new Date(item.offer_start_date);
+                const endDate = new Date(item.offer_end_date);
+                if (today < startDate) return 'Inactive';
+                if (today > endDate) return 'Expired';
+                return 'Active';
+            },
             exportValue: (item) => {
                 const today = new Date();
                 const startDate = new Date(item.offer_start_date);

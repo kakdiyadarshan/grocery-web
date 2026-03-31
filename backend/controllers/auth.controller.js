@@ -2,6 +2,7 @@ const User = require('../models/user.model');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const sendEmail = require('../utils/sendEmail');
+const { emitRoleNotification } = require('../socketManager/socketManager');
 
 exports.createUser = async (req, res) => {
     try {
@@ -33,6 +34,17 @@ exports.createUser = async (req, res) => {
             otp: role === "admin" ? undefined : otp,
             otpExpiresAt: role === "admin" ? undefined : otpExpiresAt,
             isVerified: role === "admin" ? true : false
+        });
+
+        // Notify admins about new user registration
+        await emitRoleNotification({
+            designations: ['admin'],
+            event: 'notify',
+            data: {
+                type: 'user_register',
+                message: `New user registered: ${firstname} ${lastname}`,
+                payload: { userId: user._id }
+            }
         });
 
         // Send OTP via email only if not verified (not admin)

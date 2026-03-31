@@ -26,6 +26,7 @@ const { createPayment, getPaymentById, getAllPayments, deletePayment, getPayment
 const { addAddress, getAddresses, updateAddress, deleteAddress, setDefaultAddress } = require('../controllers/address.controller');
 const { createOfferBanner, getAllOfferBanners, updateOfferBanner, deleteOfferBanner } = require('../controllers/offerbanner.controller');
 const { createBanner, getAllBanners, updateBanner, deleteBanner } = require('../controllers/banner.controller');
+const { getMyNotifications, markSeen, clearAll } = require('../controllers/notification.controller');
 
 // Auth routes
 indexRoutes.post('/register', createUser);
@@ -197,6 +198,11 @@ indexRoutes.get('/addresses', auth, getAddresses);
 indexRoutes.put('/address/:addressId', auth, updateAddress);
 indexRoutes.delete('/address/:addressId', auth, deleteAddress);
 indexRoutes.put('/address-default/:addressId', auth, setDefaultAddress);
+
+// Notifications routes
+indexRoutes.get('/notifications', auth, authorizeRoles('admin'), getMyNotifications);
+indexRoutes.put('/notifications/:id/seen', auth, authorizeRoles('admin'), markSeen);
+indexRoutes.put('/notifications', auth, authorizeRoles('admin'), clearAll);
 
 // Stripe Webhook
 indexRoutes.post('/stripe-webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);

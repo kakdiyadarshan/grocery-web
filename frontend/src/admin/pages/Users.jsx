@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchAllUsers } from '../../redux/slice/auth.slice';
 import DataTable from '../component/DataTable';
 import Breadcrumb from '../component/Breadcrumb';
+import { FiCheckCircle, FiX } from 'react-icons/fi';
 
 const Users = () => {
     const dispatch = useDispatch();
@@ -57,6 +58,7 @@ const Users = () => {
         {
             header: 'Mobile',
             accessor: 'mobileno',
+            exportValue: (user) => user.mobileno || user.mobile || user.phone || user.phoneNumber || user.addresses?.[0]?.phone,
             render: (user) => {
                 const mobile = user.mobileno || user.mobile || user.phone || user.phoneNumber || user.addresses?.[0]?.phone || 'N/A';
                 return <span className="text-textPrimary">{mobile}</span>;
@@ -64,8 +66,31 @@ const Users = () => {
             searchKey: (user) => user.mobileno || user.mobile || user.phone || user.phoneNumber || user.addresses?.[0]?.phone
         },
         {
+            header: 'Verified',
+            accessor: 'isVerified',
+            exportValue: (user) => user.isVerified ? 'Yes' : 'No',
+            render: (user) => (
+                <span className="text-textPrimary">
+                    {user?.isVerified ? (
+                        <div className="flex items-center gap-2">
+                            <FiCheckCircle className="text-green-500" />
+                            <span>Yes</span>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <FiX className="text-red-500" />
+                            <span>No</span>
+                        </div>
+                    )}
+                </span>
+            ),
+            searchKey: (user) => user.isVerified ? 'Yes' : 'No'
+        },
+        {
             header: 'Joined',
             accessor: 'createdAt',
+            searchKey: (user) => new Date(user.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }),
+            exportValue: (user) => new Date(user.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }),
             render: (user) => (
                 <span className="text-textSecondary text-sm">
                     {user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-In', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}
