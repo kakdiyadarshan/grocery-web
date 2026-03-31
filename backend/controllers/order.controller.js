@@ -11,21 +11,40 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const adjustProductStock = async (item, delta) => {
     if (!item || !item.productId || !item.quantity) return;
 
+    // productId may be an object with _id or raw id
+    const productId = item.productId._id ? item.productId._id : item.productId;
+
+    // variantId may come as object id or string
+    let variantId = null;
     if (item.variantId) {
-        await Product.findOneAndUpdate(
-            { _id: item.productId, 'weighstWise._id': item.variantId },
+        variantId = item.variantId._id ? item.variantId._id : item.variantId;
+    } else if (item.selectedVariant && item.selectedVariant._id) {
+        variantId = item.selectedVariant._id;
+    }
+
+    if (variantId) {
+        const updated = await Product.findOneAndUpdate(
+            { _id: productId, 'weighstWise._id': variantId },
             { $inc: { 'weighstWise.$.stock': delta } },
             { new: true }
         );
+
+        if (!updated) {
+            console.warn(`adjustProductStock: variant ${variantId} not found for product ${productId}`);
+        }
         return;
     }
 
     // Fallback: decrement first variant stock for products added without variantId
-    await Product.findOneAndUpdate(
-        { _id: item.productId, 'weighstWise.0': { $exists: true } },
+    const fallback = await Product.findOneAndUpdate(
+        { _id: productId, 'weighstWise.0': { $exists: true } },
         { $inc: { 'weighstWise.0.stock': delta } },
         { new: true }
     );
+
+    if (!fallback) {
+        console.warn(`adjustProductStock: fallback failed for product ${productId}`);
+    }
 };
 
 // Helper to determine dynamic status based on time

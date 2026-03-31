@@ -2,19 +2,32 @@ import React, { useState, useEffect } from 'react';
 import { Trash2, ShoppingBag, ArrowRight, Minus, Plus, Home, ChevronRight, ShieldCheck, Truck, ArrowLeft, Tag, X, CheckCircle2, Ticket } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { getCart, removeFromCart, updateCartQuantity } from '../redux/slice/cart.slice';
+import { getCart, removeFromCart, updateCartQuantity, applyCoupon, removeCoupon } from '../redux/slice/cart.slice';
 import { getAllCoupons } from '../redux/slice/couponSLice';
 
 const Cart = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { cart, loading } = useSelector((state) => state.cart);
+    const { cart, loading, appliedCoupon } = useSelector((state) => state.cart);
     const { coupons } = useSelector((state) => state.coupon);
     
 
     useEffect(() => {
         dispatch(getCart());
         dispatch(getAllCoupons());
+
+        const savedCoupon = localStorage.getItem('appliedCoupon');
+        if (savedCoupon) {
+            try {
+                const couponObj = JSON.parse(savedCoupon);
+                if (couponObj && couponObj.code && couponObj.discount) {
+                    dispatch(applyCoupon(couponObj));
+                }
+            } catch (error) {
+                console.error('Failed to parse saved coupon', error);
+                localStorage.removeItem('appliedCoupon');
+            }
+        }
     }, [dispatch]);
 
     const handleRemoveFromCart = (productId, variantId) => {
@@ -31,7 +44,6 @@ const Cart = () => {
 
     // Coupon state
     const [couponCode, setCouponCode] = useState('');
-    const [appliedCoupon, setAppliedCoupon] = useState(null);
     const [couponError, setCouponError] = useState('');
     const [couponLoading, setCouponLoading] = useState(false);
 
@@ -60,11 +72,14 @@ const Cart = () => {
                     return;
                 }
                 
-                setAppliedCoupon({
+                const couponData = {
                     code: validCoupon.code,
                     discount: validCoupon.discount,
                     _id: validCoupon._id
-                });
+                };
+
+                dispatch(applyCoupon(couponData));
+                localStorage.setItem('appliedCoupon', JSON.stringify(couponData));
                 setCouponError('');
             } else {
                 setCouponError('Invalid or inactive coupon code.');
@@ -74,7 +89,8 @@ const Cart = () => {
     };
 
     const handleRemoveCoupon = () => {
-        setAppliedCoupon(null);
+        dispatch(removeCoupon());
+        localStorage.removeItem('appliedCoupon');
         setCouponCode('');
         setCouponError('');
     };
@@ -90,7 +106,7 @@ const Cart = () => {
     const shipping = shippingBase;
     const tax = cartItems.length > 0 ? (subtotal * 0.08) : 0; // 8% tax
     const couponDiscount = appliedCoupon ? (subtotal * appliedCoupon.discount) / 100 : 0;
-    const total = subtotal + shipping + tax - couponDiscount;
+    const total = Math.max(0, subtotal + shipping + tax - couponDiscount);
 
 
     if (loading && !cart) {

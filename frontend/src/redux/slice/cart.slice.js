@@ -13,6 +13,7 @@ const initialState = {
     cart: null,
     loading: false,
     error: null,
+    appliedCoupon: null,
 };
 
 export const getCart = createAsyncThunk(
@@ -107,7 +108,14 @@ export const clearCart = createAsyncThunk(
 const cartSlice = createSlice({
     name: 'cart',
     initialState,
-    reducers: {},
+    reducers: {
+        applyCoupon: (state, action) => {
+            state.appliedCoupon = action.payload;
+        },
+        removeCoupon: (state) => {
+            state.appliedCoupon = null;
+        },
+    },
     extraReducers: (builder) => {
         builder
             .addCase(getCart.pending, (state) => { state.loading = true; })
@@ -135,4 +143,5 @@ const cartSlice = createSlice({
     }
 });
 
+export const { applyCoupon, removeCoupon } = cartSlice.actions;
 export default cartSlice.reducer;
