@@ -21,14 +21,16 @@ import {
 } from 'recharts';
 import ReactApexChart from 'react-apexcharts';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchOrders } from '../../redux/slice/order.slice';
+import { fetchOrders, fetchOrderMonthlyAnalytics, fetchRevenueAnalytics } from '../../redux/slice/order.slice';
+import { getAllProducts } from '../../redux/slice/product.slice';
 import { FiPackage, FiClock, } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
+import { getAllCategories } from '../../redux/slice/category.slice';
 
 
 
 
-const COLORS = ['#228B22', '#b3d498', '#98d4a0', "#70bb70"];
+const COLORS = ['#228B22', '#fbbf24', '#ef4444', "#70bb70"];
 
 const formatCompact = (val) => {
   if (val >= 1000000) return `$${(val / 1000000).toFixed(val % 1000000 === 0 ? 0 : 1)}M`;
@@ -62,7 +64,7 @@ const renderActiveShape = (props) => {
         {payload.name}
       </text>
       <text x={cx} y={cy} dy={12} textAnchor="middle" fill="#1e293b" className="text-[18px] font-extrabold">
-        {`${value}%`}
+        {`${value}`}
       </text>
       <text x={cx} y={cy} dy={28} textAnchor="middle" fill="#64748b" className="text-[11px] font-semibold">
         {`(${(percent * 100).toFixed(1)}%)`}
@@ -93,14 +95,23 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch()
 
-  const { allorders, loading } = useSelector((state) => state.order);
+  const { allorders, loading, monthlyAnalytics, revenueAnalytics } = useSelector((state) => state.order);
+  const { categories, loading: categoryLoading } = useSelector((state) => state.category);
+  const { products } = useSelector((state) => state.product);
+
+  const currentYearStr = new Date().getFullYear().toString();
+  const [selectedYear, setSelectedYear] = useState(currentYearStr);
 
   useEffect(() => {
     dispatch(fetchOrders())
+    dispatch(getAllCategories())
+    dispatch(fetchRevenueAnalytics())
+    dispatch(getAllProducts())
   }, [dispatch])
 
-  console.log('ordersData', allorders);
-
+  useEffect(() => {
+    dispatch(fetchOrderMonthlyAnalytics(selectedYear));
+  }, [dispatch, selectedYear]);
 
   const [primaryColor, setPrimaryColor] = useState('');
 
@@ -111,20 +122,14 @@ const Dashboard = () => {
     setPrimaryColor(color);
   }, []);
 
-  const barData = [
-    { name: 'Jan', orders: 150 },
-    { name: 'Feb', orders: 280 },
-    { name: 'Mar', orders: 400 },
-    { name: 'Apr', orders: 310 },
-    { name: 'May', orders: 270 },
-    { name: 'Jun', orders: 420 },
-    { name: 'Jul', orders: 380 },
-    { name: 'Aug', orders: 310 },
-    { name: 'Sep', orders: 250 },
-    { name: 'Oct', orders: 320 },
-    { name: 'Nov', orders: 260 },
-    { name: 'Dec', orders: 380 },
-  ];
+  const barData = monthlyAnalytics?.length > 0
+    ? monthlyAnalytics.map(item => ({ name: item.month, orders: item.totalOrders }))
+    : [
+      { name: 'Jan', orders: 0 }, { name: 'Feb', orders: 0 }, { name: 'Mar', orders: 0 },
+      { name: 'Apr', orders: 0 }, { name: 'May', orders: 0 }, { name: 'Jun', orders: 0 },
+      { name: 'Jul', orders: 0 }, { name: 'Aug', orders: 0 }, { name: 'Sep', orders: 0 },
+      { name: 'Oct', orders: 0 }, { name: 'Nov', orders: 0 }, { name: 'Dec', orders: 0 },
+    ];
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -152,25 +157,122 @@ const Dashboard = () => {
     setActiveIndex(index);
   };
 
-  const pieData = [
-    { name: 'Active', value: 70 },
-    { name: 'Inactive', value: 15 },
-    { name: 'New Add', value: 15 },
-  ];
+  const pieData = useMemo(() => {
+    if (!products || products.length === 0) return [
+      { name: 'In Stock', value: 0 },
+      { name: 'Low Stock', value: 0 },
+      { name: 'Out of Stock', value: 0 }
+    ];
+
+    let inStock = 0;
+    let lowStock = 0;
+    let outOfStock = 0;
+
+    products.forEach(p => {
+      const totalStock = p.weighstWise?.reduce((sum, v) => sum + (v.stock || 0), 0) || 0;
+      if (totalStock === 0) outOfStock++;
+      else if (totalStock <= 10) lowStock++;
+      else inStock++;
+    });
+
+    const hasData = inStock > 0 || lowStock > 0 || outOfStock > 0;
+    
+    // If absolutely no products have stock configuration, show fallback so chart isn't empty visually
+    if (!hasData) return [
+      { name: 'In Stock', value: 1 },
+      { name: 'Low Stock', value: 0 },
+      { name: 'Out of Stock', value: 0 }
+    ];
+
+    return [
+      { name: 'In Stock', value: inStock },
+      { name: 'Low Stock', value: lowStock },
+      { name: 'Out of Stock', value: outOfStock }
+    ];
+  }, [products]);
+
+  const categoryDistribution = useMemo(() => {
+    if (!allorders || !categories) return { names: [], counts: [] };
+    
+    const countsMap = {};
+    categories.forEach(c => { countsMap[c._id] = 0; });
+    
+    allorders.forEach(order => {
+        if (order.status === 'cancelled') return;
+        order.items?.forEach(item => {
+            const product = item.productId || item.product;
+            if (product && product.category) {
+                const catId = product.category._id || product.category;
+                if (countsMap[catId] !== undefined) {
+                    countsMap[catId] += item.quantity || 1;
+                }
+            }
+        });
+    });
+
+    const sorted = categories
+        .map(c => ({ name: c.categoryName, count: countsMap[c._id] || 0 }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 8)
+        .reverse();
+    
+    return {
+       names: sorted.map(c => c.name),
+       counts: sorted.map(c => c.count)
+    };
+  }, [allorders, categories]);
+
+  const topSellingProducts = useMemo(() => {
+    if (!allorders) return [];
+    
+    const productCounts = {};
+    
+    allorders.forEach(order => {
+        if (order.status === 'cancelled') return;
+        order.items?.forEach(item => {
+            const product = item.productId || item.product;
+            if (product && product._id) {
+                if (!productCounts[product._id]) {
+                    productCounts[product._id] = {
+                        name: product.name,
+                        img: product.images?.[0]?.url || '🛒',
+                        quantity: 0,
+                        revenue: 0
+                    };
+                }
+                const qty = item.quantity || 1;
+                const price = item.price || item.selectedVariant?.price || item.selectedVariant?.discountPrice || product.weighstWise?.[0]?.price || 0;
+                productCounts[product._id].quantity += qty;
+                productCounts[product._id].revenue += qty * price;
+            }
+        });
+    });
+
+    return Object.values(productCounts)
+        .sort((a, b) => b.quantity - a.quantity)
+        .slice(0, 6);
+  }, [allorders]);
 
   const [activeTimeframe, setActiveTimeframe] = useState('Weekly');
-  const analyticsData = {
+  
+  const analyticsData = revenueAnalytics || {
     Weekly: {
       categories: ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'],
-      series: [4350, 4480, 4420, 4680, 4510, 4390, 4460]
+      series: [0, 0, 0, 0, 0, 0, 0],
+      total: 0,
+      growth: 0
     },
     Monthly: {
       categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-      series: [2500, 3100, 4000, 3500, 2900, 4200, 3800, 3100, 2500, 3200, 2600, 3800]
+      series: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      total: 0,
+      growth: 0
     },
     Yearly: {
       categories: ['2021', '2022', '2023', '2024', '2025'],
-      series: [45000, 52000, 48000, 61000, 58000]
+      series: [0, 0, 0, 0, 0],
+      total: 0,
+      growth: 0
     }
   };
 
@@ -209,10 +311,10 @@ const Dashboard = () => {
       render: (data) => (
         <div className="flex items-center gap-3">
           <div className="flex -space-x-3 overflow-hidden">
-            {data.items?.slice(0, 3).map((item, i) => (
+            {data.items?.slice(0, 2).map((item, i) => (
               <div
                 key={i}
-                className="relative inline-block h-9 w-9 rounded-full ring-2 ring-white overflow-hidden bg-gray-100 shadow-sm transition-transform hover:scale-110 hover:z-10"
+                className="relative inline-block h-9 w-9 rounded-full ring-2 ring-white overflow-hidden bg-gray-100 shadow-sm transition-transform"
                 title={item.product?.name}
               >
                 {item.product?.images?.[0]?.url ? (
@@ -229,9 +331,9 @@ const Dashboard = () => {
               </div>
             ))}
 
-            {data.items?.length > 3 && (
-              <div className="relative inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-gray-800 bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-500">
-                +{data.items.length - 3}
+            {data.items?.length > 2 && (
+              <div className="relative inline-block h-9 w-9 rounded-full ring-2 ring-white  bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-500">
+                +{data.items.length - 2}
               </div>
             )}
           </div>
@@ -298,18 +400,7 @@ const Dashboard = () => {
     navigate(`/admin/orders/${item._id}`);
   }, [navigate]);
 
-  // const tableData = [
-  //   ...(ordersData?.map((order, index) => ({
-  //     id: index + 1,
-  //     name: order.userId?.email,
-  //     date: new Date(order.createdAt).toLocaleDateString('en-GB', {
-  //       day: '2-digit',
-  //       month: 'short',
-  //       year: 'numeric'
-  //     }),
-  //     status: order.status
-  //   })) || [])
-  // ];
+
 
   return (
     <div className="py-8 w-full min-h-screen text-slate-800">
@@ -317,36 +408,28 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
         <MetricCard
           title="Total Orders"
-          value="6,327"
-          percentage="+1.7%"
-          isPositive={true}
+          value={allorders.length}      
           icon={<ShoppingCart className="text-[var(--primary)]" />}
           bgColor="bg-emerald-50"
           borderColor="border-[var(--primary)]"
         />
         <MetricCard
           title="Order Cancelled"
-          value="1,025"
-          percentage="-2.6%"
-          isPositive={false}
+          value={allorders.filter(order => order.status === 'cancelled').length}      
           icon={<XCircle className="text-[var(--primary)]" />}
           bgColor="bg-emerald-50"
           borderColor="border-[var(--primary)]"
         />
         <MetricCard
           title="Order Completed"
-          value="4,280"
-          percentage="+4.9%"
-          isPositive={true}
+          value={allorders.filter(order => order.status === 'delivered' || order.status === 'completed').length}         
           icon={<CheckCircle2 className="text-[var(--primary)]" />}
           bgColor="bg-emerald-50"
           borderColor="border-[var(--primary)]"
         />
         <MetricCard
           title="Order Pending"
-          value="940"
-          percentage="-2.6%"
-          isPositive={false}
+          value={allorders.filter(order => order.status === 'pending' || order.status === 'processing' || order.status === 'shipped' || order.status === 'out for delivery').length}
           icon={<Clock className="text-[var(--primary)]" />}
           bgColor="bg-emerald-50"
           borderColor="border-[var(--primary)]"
@@ -364,9 +447,9 @@ const Dashboard = () => {
             <h3 className="text-xl font-bold">Orders Analytics</h3>
             <div className="flex items-center gap-6">
               <CustomSelect
-                options={['2026', '2025', '2024', '2023']}
-                defaultValue="2026"
-                onChange={(year) => console.log('Selected year:', year)}
+                options={[currentYearStr, (Number(currentYearStr) - 1).toString(), (Number(currentYearStr) - 2).toString(), (Number(currentYearStr) - 3).toString()]}
+                defaultValue={selectedYear}
+                onChange={(year) => setSelectedYear(year)}
               />
             </div>
 
@@ -438,10 +521,10 @@ const Dashboard = () => {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="grid grid-cols-3 gap-4 w-full">
-              <ActivityLegend dotColor="bg-[var(--primary)]" label="Active" />
-              <ActivityLegend dotColor="bg-orange-500" label="Inactive" />
-              <ActivityLegend dotColor="bg-yellow-400" label="New Add" />
+            <div className="grid grid-cols-3 gap-2 w-full place-items-center">
+              <ActivityLegend dotColor="bg-[var(--primary)]" label="In Stock" />
+              <ActivityLegend dotColor="bg-amber-400" label="Low Stock" />
+              <ActivityLegend dotColor="bg-red-500" label="Out of Stock" />
             </div>
           </div>
         </div>
@@ -455,11 +538,8 @@ const Dashboard = () => {
 
 
         <div className="bg-white rounded-md p-4 border border-slate-100 lg:col-span-1">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-bold">Category Distribution</h3>
-            {/* <button className="p-1 hover:bg-slate-50 rounded-lg">
-              <MoreVertical className="w-5 h-5 text-slate-400" />
-            </button> */}
           </div>
           <div className="w-full">
             <ReactApexChart
@@ -468,7 +548,7 @@ const Dashboard = () => {
                   type: 'bar',
                   height: 350,
                   dropShadow: {
-                    enabled: true,
+                    enabled: false,
                   },
                   toolbar: {
                     show: false
@@ -479,7 +559,7 @@ const Dashboard = () => {
                     borderRadius: 4,
                     horizontal: true,
                     distributed: true,
-                    barHeight: '70%',
+                    barHeight: '60%',
                     isFunnel: false,
                   },
                 },
@@ -497,7 +577,7 @@ const Dashboard = () => {
                   enabled: false,
                 },
                 xaxis: {
-                  categories: ['Sweets', 'Processed Foods', 'Healthy Fats', 'Meat', 'Beans & Legumes', 'Dairy', 'Fruits & Vegetables', 'Grains'],
+                  categories: categoryDistribution.names,
                   axisBorder: { show: false },
                   axisTicks: { show: false },
                   labels: { show: false }
@@ -505,7 +585,7 @@ const Dashboard = () => {
                 yaxis: {
                   labels: {
                     style: {
-                      fontSize: '13px',
+                      fontSize: '11px',
                       fontWeight: 600,
                       fontFamily: 'Jost, sans-serif',
                       colors: ['#64748b']
@@ -518,8 +598,8 @@ const Dashboard = () => {
                 grid: {
                   show: false,
                   padding: {
-                    left: 0,
-                    right: 20
+                    left: 5,
+                    right: 0
                   }
                 },
                 responsive: [
@@ -542,8 +622,8 @@ const Dashboard = () => {
               }}
               series={[
                 {
-                  name: "Category Count",
-                  data: [200, 330, 548, 740, 880, 990, 1100, 1380],
+                  name: "Units Sold",
+                  data: categoryDistribution.counts,
                 },
               ]}
               type="bar"
@@ -566,11 +646,15 @@ const Dashboard = () => {
           {/* Metric Header */}
           <div className="flex items-center gap-4 mb-6">
             <h2 className="sm:text-3xl text-xl font-bold">
-              {activeTimeframe === 'Weekly' ? '$18,200.82' : activeTimeframe === 'Monthly' ? '$45,300.00' : '$264,000.00'}
+              ${analyticsData[activeTimeframe]?.total?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
             </h2>
-            <div className="flex items-center px-2 py-1 rounded-full bg-emerald-50 text-emerald-600 text-xs font-bold gap-1 border border-emerald-100">
-              <ArrowUpRight className="w-3 h-3" />
-              {activeTimeframe === 'Weekly' ? '8.24%' : activeTimeframe === 'Monthly' ? '12.5%' : '15.8%'}
+            <div className={`flex items-center px-2 py-1 rounded-full text-xs font-bold gap-1 border ${
+              analyticsData[activeTimeframe]?.growth >= 0 
+                ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
+                : 'bg-red-50 text-red-600 border-red-100'
+            }`}>
+              {analyticsData[activeTimeframe]?.growth >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+              {Math.abs(analyticsData[activeTimeframe]?.growth || 0).toFixed(2)}%
             </div>
           </div>
 
@@ -691,25 +775,33 @@ const Dashboard = () => {
               columns={columns}
               data={allorders || []}
               onView={handleView}
-              // onDelete={(item) => console.log('Delete:', item)}
-              itemsPerPage={5}
+              itemsPerPage={6}
+              hidePagination={true}
             />
           </div>
         </div>
 
-        {/* Recent Orders */}
+        {/* Top Selling Products */}
         <div className="bg-white p-4 rounded-md border border-slate-100">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold">Recent Orders</h3>
+            <h3 className="text-xl font-bold">Top Selling Products</h3>
             {/* <button className="text-xs font-semibold text-slate-400 hover:text-emerald-500 transition-colors">See all</button> */}
           </div>
           <div className="space-y-6">
-            <RecentOrderRow name="Grocery's" price="$500" img="🛒" />
-            <RecentOrderRow name="Vegetables" price="$250" img="🥦" />
-            <RecentOrderRow name="Kurkure Masala" price="$150" img="🍟" />
-            <RecentOrderRow name="Banana" price="$100" img="🍌" />
-            <RecentOrderRow name="Green Apple" price="$300" img="🍏" />
-            <RecentOrderRow name="Tomato sos" price="$350" img="🥫" />
+            {topSellingProducts.length > 0 ? topSellingProducts.map((p, i) => (
+              <RecentOrderRow 
+                key={i} 
+                name={p.name} 
+                price={`$${p.revenue.toFixed(2)}`} 
+                img={
+                  p.img !== '🛒' 
+                    ? <img src={p.img} alt={p.name} className="w-full h-full object-cover" /> 
+                    : '🛒'
+                } 
+              />
+            )) : (
+              <p className="text-sm text-slate-500">No products sold yet.</p>
+            )}
           </div>
         </div>
       </div>
@@ -735,7 +827,7 @@ const MetricCard = ({ title, value, percentage, isPositive, icon, bgColor, borde
     />
 
     {/* Top */}
-    <div className="flex justify-between items-start mb-5 relative z-10">
+    <div className="flex justify-between items-start relative z-10">
       <div>
         <p className="text-sm text-slate-400 mb-1">{title}</p>
         <h2 className="text-2xl font-bold text-slate-800">{value}</h2>
@@ -750,27 +842,7 @@ const MetricCard = ({ title, value, percentage, isPositive, icon, bgColor, borde
       </div>
     </div>
 
-    {/* Bottom */}
-    <div className="flex items-center gap-2 relative z-10">
-      <div
-        className={`flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold
-          ${isPositive
-            ? "bg-emerald-100 text-emerald-600"
-            : "bg-red-100 text-red-600"
-          }`}
-      >
-        {isPositive ? (
-          <ArrowUpRight className="w-3 h-3 mr-0.5" />
-        ) : (
-          <ArrowDownRight className="w-3 h-3 mr-0.5" />
-        )}
-        {percentage}
-      </div>
 
-      <span className="text-xs text-slate-400">
-        From last month
-      </span>
-    </div>
   </div>
 );
 
@@ -786,8 +858,8 @@ const ActivityLegend = ({ dotColor, label }) => (
 const RecentOrderRow = ({ name, price, img }) => (
   <div className="flex items-center justify-between group cursor-pointer">
     <div className="flex items-center gap-3">
-      <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-2xl group-hover:bg-white group-hover:shadow-sm transition-all">{img}</div>
-      <span className="font-bold text-sm">{name}</span>
+      <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-2xl group-hover:bg-white group-hover:shadow-sm transition-all overflow-hidden">{img}</div>
+      <span className="font-bold text-sm line-clamp-1 max-w-[120px]">{name}</span>
     </div>
     <span className="text-sm font-bold text-emerald-500">{price}</span>
   </div>

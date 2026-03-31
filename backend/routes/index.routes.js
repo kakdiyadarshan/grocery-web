@@ -21,7 +21,7 @@ const { createOffer, getAllOffers, getOfferById, updateOffer, deleteOffer } = re
 const { createFAQ, getAllFAQs, getFAQById, updateFAQ, deleteFAQ } = require('../controllers/faq.controller');
 const { createReview, getReviewById, getAllReviews, deleteReview } = require('../controllers/review.controller');
 const { createCoupon, getAllCoupons, deleteCoupon, getCouponById, updateCoupon } = require('../controllers/coupon.controller');
-const { createOrder, getAllOrders, getOrderById, updateOrderStatus, deleteOrder, getUserOrders, cancelOrder, trackOrder, handleStripeWebhook } = require('../controllers/order.controller');
+const { createOrder, getAllOrders, getOrderById, updateOrderStatus, deleteOrder, getUserOrders, cancelOrder, trackOrder, handleStripeWebhook, getOrderMonthlyAnalytics, getRevenueAnalytics } = require('../controllers/order.controller');
 const { createPayment, getPaymentById, getAllPayments, deletePayment, getPaymentByUserId, getPaymentByOrderId } = require('../controllers/payment.controller');
 const { addAddress, getAddresses, updateAddress, deleteAddress, setDefaultAddress } = require('../controllers/address.controller');
 const { createOfferBanner, getAllOfferBanners, updateOfferBanner, deleteOfferBanner } = require('../controllers/offerbanner.controller');
@@ -182,6 +182,8 @@ indexRoutes.delete('/deleteOrder/:id', auth, authorizeRoles('admin'), deleteOrde
 indexRoutes.get('/getUserOrders', auth, getUserOrders);
 indexRoutes.put('/cancelOrder/:id', auth, cancelOrder);
 indexRoutes.get('/trackOrder/:id', auth, trackOrder);
+indexRoutes.get('/order-monthly-analytics', auth, authorizeRoles('admin'), getOrderMonthlyAnalytics);
+indexRoutes.get('/revenue-analytics', auth, authorizeRoles('admin'), getRevenueAnalytics);
 
 // Payment Routes
 indexRoutes.post('/createPayment', auth, createPayment);
