@@ -147,15 +147,15 @@ function ProductDetail() {
         }
     };
 
+    if (loading && !product) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    if (!product) return <div className="min-h-screen flex items-center justify-center">Product not found.</div>;
+
     const relatedProducts = products.filter(p => {
         if (p._id === id) return false;
         const cat1 = typeof p.category === 'object' ? p.category?.categoryName : p.category;
         const cat2 = typeof product.category === 'object' ? product.category?.categoryName : product.category;
         return cat1 && cat2 && cat1 === cat2;
     });
-
-    if (loading && !product) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-    if (!product) return <div className="min-h-screen flex items-center justify-center">Product not found.</div>;
 
     return (
         <div className="bg-white min-h-screen">
@@ -508,7 +508,7 @@ function ProductDetail() {
                         className="mt-8 pt-4"
                     />
                 )}
-    
+
                 {/* Newsletter */}
                 <Newsletter className="w-full pt-6 mt-10" />
 
