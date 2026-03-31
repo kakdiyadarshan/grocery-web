@@ -505,8 +505,8 @@ const Shop = () => {
                                                         if (!outOfStock) dispatch(addToCart({ productId: product._id, quantity: 1 }));
                                                     }}
                                                     disabled={outOfStock}
-                                                    className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 bg-white border border-gray-100/50 text-[#62728f] hover:text-[var(--primary)] disabled:opacity-50 disabled:cursor-not-allowed`}
-                                                    title="Add to Cart"
+                                                    className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 bg-white border border-gray-100/50 ${outOfStock ? 'text-gray-300' : 'text-[#62728f] hover:text-[var(--primary)]'} disabled:opacity-50 disabled:cursor-not-allowed`}
+                                                    title={outOfStock ? "Out of Stock" : "Add to Cart"}
                                                 >
                                                     <ShoppingCart size={18} />
                                                 </button>
@@ -531,7 +531,7 @@ const Shop = () => {
                                                 </div>
                                             </div>
 
-                                            <div className={`flex flex-col flex-grow w-full ${viewType === 'list' ? 'p-4 sm:py-4 sm:px-0' : 'p-4 sm:p-5 pt-2'}`}>
+                                            <div className={`flex flex-col flex-grow w-full ${viewType === 'list' ? 'p-4 sm:py-4 sm:px-0' : 'p-4 sm:p-5 pt-2'} ${outOfStock ? 'opacity-70' : ''}`}>
                                                 <div className="text-[13px] text-[#8e9aab] mb-1.5 font-medium transition-colors">
                                                     {product.category?.categoryName || 'Vegetables'}
                                                 </div>
@@ -572,10 +572,10 @@ const Shop = () => {
                                                                 if (!outOfStock) dispatch(addToCart({ productId: product._id, quantity: 1 }));
                                                             }}
                                                             disabled={outOfStock}
-                                                            className="relative overflow-hidden flex items-center justify-center gap-2 font-[600] transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed h-10 px-6 bg-[var(--primary)] text-white rounded-md hover:bg-[var(--primary-hover)] whitespace-nowrap"
+                                                            className={`relative overflow-hidden flex items-center justify-center gap-2 font-[600] transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed h-10 px-6 ${outOfStock ? 'bg-gray-400' : 'bg-[var(--primary)] hover:bg-[var(--primary-hover)]'} text-white rounded-md whitespace-nowrap`}
                                                         >
                                                             <ShoppingCart size={16} />
-                                                            <span className="text-[14px]">Add to Cart</span>
+                                                            <span className="text-[14px]">{outOfStock ? 'Sold Out' : 'Add to Cart'}</span>
                                                         </button>
                                                     )}
                                                 </div>

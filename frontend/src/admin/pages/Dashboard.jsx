@@ -195,27 +195,27 @@ const Dashboard = () => {
     categories.forEach(c => { countsMap[c._id] = 0; });
     
     allorders.forEach(order => {
-        if (order.status === 'cancelled') return;
-        order.items?.forEach(item => {
-            const product = item.productId || item.product;
-            if (product && product.category) {
-                const catId = product.category._id || product.category;
-                if (countsMap[catId] !== undefined) {
-                    countsMap[catId] += item.quantity || 1;
-                }
-            }
-        });
+      if (order.status === 'cancelled') return;
+      order.items?.forEach(item => {
+        const product = item.productId || item.product;
+        if (product && product.category) {
+          const catId = product.category._id || product.category;
+          if (countsMap[catId] !== undefined) {
+            countsMap[catId] += item.quantity || 1;
+          }
+        }
+      });
     });
 
     const sorted = categories
-        .map(c => ({ name: c.categoryName, count: countsMap[c._id] || 0 }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 8)
-        .reverse();
-    
+      .map(c => ({ name: c.categoryName, count: countsMap[c._id] || 0 }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8)
+      .reverse();
+
     return {
-       names: sorted.map(c => c.name),
-       counts: sorted.map(c => c.count)
+      names: sorted.map(c => c.name),
+      counts: sorted.map(c => c.count)
     };
   }, [allorders, categories]);
 
@@ -225,29 +225,29 @@ const Dashboard = () => {
     const productCounts = {};
     
     allorders.forEach(order => {
-        if (order.status === 'cancelled') return;
-        order.items?.forEach(item => {
-            const product = item.productId || item.product;
-            if (product && product._id) {
-                if (!productCounts[product._id]) {
-                    productCounts[product._id] = {
-                        name: product.name,
-                        img: product.images?.[0]?.url || '🛒',
-                        quantity: 0,
-                        revenue: 0
-                    };
-                }
-                const qty = item.quantity || 1;
-                const price = item.price || item.selectedVariant?.price || item.selectedVariant?.discountPrice || product.weighstWise?.[0]?.price || 0;
-                productCounts[product._id].quantity += qty;
-                productCounts[product._id].revenue += qty * price;
-            }
-        });
+      if (order.status === 'cancelled') return;
+      order.items?.forEach(item => {
+        const product = item.productId || item.product;
+        if (product && product._id) {
+          if (!productCounts[product._id]) {
+            productCounts[product._id] = {
+              name: product.name,
+              img: product.images?.[0]?.url || '🛒',
+              quantity: 0,
+              revenue: 0
+            };
+          }
+          const qty = item.quantity || 1;
+          const price = item.price || item.selectedVariant?.price || item.selectedVariant?.discountPrice || product.weighstWise?.[0]?.price || 0;
+          productCounts[product._id].quantity += qty;
+          productCounts[product._id].revenue += qty * price;
+        }
+      });
     });
 
     return Object.values(productCounts)
-        .sort((a, b) => b.quantity - a.quantity)
-        .slice(0, 6);
+      .sort((a, b) => b.quantity - a.quantity)
+      .slice(0, 6);
   }, [allorders]);
 
   const [activeTimeframe, setActiveTimeframe] = useState('Weekly');
@@ -405,21 +405,21 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
         <MetricCard
           title="Total Orders"
-          value={allorders.length}      
+          value={allorders.length}
           icon={<ShoppingCart className="text-[var(--primary)]" />}
           bgColor="bg-emerald-50"
           borderColor="border-[var(--primary)]"
         />
         <MetricCard
           title="Order Cancelled"
-          value={allorders.filter(order => order.status === 'cancelled').length}      
+          value={allorders.filter(order => order.status === 'cancelled').length}
           icon={<XCircle className="text-[var(--primary)]" />}
           bgColor="bg-emerald-50"
           borderColor="border-[var(--primary)]"
         />
         <MetricCard
           title="Order Completed"
-          value={allorders.filter(order => order.status === 'delivered' || order.status === 'completed').length}         
+          value={allorders.filter(order => order.status === 'delivered' || order.status === 'completed').length}
           icon={<CheckCircle2 className="text-[var(--primary)]" />}
           bgColor="bg-emerald-50"
           borderColor="border-[var(--primary)]"
@@ -645,11 +645,10 @@ const Dashboard = () => {
             <h2 className="sm:text-3xl text-xl font-bold">
               ${analyticsData[activeTimeframe]?.total?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
             </h2>
-            <div className={`flex items-center px-2 py-1 rounded-full text-xs font-bold gap-1 border ${
-              analyticsData[activeTimeframe]?.growth >= 0 
-                ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
-                : 'bg-red-50 text-red-600 border-red-100'
-            }`}>
+            <div className={`flex items-center px-2 py-1 rounded-full text-xs font-bold gap-1 border ${analyticsData[activeTimeframe]?.growth >= 0
+              ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+              : 'bg-red-50 text-red-600 border-red-100'
+              }`}>
               {analyticsData[activeTimeframe]?.growth >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
               {Math.abs(analyticsData[activeTimeframe]?.growth || 0).toFixed(2)}%
             </div>
@@ -786,15 +785,15 @@ const Dashboard = () => {
           </div>
           <div className="space-y-6">
             {topSellingProducts.length > 0 ? topSellingProducts.map((p, i) => (
-              <RecentOrderRow 
-                key={i} 
-                name={p.name} 
-                price={`$${p.revenue.toFixed(2)}`} 
+              <RecentOrderRow
+                key={i}
+                name={p.name}
+                price={`$${p.revenue.toFixed(2)}`}
                 img={
-                  p.img !== '🛒' 
-                    ? <img src={p.img} alt={p.name} className="w-full h-full object-cover" /> 
+                  p.img !== '🛒'
+                    ? <img src={p.img} alt={p.name} className="w-full h-full object-cover" />
                     : '🛒'
-                } 
+                }
               />
             )) : (
               <p className="text-sm text-slate-500">No products sold yet.</p>

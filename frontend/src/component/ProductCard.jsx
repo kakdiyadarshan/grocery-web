@@ -46,6 +46,8 @@ const ProductCard = ({ product }) => {
     const rating = product.avgRating || product.rating || 0;
     const discount = product.offer?.offer_value || null;
 
+    const outOfStock = product.weighstWise?.every(w => w.stock <= 0);
+
     // Condition to show original price: only if currentPrice is different from initialPrice
     const hasDiscount = currentPrice < initialPrice;
     const originalPriceDisplay = `$${initialPrice}`;
@@ -56,25 +58,32 @@ const ProductCard = ({ product }) => {
             onClick={() => navigate(`/product-details/${product._id}`)}
             className="group relative bg-white border border-gray-200 rounded-lg p-3 sm:p-4 flex flex-col cursor-pointer transition-all duration-300 hover:border-[var(--primary)] hover:shadow-xl hover:shadow-green-50/50"
         >
-            {/* Discount Badge */}
-            {discount && (
-                <span className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 bg-[#FF4F4F] text-white text-[9px] sm:text-[12px] font-bold px-1.5 py-0.5 rounded shadow-sm">
-                    -{product.offer?.offer_type === "Fixed" ? `$${discount}` : `${discount}%`}
-                </span>
-            )}
+            {/* Badges */}
+            <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 flex flex-col gap-1.5">
+                {discount && (
+                    <span className="bg-[#FF4F4F] text-white text-[9px] sm:text-[12px] font-bold px-1.5 py-0.5 rounded shadow-sm">
+                        -{product.offer?.offer_type === "Fixed" ? `$${discount}` : `${discount}%`}
+                    </span>
+                )}
+                {outOfStock && (
+                    <span className="bg-gray-900/90 text-white text-[9px] sm:text-[12px] font-bold px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider">
+                        Sold Out
+                    </span>
+                )}
+            </div>
 
             {/* Product Image */}
             <div className="h-36 sm:h-44 flex items-center justify-center mb-3 sm:mb-4 overflow-hidden relative">
                 <img
                     src={image}
                     alt={title}
-                    className={`max-w-full max-h-full object-contain transition-all duration-500 ${hoverImage ? 'group-hover:opacity-0 group-hover:scale-110' : 'group-hover:scale-110'}`}
+                    className={`max-w-full max-h-full object-contain transition-all duration-500 ${hoverImage ? 'group-hover:opacity-0 group-hover:scale-110' : 'group-hover:scale-110'} ${outOfStock ? 'grayscale opacity-70' : ''}`}
                 />
                 {hoverImage && (
                     <img
                         src={hoverImage}
                         alt={title}
-                        className="absolute inset-0 w-full h-full object-contain transition-all duration-500 opacity-0 group-hover:opacity-100 group-hover:scale-110"
+                        className={`absolute inset-0 w-full h-full object-contain transition-all duration-500 opacity-0 group-hover:opacity-100 group-hover:scale-110 ${outOfStock ? 'grayscale opacity-70' : ''}`}
                     />
                 )}
 
@@ -91,8 +100,9 @@ const ProductCard = ({ product }) => {
                         {isInWishlist ? <AiFillHeart size={18} /> : <AiOutlineHeart size={18} />}
                     </button>
                     <button
-                        title="Add to Cart"
-                        className="w-8 h-8 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-500 hover:bg-[var(--primary)] hover:text-white transition-all transform active:scale-90"
+                        title={outOfStock ? "Out of Stock" : "Add to Cart"}
+                        disabled={outOfStock}
+                        className={`w-8 h-8 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center transition-all transform active:scale-90 ${outOfStock ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-[var(--primary)] hover:text-white'}`}
                         onClick={handleAddToCart}
                     >
                         <AiOutlineShoppingCart size={18} />
@@ -108,7 +118,7 @@ const ProductCard = ({ product }) => {
             </div>
 
             {/* Product Info */}
-            <div className="flex flex-col flex-grow space-y-1 sm:space-y-2">
+            <div className={`flex flex-col flex-grow space-y-1 sm:space-y-2 ${outOfStock ? 'opacity-70' : ''}`}>
                 <span className="text-[10px] sm:text-sm text-[#8D949C] capitalize tracking-wider font-medium">
                     {brand}
                 </span>

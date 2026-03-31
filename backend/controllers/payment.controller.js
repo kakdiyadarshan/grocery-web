@@ -14,7 +14,8 @@ exports.createPayment = async (req, res) => {
             bankDetails
         });
         await payment.save();
-        res.status(201).json({ success: true, message: 'Payment created successfully', data: payment });
+        const populatedPayment = await Payment.findById(payment._id).populate("userId", "firstname lastname email");
+        res.status(201).json({ success: true, message: 'Payment created successfully', data: populatedPayment });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -24,7 +25,7 @@ exports.updatePaymentStatus = async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
-        const payment = await Payment.findByIdAndUpdate(id, { status }, { new: true });
+        const payment = await Payment.findByIdAndUpdate(id, { status }, { new: true }).populate("userId", "firstname lastname email");
         res.status(200).json({ success: true, message: 'Payment status updated successfully', data: payment });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
