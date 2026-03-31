@@ -135,7 +135,7 @@ const Shop = () => {
     const totalPages = Math.ceil(totalFiltered / itemsPerPage);
 
     return (
-        <div className="font-['Inter',sans-serif]">
+        <>
             <div className="bg-white">
                 <div className="container mx-auto px-4 py-8 lg:py-12">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -617,7 +617,7 @@ const Shop = () => {
                     </main>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 

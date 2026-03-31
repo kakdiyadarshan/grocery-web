@@ -27,9 +27,6 @@ import { FiPackage, FiClock, } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { getAllCategories } from '../../redux/slice/category.slice';
 
-
-
-
 const COLORS = ['#228B22', '#fbbf24', '#ef4444', "#70bb70"];
 
 const formatCompact = (val) => {
@@ -861,7 +858,7 @@ const RecentOrderRow = ({ name, price, img }) => (
       <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-2xl group-hover:bg-white group-hover:shadow-sm transition-all overflow-hidden">{img}</div>
       <span className="font-bold text-sm line-clamp-1 max-w-[120px]">{name}</span>
     </div>
-    <span className="text-sm font-bold text-emerald-500">{price}</span>
+    <span className="text-sm font-bold text-primary">{price}</span>
   </div>
 );
 
