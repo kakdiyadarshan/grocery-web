@@ -21,7 +21,8 @@ import {
 } from 'recharts';
 import ReactApexChart from 'react-apexcharts';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchOrders, fetchOrderMonthlyAnalytics, fetchRevenueAnalytics } from '../../redux/slice/order.slice';
+import { fetchOrders } from '../../redux/slice/order.slice';
+import { fetchOrderMonthlyAnalytics, fetchRevenueAnalytics } from '../../redux/slice/dashboard.slice';
 import { getAllProducts } from '../../redux/slice/product.slice';
 import { FiPackage, FiClock, } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
@@ -95,7 +96,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch()
 
-  const { allorders, loading, monthlyAnalytics, revenueAnalytics } = useSelector((state) => state.order);
+  const { allorders, loading } = useSelector((state) => state.order);
+  const { monthlyAnalytics, revenueAnalytics, loading: dashboardLoading } = useSelector((state) => state.dashboard);
   const { categories, loading: categoryLoading } = useSelector((state) => state.category);
   const { products } = useSelector((state) => state.product);
 
@@ -306,7 +308,7 @@ const Dashboard = () => {
     },
     {
       header: 'Items',
-      searchKey: (data) => data.items?.map((item) => item.product?.name).join(' '),
+      searchKey: (data) => data.items?.map((item) => item.productId?.name).join(' '),
       accessor: 'items',
       render: (data) => (
         <div className="flex items-center gap-3">
@@ -314,17 +316,17 @@ const Dashboard = () => {
             {data.items?.slice(0, 2).map((item, i) => (
               <div
                 key={i}
-                className="relative inline-block h-9 w-9 rounded-full ring-2 ring-white overflow-hidden bg-gray-100 shadow-sm transition-transform"
-                title={item.product?.name}
+                className="relative inline-block h-9 w-9 rounded-full ring-2 ring-white overflow-hidden bg-gray-100 shadow-sm transition-transform border border-primary"
+                title={item.productId?.name}
               >
-                {item.product?.images?.[0]?.url ? (
+                {item.productId?.images?.[0]?.url ? (
                   <img
-                    src={item.product.images[0].url}
-                    alt={item.product.name}
+                    src={item.productId.images[0].url}
+                    alt={item.productId.name}
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="h-full w-full flex items-center justify-center text-xs text-gray-400">
+                  <div className="h-full w-full flex items-center  justify-center text-xs text-gray-400">
                     <FiPackage />
                   </div>
                 )}
@@ -332,7 +334,7 @@ const Dashboard = () => {
             ))}
 
             {data.items?.length > 2 && (
-              <div className="relative inline-block h-9 w-9 rounded-full ring-2 ring-white  bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-500">
+              <div className="relative inline-block h-9 w-9 border border-primary rounded-full ring-2 ring-white  bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-500">
                 +{data.items.length - 2}
               </div>
             )}
@@ -933,3 +935,6 @@ const CustomSelect = ({ options, defaultValue, onChange }) => {
 };
 
 export default Dashboard;
+
+
+
