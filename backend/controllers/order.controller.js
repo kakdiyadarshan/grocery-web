@@ -6,6 +6,7 @@ const Address = require('../models/address.model');
 const Product = require('../models/product.model');
 const User = require('../models/user.model');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const { emitRoleNotification, emitUserNotification } = require('../socketManager/socketManager');
 
 // Helper to update stock for an order item (variant-aware fallback)
 const adjustProductStock = async (item, delta) => {
@@ -307,6 +308,17 @@ exports.createOrder = async (req, res) => {
         }
 
         await Cart.findOneAndUpdate({ userId }, { items: [] });
+
+        // Notify Admins about new order
+        await emitRoleNotification({
+            designations: ['admin'],
+            event: 'notify',
+            data: {
+                type: 'new_order',
+                message: `New Order Received: #${order._id.toString().slice(-6).toUpperCase()}`,
+                payload: { orderId: order._id }
+            }
+        });
 
         const populatedOrder = await Order.findById(order._id).populate('addressId').populate('items.productId');
         res.status(201).json({ success: true, data: await transformAndAutoUpdate(populatedOrder) });
@@ -676,6 +688,33 @@ exports.updateOrderStatus = async (req, res) => {
             $push: { trackingHistory: { status, timestamp: new Date(), description: `Order status updated to ${status}` } }
         });
         const order = await getOrderWithOffers(req.params.id);
+
+        // Notify User about status update
+        if (order) {
+            await emitUserNotification({
+                userId: order.userId?._id || order.userId,
+                event: 'notify',
+                data: {
+                    type: 'order_status',
+                    message: `Order #${order._id.toString().slice(-6).toUpperCase()} status updated to: ${status}`,
+                    payload: { orderId: order._id, status }
+                }
+            });
+
+            // If completed or delivered, also notify admin for summary
+            if (status === 'completed' || status === 'delivered') {
+                await emitRoleNotification({
+                    designations: ['admin'],
+                    event: 'notify',
+                    data: {
+                        type: 'order_completed',
+                        message: `Order #${order._id.toString().slice(-6).toUpperCase()} has been delivered successfully.`,
+                        payload: { orderId: order._id }
+                    }
+                });
+            }
+        }
+
         res.status(200).json({ success: true, data: order });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -772,6 +811,27 @@ exports.handleStripeWebhook = async (req, res) => {
         if (order) {
             await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] });
             await Payment.findOneAndUpdate({ orderId: order._id }, { status: 'completed' });
+
+            // Notify user and admin
+            await emitUserNotification({
+                userId: order.userId,
+                event: 'notify',
+                data: {
+                    type: 'order_status',
+                    message: `Payment successful! Order #${order._id.toString().slice(-6).toUpperCase()} is now being processed.`,
+                    payload: { orderId: order._id, status: 'completed' }
+                }
+            });
+
+            await emitRoleNotification({
+                designations: ['admin'],
+                event: 'notify',
+                data: {
+                    type: 'new_order',
+                    message: `Payment received for Order #${order._id.toString().slice(-6).toUpperCase()}. (Stripe)`,
+                    payload: { orderId: order._id }
+                }
+            });
         }
     }
     res.json({ received: true });
@@ -801,6 +861,177 @@ exports.verifyStripeSession = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Payment not completed or session invalid' });
     } catch (error) {
         console.error("verifyStripeSession error:", error);
+exports.getOrderMonthlyAnalytics = async (req, res) => {
+    try {
+        const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
+        
+        const startOfYear = new Date(year, 0, 1);
+        const endOfYear = new Date(year, 11, 31, 23, 59, 59, 999);
+
+        const analytics = await Order.aggregate([
+            { 
+                $match: { 
+                    createdAt: { 
+                        $gte: startOfYear, 
+                        $lte: endOfYear 
+                    } 
+                } 
+            },
+            {
+                $group: {
+                    _id: { $month: "$createdAt" },
+                    totalOrders: { $sum: 1 }
+                }
+            },
+            {
+                $sort: { _id: 1 }
+            }
+        ]);
+
+        const allMonths = [
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        ].map(month => ({
+            month,
+            totalOrders: 0
+        }));
+
+        analytics.forEach(item => {
+            if (item._id >= 1 && item._id <= 12) {
+                allMonths[item._id - 1].totalOrders = item.totalOrders;
+            }
+        });
+
+        res.status(200).json({ success: true, data: allMonths });
+    } catch (error) {
+        console.error("getOrderMonthlyAnalytics Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+exports.getRevenueAnalytics = async (req, res) => {
+    try {
+        const now = new Date();
+        const currentYear = now.getFullYear();
+
+        // 1. Weekly (Mon - Sun of current week)
+        const currentDay = now.getDay() || 7; // 1 (Mon) - 7 (Sun)
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - currentDay + 1);
+        startOfWeek.setHours(0, 0, 0, 0);
+
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        endOfWeek.setHours(23, 59, 59, 999);
+
+        // Previous week for growth %
+        const startOfPrevWeek = new Date(startOfWeek);
+        startOfPrevWeek.setDate(startOfWeek.getDate() - 7);
+        const endOfPrevWeek = new Date(endOfWeek);
+        endOfPrevWeek.setDate(endOfWeek.getDate() - 7);
+
+        // 2. Monthly (Jan - Dec of current year)
+        const startOfYear = new Date(currentYear, 0, 1);
+        const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59, 999);
+        
+        const startOfPrevYear = new Date(currentYear - 1, 0, 1);
+        const endOfPrevYear = new Date(currentYear - 1, 11, 31, 23, 59, 59, 999);
+
+        // 3. Yearly (Past 5 years)
+        const startOf5Years = new Date(currentYear - 4, 0, 1);
+        const startOfPrev5Years = new Date(currentYear - 9, 0, 1);
+        const endOfPrev5Years = new Date(currentYear - 5, 11, 31, 23, 59, 59, 999);
+
+        // Aggregation for Weekly
+        const weeklyData = await Order.aggregate([
+            { $match: { createdAt: { $gte: startOfWeek, $lte: endOfWeek }, status: { $in: ['completed', 'delivered'] } } },
+            { $group: { _id: { $dayOfWeek: "$createdAt" }, revenue: { $sum: "$totalAmount" } } }
+        ]);
+        const prevWeeklyData = await Order.aggregate([
+            { $match: { createdAt: { $gte: startOfPrevWeek, $lte: endOfPrevWeek }, status: { $in: ['completed', 'delivered'] } } },
+            { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+        ]);
+
+        const weeklyValues = Array(7).fill(0);
+        let totalWeeklyRevenue = 0;
+        weeklyData.forEach(item => {
+            const dayIndex = item._id === 1 ? 6 : item._id - 2; 
+            if(dayIndex >= 0 && dayIndex < 7) {
+                weeklyValues[dayIndex] = item.revenue;
+            }
+            totalWeeklyRevenue += item.revenue;
+        });
+        const prevWeeklyRevenue = prevWeeklyData.length ? prevWeeklyData[0].total : 0;
+        const weeklyGrowth = prevWeeklyRevenue ? ((totalWeeklyRevenue - prevWeeklyRevenue) / prevWeeklyRevenue) * 100 : 100;
+
+        // Aggregation for Monthly
+        const monthlyData = await Order.aggregate([
+            { $match: { createdAt: { $gte: startOfYear, $lte: endOfYear }, status: { $in: ['completed', 'delivered'] } } },
+            { $group: { _id: { $month: "$createdAt" }, revenue: { $sum: "$totalAmount" } } }
+        ]);
+        const prevMonthlyData = await Order.aggregate([
+            { $match: { createdAt: { $gte: startOfPrevYear, $lte: endOfPrevYear }, status: { $in: ['completed', 'delivered'] } } },
+            { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+        ]);
+
+        const monthlyValues = Array(12).fill(0);
+        let totalMonthlyRevenue = 0;
+        monthlyData.forEach(item => {
+            if(item._id >= 1 && item._id <= 12) {
+                monthlyValues[item._id - 1] = item.revenue;
+            }
+            totalMonthlyRevenue += item.revenue;
+        });
+        const prevMonthlyRevenue = prevMonthlyData.length ? prevMonthlyData[0].total : 0;
+        const monthlyGrowth = prevMonthlyRevenue ? ((totalMonthlyRevenue - prevMonthlyRevenue) / prevMonthlyRevenue) * 100 : 100;
+
+        // Aggregation for Yearly
+        const yearlyData = await Order.aggregate([
+            { $match: { createdAt: { $gte: startOf5Years, $lte: endOfYear }, status: { $in: ['completed', 'delivered'] } } },
+            { $group: { _id: { $year: "$createdAt" }, revenue: { $sum: "$totalAmount" } } }
+        ]);
+        const prevYearlyData = await Order.aggregate([
+            { $match: { createdAt: { $gte: startOfPrev5Years, $lte: endOfPrev5Years }, status: { $in: ['completed', 'delivered'] } } },
+            { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+        ]);
+
+        const yearlyCategories = [currentYear - 4, currentYear - 3, currentYear - 2, currentYear - 1, currentYear];
+        const yearlyValues = Array(5).fill(0);
+        let totalYearlyRevenue = 0;
+        yearlyData.forEach(item => {
+            const index = yearlyCategories.indexOf(item._id);
+            if (index !== -1) {
+                yearlyValues[index] = item.revenue;
+            }
+            totalYearlyRevenue += item.revenue;
+        });
+        const prevYearlyRevenue = prevYearlyData.length ? prevYearlyData[0].total : 0;
+        const yearlyGrowth = prevYearlyRevenue ? ((totalYearlyRevenue - prevYearlyRevenue) / prevYearlyRevenue) * 100 : 100;
+
+        const responseData = {
+            Weekly: {
+                categories: ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'],
+                series: weeklyValues,
+                total: totalWeeklyRevenue,
+                growth: weeklyGrowth
+            },
+            Monthly: {
+                categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                series: monthlyValues,
+                total: totalMonthlyRevenue,
+                growth: monthlyGrowth
+            },
+            Yearly: {
+                categories: yearlyCategories.map(String),
+                series: yearlyValues,
+                total: totalYearlyRevenue,
+                growth: yearlyGrowth
+            }
+        };
+
+        res.status(200).json({ success: true, data: responseData });
+    } catch (error) {
+        console.error("getRevenueAnalytics Error:", error);
         res.status(500).json({ success: false, message: error.message });
     }
 };

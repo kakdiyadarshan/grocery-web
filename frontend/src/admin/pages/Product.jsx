@@ -24,8 +24,12 @@ import ReactQuill from 'react-quill-new';
 const Product = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { products, loading } = useSelector((state) => state.product);
+    const { products, totalProducts, loading } = useSelector((state) => state.product);
     const { categories } = useSelector((state) => state.category);
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [searchTerm, setSearchTerm] = useState('');
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
@@ -53,9 +57,29 @@ const Product = () => {
     };
 
     useEffect(() => {
-        dispatch(getAllProducts());
+        const params = {
+            page: currentPage,
+            limit: itemsPerPage,
+            paginate: true,
+            search: searchTerm
+        };
+        dispatch(getAllProducts(params));
+    }, [dispatch, currentPage, itemsPerPage, searchTerm]);
+
+    useEffect(() => {
         dispatch(getAllCategories());
     }, [dispatch]);
+
+    useEffect(() => {
+        if (isModalOpen || isImportModalOpen || isChartModalOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'auto';
+        }
+        return () => {
+            document.body.style.overflow = 'auto';
+        };
+    }, [isModalOpen, isImportModalOpen, isChartModalOpen]);
 
     const validationSchema = Yup.object().shape({
         name: Yup.string().required('Product name is required'),
@@ -279,13 +303,14 @@ const Product = () => {
         {
             header: 'SKU',
             accessor: 'sku',
-            render: (row) => <span className="text-[10px] font-mono font-bold text-gray-500 bg-gray-50 px-2 py-1 rounded border border-gray-100 uppercase">{row.sku || '-'}</span>,
+            render: (row) => <span className="text-[10px] font-bold text-gray-500 bg-gray-50 px-2 py-1 rounded border border-gray-100 uppercase">{row.sku || '-'}</span>,
             sortable: true
         },
-        { header: 'Category', accessor: 'category.categoryName', exportValue: (row) => `${row.category?.categoryName}` || '-', render: (row) => row.category?.categoryName || '-' },
+        { header: 'Category', accessor: 'category.categoryName', exportValue: (row) => `${row.category?.categoryName}` || '-', render: (row) => row.category?.categoryName || '-', searchKey: (row) => `${row.category?.categoryName}`.trim() },
         {
             header: 'Price Range',
             accessor: 'weighstWise',
+            searchKey: (row) => `${row.weighstWise.map(w => w.price)}`.trim(),
             exportValue: (row) => {
                 const variantPrices = row.weighstWise.map(v => `${v.weight}${v.unit}: $${v.price}`).join(', ');
                 const prices = row.weighstWise.map(w => w.price);
@@ -304,6 +329,7 @@ const Product = () => {
         {
             header: 'Rating',
             accessor: 'reviews',
+            searchKey: (row) => `${row.reviews.map(r => r.rating)}`.trim(),
             exportValue: (row) => {
                 if (!row.reviews || row.reviews.length === 0) return '0.0';
                 const avgRating = row.reviews.reduce((acc, rev) => acc + (rev.rating || 0), 0) / row.reviews.length;
@@ -383,7 +409,20 @@ const Product = () => {
                 onEdit={handleOpenModal}
                 onView={handleView}
                 onDelete={handleDelete}
-                itemsPerPage={10}
+                itemsPerPage={itemsPerPage}
+                manualPagination={true}
+                manualTotalItems={totalProducts}
+                manualCurrentPage={currentPage}
+                manualRowsPerPage={itemsPerPage}
+                onManualPageChange={(page) => setCurrentPage(page)}
+                onManualRowsPerPageChange={(rows) => {
+                    setItemsPerPage(rows);
+                    setCurrentPage(1);
+                }}
+                onSearch={(val) => {
+                    setSearchTerm(val);
+                    setCurrentPage(1);
+                }}
                 exportFileName="Products"
                 allowExport={true}
             />
@@ -799,7 +838,7 @@ const Product = () => {
 
             {isChartModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300" onClick={() => setIsChartModalOpen(false)}>
-                    <div className="bg-white rounded-[4px] shadow-2xl w-full max-w-5xl h-[650px] max-h-[90vh] overflow-hidden transform transition-all animate-in zoom-in-95 duration-300 flex flex-col relative" onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-white rounded-[4px] shadow-2xl w-full max-w-6xl h-[650px] max-h-[90vh] overflow-hidden transform transition-all animate-in zoom-in-95 duration-300 flex flex-col relative" onClick={(e) => e.stopPropagation()}>
                         <button
                             onClick={() => setIsChartModalOpen(false)}
                             className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors z-[110]"
@@ -832,7 +871,7 @@ const Product = () => {
                             </div>
                         </div>
 
-                        <div className="p-8 overflow-y-auto custom-scrollbar flex-grow bg-slate-50/30">
+                        <div className="p-8 overflow-y-auto custom-scrollbar flex-grow bg-slate-50/30 no-scrollbar">
                             {activeChartTab === 'stock' ? (
                                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                                     <StockChart products={products} noContainer={true} />

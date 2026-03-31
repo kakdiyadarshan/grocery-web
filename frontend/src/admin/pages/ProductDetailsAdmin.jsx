@@ -180,7 +180,7 @@ function ProductDetailsAdmin() {
                         <div className="flex items-center justify-between gap-3 mt-4 flex-wrap">
                             <div className="flex items-center gap-3">
                                 {/* Discounted Price */}
-                                <span className="text-2xl md:text-3xl font-bold text-[#00B880]">
+                                <span className="text-2xl md:text-3xl font-bold text-primary">
                                     ${selectedVariant?.discountPrice || selectedVariant?.price || 0}
                                 </span>
 
@@ -210,7 +210,7 @@ function ProductDetailsAdmin() {
                             />
                             <button
                                 onClick={scrollToDescription}
-                                className="text-[#00B880] font-bold text-sm mt-1 hover:underline flex items-center gap-1 group"
+                                className="text-primary font-bold text-sm mt-1 hover:underline flex items-center gap-1 group"
                             >
                                 Read more <span className="group-hover:translate-x-1 transition-transform">→</span>
                             </button>

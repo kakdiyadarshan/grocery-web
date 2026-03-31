@@ -1,10 +1,10 @@
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import './App.css';
 import { Toaster } from 'sonner';
 import Home from './pages/Home';
 import Wishlist from './pages/Wishlist';
 import Cart from './pages/Cart';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, Navigate } from 'react-router-dom';
 import Adminroutes from './admin/Adminroutes';
 import Login from './component/Login';
 import Register from './component/Register';
@@ -19,9 +19,7 @@ import BlogDetails from './pages/BlogDetails';
 import ProductDetail from './pages/ProductDetail';
 import CheckOut from './pages/CheckOut';
 import MyOrder from './pages/MyOrder';
-// import InvoicePage from './pages/InvoicePage';
 import Shop from './pages/Shop';
-
 
 import Layout from './component/Layout';
 import OrderCompleted from './pages/OrderCompleted';
@@ -32,16 +30,19 @@ import UserProfile from './pages/UserProfile';
 import PrivateRoute from './component/PrivateRoute';
 
 function App() {
-  const dispatch = useDispatch();
-
+  const { isAuthenticated } = useSelector((state) => state.auth);
 
   return (
     <>
       <Toaster richColors position="top-center" />
       <Routes>
+        {/* Layout Wrapper for Shared Components (Header/Footer) */}
         <Route element={<Layout />}>
-          {/* Public Routes */}
+
+          {/* --- PUBLIC ROUTES (Accessible to Everyone) --- */}
           <Route path="/" element={<Home />} />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/product-details/:id" element={<ProductDetail />} />
           <Route path="/contact" element={<ContactUs />} />
           <Route path="/aboutus" element={<About />} />
           <Route path="/blog" element={<Blog />} />
@@ -50,55 +51,42 @@ function App() {
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-condition" element={<Termscondition />} />
           <Route path="/shipping-policy" element={<ShippingPolicy />} />
-          <Route path="/wishlist" element={<Wishlist />} />
-          <Route path="/product-details/:id" element={<ProductDetail />} />
-          <Route path='/checkout' element={<CheckOut />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/my-order" element={<MyOrder />} />
-          <Route path='/order-tracking/:id' element={<OrderTracking />} />
-          <Route path='/order-completed' element={<OrderCompleted />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/shop" element={<Shop />} />
-          {/* <Route path="/category" element={<Shop />} /> */}
-          <Route path="/profile" element={<UserProfile />} />
-          {/* <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} /> */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
 
-          {/* Protected Routes */}
+          {/* --- PRIVATE ROUTES (Authenticated Users Only) --- */}
           <Route element={<PrivateRoute />}>
-            <Route path="/contact" element={<ContactUs />} />
-            <Route path="/aboutus" element={<About />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:id" element={<BlogDetails />} />
-            <Route path="/faqs" element={<FAQs />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/terms-condition" element={<Termscondition />} />
-            <Route path="/shipping-policy" element={<ShippingPolicy />} />
+            <Route path="/profile" element={<UserProfile />} />
             <Route path="/wishlist" element={<Wishlist />} />
-            <Route path="/product-details/:id" element={<ProductDetail />} />
-            <Route path='/checkout' element={<CheckOut />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/checkout" element={<CheckOut />} />
             <Route path="/my-order" element={<MyOrder />} />
-            <Route path='/order-tracking' element={<OrderTracking />} />
-            <Route path='/order-completed' element={<OrderCompleted />} />
-            {/* <Route path='/invoice' element={<InvoicePage />} /> */}
-            <Route path="/shop" element={<Shop />} />
+            <Route path="/order-tracking/:id" element={<OrderTracking />} />
+            <Route path="/order-completed" element={<OrderCompleted />} />
           </Route>
+
         </Route>
 
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/" element={<ForgotPassword />} />
-        {/* Catch-all or other paths */}
+        {/* --- GUEST-ONLY ROUTES (Non-Authenticated Users Only) --- */}
+        <Route
+          path="/login"
+          element={isAuthenticated ? <Navigate to="/" replace /> : <Login />}
+        />
+        <Route
+          path="/register"
+          element={isAuthenticated ? <Navigate to="/" replace /> : <Register />}
+        />
+        <Route
+          path="/forgot-password"
+          element={isAuthenticated ? <Navigate to="/" replace /> : <ForgotPassword />}
+        />
+
+        {/* --- ADMIN ROUTES --- */}
         <Route path="/admin/*" element={<Adminroutes />} />
+
+        {/* Catch-all Redirect */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
   );
 }
 
 export default App;
-

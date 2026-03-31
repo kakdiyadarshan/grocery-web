@@ -1,6 +1,7 @@
 const Review = require('../models/review.model');
 const Product = require('../models/product.model');
 const { uploadToS3, deleteManyFromS3 } = require('../utils/s3Service');
+const { emitRoleNotification } = require('../socketManager/socketManager');
 
 // Create Review
 exports.createReview = async (req, res) => {
@@ -41,6 +42,17 @@ exports.createReview = async (req, res) => {
         // Add review ID to the product data
         await Product.findByIdAndUpdate(productId, {
             $push: { reviews: review._id }
+        });
+
+        // Notify admins about new review
+        await emitRoleNotification({
+            designations: ['admin'],
+            event: 'notify',
+            data: {
+                type: 'new_review',
+                message: `New Review for ${productExists.name}: ${rating} Stars`,
+                payload: { reviewId: review._id, productId }
+            }
         });
 
         res.status(201).json({

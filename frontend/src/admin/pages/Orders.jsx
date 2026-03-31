@@ -41,7 +41,7 @@ const Orders = () => {
         {
             header: 'Order Info',
             accessor: '_id',
-            searchKey: (data) => data._id + " " + data.user?.username,
+            searchKey: (data) => data._id + " " + data.userId?.firstname + " " + data.userId?.lastname,
             render: (data) => (
                 <div className="flex flex-col gap-0.5">
                     <div className="font-bold text-textPrimary">
@@ -56,6 +56,7 @@ const Orders = () => {
         {
             header: 'Order Date',
             accessor: 'createdAt',
+            searchKey: (data) => new Date(data.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
             render: (data) => (
                 <div className="flex items-center gap-2 text-textSecondary">
                     <FiClock size={12} className="text-textSecondary opacity-60" />
@@ -75,13 +76,13 @@ const Orders = () => {
                         {data.items?.slice(0, 3).map((item, i) => (
                             <div
                                 key={i}
-                                className="relative inline-block h-9 w-9 rounded-full ring-2 ring-white overflow-hidden bg-gray-100 shadow-sm transition-transform hover:scale-110 hover:z-10"
-                                title={item.product?.name}
+                                className="relative inline-block h-9 w-9 rounded-full ring-2 ring-white overflow-hidden bg-gray-100 shadow-sm transition-transform hover:scale-110 hover:z-10 border border-primary"
+                                title={item.productId?.name}
                             >
-                                {item.product?.images?.[0]?.url ? (
+                                {item.productId?.images?.[0]?.url ? (
                                     <img
-                                        src={item.product.images[0].url}
-                                        alt={item.product.name}
+                                        src={item.productId.images[0].url}
+                                        alt={item.productId.name}
                                         className="h-full w-full object-cover"
                                     />
                                 ) : (
@@ -119,17 +120,35 @@ const Orders = () => {
             render: (data) => (
                 <div className="text-sm font-medium text-textPrimary">
                     {data.paymentMethod}
-                </div>
+                    </div>
             )
         },
         {
             header: 'Payment Status',
             accessor: 'payment',
-            render: (data) => (
-                <div className="text-sm font-medium text-textPrimary">
-                    {data.payment?.status}
-                </div>
-            )
+            render: (data) => {
+                const status = data.payment?.status?.toLowerCase();
+                let config = {
+                    color: 'bg-gray-50 text-gray-600 border-gray-200',
+                    Icon: FiAlertCircle
+                };
+
+                if (status === 'paid' || status === 'captured' || status === 'completed') {
+                    config = { color: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+                } else if (status === 'pending') {
+                    config = { color: 'bg-amber-50 text-amber-700 border-amber-200'};
+                } else if (status === 'failed' || status === 'error') {
+                    config = { color: 'bg-rose-50 text-rose-700 border-rose-200' };
+                } else if (status === 'refunded') {
+                    config = { color: 'bg-indigo-50 text-indigo-700 border-indigo-200' };
+                }
+
+                return (
+                    <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] text-[12px] font-[600] border capitalize transition-all duration-300 ${config.color}`}>
+                        {data.payment?.status || 'N/A'}
+                    </div>
+                );
+            }
         },
         {
             header: 'Order Status',
@@ -141,18 +160,18 @@ const Orders = () => {
                             data.status === 'shipped' ? 'bg-purple-50 text-purple-700 border-purple-200' :
                                 data.status === 'cancelled' ? 'bg-red-50 text-red-700 border-red-200' :
                                     'bg-yellow-50 text-yellow-700 border-yellow-200'}`}>
-                    {data.status}
+                        {data.status}
                 </span>
             )
         },
         {
             header: 'Shipping',
-            searchKey: (data) => `${data.address?.firstName} ${data.address?.lastName} ${data.address?.city} ${data.address?.zipcode}`,
+            searchKey: (data) => `${data.address?.firstname} ${data.address?.lastname} ${data.address?.address} ${data.address?.city} ${data.address?.zipcode}`,
             accessor: 'address',
             render: (data) => (
                 <div className='max-w-[150px] text-xs text-textSecondary truncate'>
                     <div className='font-medium text-textPrimary'>
-                        {data.address?.firstName} {data.address?.lastName}
+                        {data.address?.firstname} {data.address?.lastname}
                     </div>
                     <div title={`${data.address?.address}, ${data.address?.city}`}>
                         {data.address?.address}, <br />{data.address?.city}

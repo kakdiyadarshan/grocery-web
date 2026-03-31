@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { User, Heart, ShoppingBag, Menu, ChevronDown, ChevronUp, AlignLeft, X, Search } from 'lucide-react';
+import { User, Heart, ShoppingBag, Menu, ChevronDown, ChevronUp, AlignLeft, X, Search, LogOut } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import logo from '../Image/logo.png';
@@ -38,10 +38,12 @@ const Header = () => {
   const lastProfileFetchAtRef = useRef(0);
 
   useEffect(() => {
-    dispatch(getCart());
-    dispatch(getWishlist());
+    if (isAuthenticated) {
+      dispatch(getCart());
+      dispatch(getWishlist());
+    }
     dispatch(getAllCategories());
-  }, [dispatch]);
+  }, [dispatch, isAuthenticated]);
 
   useEffect(() => {
     // Keep header avatar in sync with server updates (e.g., photo upload on profile page).
@@ -106,8 +108,8 @@ const Header = () => {
     }
   }, [location.pathname, location.search]);
 
-  const cartCount = cart?.items?.filter(item => item?.productId).length || 0;
-  const wishlistCount = wishlist?.items?.filter(item => item?.productId).length || 0;
+  const cartCount = isAuthenticated ? (cart?.items?.filter(item => item?.productId && (item.productId.name || item.productId.productName))?.length || 0) : 0;
+  const wishlistCount = isAuthenticated ? (wishlist?.items?.filter(item => item?.productId && (item.productId.name || item.productId.productName))?.length || 0) : 0;
 
   const userPhotoUrl = user?.photo?.url || '';
   const userFullName = `${user?.firstname || ''} ${user?.lastname || ''}`.trim() || user?.name || '';
@@ -277,11 +279,11 @@ const Header = () => {
           </ul>
         ) : debouncedSearchTerm ? (
           <div className="px-6 py-8 text-center">
-             <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
-               <Search className="w-6 h-6 text-gray-300" />
-             </div>
-             <p className="text-sm text-gray-500 font-medium">No results found for "<span className="font-bold">{debouncedSearchTerm}</span>"</p>
-             <p className="text-xs text-gray-400 mt-1">Try check for typos or use different keywords</p>
+            <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+              <Search className="w-6 h-6 text-gray-300" />
+            </div>
+            <p className="text-sm text-gray-500 font-medium">No results found for "<span className="font-bold">{debouncedSearchTerm}</span>"</p>
+            <p className="text-xs text-gray-400 mt-1">Try check for typos or use different keywords</p>
           </div>
         ) : recentSearches.length > 0 ? (
           <div className="py-2">
@@ -307,11 +309,11 @@ const Header = () => {
           </div>
         ) : (
           <div className="px-6 py-8 text-center">
-             <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
-               <Search className="w-6 h-6 text-gray-300" />
-             </div>
-             <p className="text-sm text-gray-500 font-bold">What are you looking for?</p>
-             <p className="text-xs text-gray-400 mt-1">Search by products, categories, or tags</p>
+            <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+              <Search className="w-6 h-6 text-gray-300" />
+            </div>
+            <p className="text-sm text-gray-500 font-bold">What are you looking for?</p>
+            <p className="text-xs text-gray-400 mt-1">Search by products, categories, or tags</p>
           </div>
         )}
       </div>
@@ -402,31 +404,31 @@ const Header = () => {
                             <p className="text-[13px] font-bold text-gray-900 truncate">{userFullName || 'User Account'}</p>
                             <p className="text-[11px] text-gray-400 truncate mt-0.5">{user?.email}</p>
                           </li>
-                          
+
                           <li>
-                            <Link 
-                              to="/profile" 
-                              onClick={() => setIsUserMenuOpen(false)} 
+                            <Link
+                              to="/profile"
+                              onClick={() => setIsUserMenuOpen(false)}
                               className="flex items-center gap-3 px-5 py-2.5 text-[14px] text-[var(--text-gray)] hover:text-[var(--primary)] hover:bg-gray-50 transition-all font-medium"
                             >
                               <User size={17} className="stroke-[1.5]" />
                               My Profile
                             </Link>
                           </li>
-                          <li>
-                            <Link 
-                              to="/my-order" 
-                              onClick={() => setIsUserMenuOpen(false)} 
+                          {/* <li>
+                            <Link
+                              to="/my-order"
+                              onClick={() => setIsUserMenuOpen(false)}
                               className="flex items-center gap-3 px-5 py-2.5 text-[14px] text-[var(--text-gray)] hover:text-[var(--primary)] hover:bg-gray-50 transition-all font-medium"
                             >
                               <ShoppingBag size={17} className="stroke-[1.5]" />
                               My Orders
                             </Link>
-                          </li>
+                          </li> */}
                           <li className="border-t border-gray-100 mt-1 pt-1">
                             <button
                               onClick={handleLogoutClick}
-                               className="w-full text-left flex items-center gap-3 px-5 py-2.5 text-[14px] text-rose-500 hover:bg-rose-50 transition-all font-semibold"
+                              className="w-full text-left flex items-center gap-3 px-5 py-2.5 text-[14px] text-rose-500 hover:bg-rose-50 transition-all font-semibold"
                             >
                               <X size={17} className="stroke-[2]" />
                               Logout
@@ -436,9 +438,9 @@ const Header = () => {
                       ) : (
                         <>
                           <li>
-                            <Link 
-                              to="/login" 
-                              onClick={() => setIsUserMenuOpen(false)} 
+                            <Link
+                              to="/login"
+                              onClick={() => setIsUserMenuOpen(false)}
                               className="flex items-center gap-3 px-5 py-3 text-[14px] text-[var(--text-gray)] hover:text-[var(--primary)] hover:bg-gray-50 transition-all font-bold"
                             >
                               <User size={17} className="stroke-[2]" />
@@ -446,9 +448,9 @@ const Header = () => {
                             </Link>
                           </li>
                           <li className="border-t border-gray-50">
-                            <Link 
-                              to="/register" 
-                              onClick={() => setIsUserMenuOpen(false)} 
+                            <Link
+                              to="/register"
+                              onClick={() => setIsUserMenuOpen(false)}
                               className="flex items-center gap-3 px-5 py-3 text-[14px] text-[var(--text-gray)] hover:text-[var(--primary)] hover:bg-gray-50 transition-all font-bold"
                             >
                               Register Account
@@ -634,10 +636,10 @@ const Header = () => {
           <Link to="/aboutus" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 text-[15px] font-bold text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors border-b border-gray-50 pb-3">About us</Link>
           <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 text-[15px] font-bold text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors border-b border-gray-50 pb-3">Contact us</Link>
           <Link to="/blog" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 text-[15px] font-bold text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors border-b border-gray-50 pb-3">Blog</Link>
-          
+
           {isAuthenticated && (
-            <button 
-              onClick={handleLogoutClick} 
+            <button
+              onClick={handleLogoutClick}
               className="flex items-center gap-3 text-[15px] font-bold text-rose-500 hover:text-rose-600 transition-colors pt-2"
             >
               Logout
@@ -648,32 +650,75 @@ const Header = () => {
 
       {/* Logout Confirmation Modal */}
       {isLogoutModalOpen && (
+        // <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        //   <div
+        //     className="absolute inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity"
+        //     onClick={() => setIsLogoutModalOpen(false)}
+        //   ></div>
+
+        //   <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-[450px] p-8 md:p-10 transform transition-all animate-in fade-in zoom-in duration-200">
+        //     <div className="text-center">
+        //       <h3 className="text-xl md:text-2xl font-semibold text-[#1F2937] mb-8">
+        //         Are you sure you want to signOut?
+        //       </h3>
+
+        //       <div className="flex items-center justify-center gap-4">
+        //         <button
+        //           onClick={confirmLogout}
+        //           className="flex-1 bg-[#F34E4E] hover:bg-[#E33E3E] text-white font-semibold py-3 px-6 rounded-lg transition-colors shadow-sm active:scale-95"
+        //         >
+        //           SignOut
+        //         </button>
+        //         <button
+        //           onClick={() => setIsLogoutModalOpen(false)}
+        //           className="flex-1 bg-white border border-gray-200 hover:bg-gray-50 text-[#1F2937] font-semibold py-3 px-6 rounded-lg transition-colors active:scale-95"
+        //         >
+        //           Cancel
+        //         </button>
+        //       </div>
+        //     </div>
+        //   </div>
+        // </div>
+
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
             onClick={() => setIsLogoutModalOpen(false)}
           ></div>
 
-          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-[450px] p-8 md:p-10 transform transition-all animate-in fade-in zoom-in duration-200">
-            <div className="text-center">
-              <h3 className="text-xl md:text-2xl font-semibold text-[#1F2937] mb-8">
-                Are you sure you want to signOut?
-              </h3>
+          <div className="relative w-full max-w-md rounded-2xl bg-white/80 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.2)] border border-white/30 p-8 animate-fadeIn">
 
-              <div className="flex items-center justify-center gap-4">
-                <button
-                  onClick={confirmLogout}
-                  className="flex-1 bg-[#F34E4E] hover:bg-[#E33E3E] text-white font-semibold py-3 px-6 rounded-lg transition-colors shadow-sm active:scale-95"
-                >
-                  SignOut
-                </button>
-                <button
-                  onClick={() => setIsLogoutModalOpen(false)}
-                  className="flex-1 bg-white border border-gray-200 hover:bg-gray-50 text-[#1F2937] font-semibold py-3 px-6 rounded-lg transition-colors active:scale-95"
-                >
-                  Cancel
-                </button>
+            <div className="flex justify-center mb-5">
+              <div className="w-14 h-14 flex items-center justify-center rounded-full bg-red-100 text-red-500 shadow-inner">
+                <LogOut size={26} />
               </div>
+            </div>
+
+            <h3 className="text-2xl font-semibold text-gray-800 text-center mb-2">
+              Sign Out?
+            </h3>
+
+            <p className="text-gray-500 text-center mb-8 text-sm">
+              Are you sure you want to log out from your account?
+            </p>
+
+            <div className="flex gap-4">
+
+              <button
+                onClick={confirmLogout}
+                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold shadow-lg hover:shadow-red-300/40 hover:scale-[1.02] transition-all duration-200 active:scale-95"
+              >
+                Sign Out
+              </button>
+
+              <button
+                onClick={() => setIsLogoutModalOpen(false)}
+                className="flex-1 py-3 rounded-xl border border-gray-200 bg-white text-gray-700 font-medium hover:bg-gray-100 transition-all duration-200 active:scale-95"
+              >
+                Cancel
+              </button>
+
             </div>
           </div>
         </div>

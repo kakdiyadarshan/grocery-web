@@ -1,6 +1,7 @@
 const { default: mongoose } = require("mongoose");
 const Product = require("../models/product.model");
 const Category = require("../models/category.model");
+const Order = require("../models/order.model");
 const xlsx = require("xlsx");
 const { uploadToS3, uploadUrlToS3, updateS3, deleteFromS3, deleteManyFromS3 } = require("../utils/s3Service");
 
@@ -84,8 +85,34 @@ exports.createProduct = async (req, res) => {
 exports.getAllProducts = async (req, res) => {
     try {
         const today = new Date();
+        const { page = 1, limit = 10, paginate = 'false', search, category, minPrice, maxPrice, weights, availability } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit) || 0;
+        const pageLimit = parseInt(limit);
+        const paginateBool = paginate === 'true';
 
-        const products = await Product.aggregate([
+        let matchStage = {};
+        if (search) {
+            matchStage.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { sku: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        // Multiple categories support (comma separated)
+        if (category) {
+            const categories = category.split(',');
+            if (categories.length > 1) {
+                // If multiple, we handle it after lookup/unwind for convenience or here if we want performance
+                // For now, let's stick to the existing pipeline structure but allow array match
+            }
+        }
+
+        let pipeline = [];
+        if (Object.keys(matchStage).length > 0) {
+            pipeline.push({ $match: matchStage });
+        }
+
+        pipeline.push(
             {
                 $lookup: {
                     from: 'offers',
@@ -127,7 +154,16 @@ exports.getAllProducts = async (req, res) => {
                     foreignField: 'productId',
                     as: 'reviews'
                 }
-            },
+            }
+        );
+
+        // Add category filter after unwind
+        if (category) {
+            const categoryArray = category.split(',');
+            pipeline.push({ $match: { 'category.categoryName': { $in: categoryArray } } });
+        }
+
+        pipeline.push(
             {
                 $addFields: {
                     avgRating: { $avg: '$reviews.rating' },
@@ -164,6 +200,12 @@ exports.getAllProducts = async (req, res) => {
                                                 },
                                                 else: '$$w.price'
                                             }
+                                        },
+                                        weightLabel: {
+                                            $concat: [
+                                                { $toString: '$$w.weight' },
+                                                { $cond: [{ $ifNull: ['$$w.unit', false] }, { $concat: [' ', '$$w.unit'] }, ''] }
+                                            ]
                                         }
                                     }
                                 ]
@@ -174,12 +216,70 @@ exports.getAllProducts = async (req, res) => {
             },
             {
                 $addFields: {
-                    discountPrice: { $min: '$weighstWise.discountPrice' }
+                    minPrice: { $min: '$weighstWise.price' },
+                    minDiscountPrice: { $min: '$weighstWise.discountPrice' },
+                    totalStock: { $sum: '$weighstWise.stock' }
                 }
             }
-        ]);
+        );
 
-        res.status(200).json({ success: true, products });
+        // Price Range Filter
+        if (minPrice || maxPrice) {
+            let priceMatch = {};
+            if (minPrice) priceMatch.$gte = parseFloat(minPrice);
+            if (maxPrice) priceMatch.$lte = parseFloat(maxPrice);
+            pipeline.push({ $match: { minPrice: priceMatch } });
+        }
+
+        // Weight Filter (e.g., "500 Gram,1 Kilogram")
+        if (weights) {
+            const weightArray = weights.split(',');
+            pipeline.push({ $match: { 'weighstWise.weightLabel': { $in: weightArray } } });
+        }
+
+        // Availability Filter
+        if (availability) {
+            if (availability === 'in-stock') pipeline.push({ $match: { totalStock: { $gt: 0 } } });
+            if (availability === 'out-of-stock') pipeline.push({ $match: { totalStock: { $lte: 0 } } });
+        }
+
+        // Sorting
+        const { sort } = req.query;
+        if (sort) {
+            switch (sort) {
+                case 'alphabetical-az': pipeline.push({ $sort: { name: 1 } }); break;
+                case 'alphabetical-za': pipeline.push({ $sort: { name: -1 } }); break;
+                case 'price-low-high': pipeline.push({ $sort: { minPrice: 1 } }); break;
+                case 'price-high-low': pipeline.push({ $sort: { minPrice: -1 } }); break;
+                default: pipeline.push({ $sort: { createdAt: -1 } });
+            }
+        } else {
+            pipeline.push({ $sort: { createdAt: -1 } });
+        }
+
+        if (paginateBool) {
+            pipeline.push({
+                $facet: {
+                    metadata: [{ $count: "total" }],
+                    data: [{ $skip: skip }, { $limit: pageLimit }]
+                }
+            });
+
+            const result = await Product.aggregate(pipeline);
+            const products = result[0].data;
+            const totalProducts = result[0].metadata[0]?.total || 0;
+
+            res.status(200).json({
+                success: true,
+                products,
+                totalProducts,
+                totalPages: Math.ceil(totalProducts / pageLimit),
+                currentPage: parseInt(page) || 1
+            });
+        } else {
+            const products = await Product.aggregate(pipeline);
+            res.status(200).json({ success: true, products });
+        }
 
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -706,6 +806,138 @@ exports.importProducts = async (req, res) => {
 
     } catch (error) {
         console.error("Import Products Error:", error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+// Get Best Selling Products
+exports.getBestSellingProducts = async (req, res) => {
+    try {
+        const today = new Date();
+        const limit = parseInt(req.query.limit) || 10;
+
+        // Step 1: Identify best selling product IDs from the Order collection
+        const bestSellingStage = await Order.aggregate([
+            { $match: { status: { $nin: ['pending', 'cancelled'] } } },
+            { $unwind: '$items' },
+            {
+                $group: {
+                    _id: '$items.productId',
+                    soldCount: { $sum: '$items.quantity' }
+                }
+            },
+            { $sort: { soldCount: -1 } },
+            { $limit: limit }
+        ]);
+
+        if (bestSellingStage.length === 0) {
+            return res.status(200).json({ success: true, data: [] });
+        }
+
+        const productIds = bestSellingStage.map(item => item._id);
+
+        // Step 2: Fetch detailed product information using the same lookups as getAllProducts
+        const pipeline = [
+            { $match: { _id: { $in: productIds } } },
+            {
+                $lookup: {
+                    from: 'offers',
+                    let: { productId: '$_id' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $in: ['$$productId', '$product_id'] },
+                                        { $lte: ['$offer_start_date', today] },
+                                        { $gte: ['$offer_end_date', today] }
+                                    ]
+                                }
+                            }
+                        }
+                    ],
+                    as: 'offer'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'categories',
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$category',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'reviews',
+                    localField: '_id',
+                    foreignField: 'productId',
+                    as: 'reviews'
+                }
+            },
+            {
+                $addFields: {
+                    avgRating: { $avg: '$reviews.rating' },
+                    reviewCount: { $size: '$reviews' },
+                    offer: { $arrayElemAt: ['$offer', 0] }
+                }
+            },
+            {
+                $addFields: {
+                    weighstWise: {
+                        $map: {
+                            input: '$weighstWise',
+                            as: 'w',
+                            in: {
+                                $mergeObjects: [
+                                    '$$w',
+                                    {
+                                        discountPrice: {
+                                            $cond: {
+                                                if: { $ifNull: ['$offer', false] },
+                                                then: {
+                                                    $cond: {
+                                                        if: { $eq: ['$offer.offer_type', 'Discount'] },
+                                                        then: {
+                                                            $subtract: [
+                                                                '$$w.price',
+                                                                { $divide: [{ $multiply: ['$$w.price', '$offer.offer_value'] }, 100] }
+                                                            ]
+                                                        },
+                                                        else: {
+                                                            $max: [0, { $subtract: ['$$w.price', '$offer.offer_value'] }]
+                                                        }
+                                                    }
+                                                },
+                                                else: '$$w.price'
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        ];
+
+        const products = await Product.aggregate(pipeline);
+
+        // Sort the results back based on soldCount order
+        const sortedProducts = productIds.map(id => {
+            const product = products.find(p => p._id.toString() === id.toString());
+            const soldStats = bestSellingStage.find(item => item._id.toString() === id.toString());
+            return product ? { ...product, totalSold: soldStats.soldCount } : null;
+        }).filter(p => p !== null);
+
+        res.status(200).json({ success: true, data: sortedProducts });
+
+    } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 };

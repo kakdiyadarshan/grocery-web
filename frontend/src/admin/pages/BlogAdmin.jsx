@@ -79,6 +79,7 @@ const BlogAdmin = () => {
         {
             header: 'Category',
             accessor: 'blogCategoryId',
+            searchKey: (item) => item.blogCategoryId?.blogCategoryName || 'N/A',
             exportValue: (item) => item.blogCategoryId?.blogCategoryName || 'N/A',
             render: (item) => (
                 <span className="px-2 py-1 text-xs font-medium bg-primary/10 text-primary rounded-[4px]">
@@ -89,6 +90,7 @@ const BlogAdmin = () => {
         {
             header: 'Sections',
             accessor: 'section',
+            searchKey: (item) => `${item.section?.length || 0} sections`,
             exportValue: (item) => `${item.section?.length || 0} sections`,
             render: (item) => (
                 <span className="font-semibold text-gray-700">{item.section?.length || 0} sections</span>
@@ -97,6 +99,7 @@ const BlogAdmin = () => {
         {
             header: 'Created',
             accessor: 'createdAt',
+            searchKey: (item) => new Date(item.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }),
             exportValue: (item) => new Date(item.createdAt).toLocaleString(),
             render: (item) => new Date(item.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })
         },

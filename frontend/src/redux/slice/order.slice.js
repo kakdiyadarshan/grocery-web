@@ -13,6 +13,8 @@ const initialState = {
     orders: [],
     allorders: [],
     currentOrder: null,
+    monthlyAnalytics: [],
+    revenueAnalytics: null,
     loading: false,
     error: null,
 };
@@ -140,6 +142,42 @@ export const deleteOrder = createAsyncThunk(
     }
 );
 
+export const fetchOrderMonthlyAnalytics = createAsyncThunk(
+    'order/fetchOrderMonthlyAnalytics',
+    async (year, { dispatch, rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem('token');
+            const url = year ? `${BASE_URL}/order-monthly-analytics?year=${year}` : `${BASE_URL}/order-monthly-analytics`;
+            const response = await axios.get(url, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            return response.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
+export const fetchRevenueAnalytics = createAsyncThunk(
+    'order/fetchRevenueAnalytics',
+    async (_, { dispatch, rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`${BASE_URL}/revenue-analytics`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            return response.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
+
 
 const orderSlice = createSlice({
 
@@ -201,7 +239,25 @@ const orderSlice = createSlice({
                 state.loading = false;
                 state.allorders = state.allorders.filter(order => order._id !== action.payload);
             })
-            .addCase(deleteOrder.rejected, (state) => { state.loading = false; });
+            .addCase(deleteOrder.rejected, (state) => { state.loading = false; })
+
+            .addCase(fetchOrderMonthlyAnalytics.pending, (state) => { state.loading = true; })
+            .addCase(fetchOrderMonthlyAnalytics.fulfilled, (state, action) => {
+                state.loading = false;
+                state.monthlyAnalytics = action.payload.data;
+            })
+            .addCase(fetchOrderMonthlyAnalytics.rejected, (state, action) => {
+                state.loading = false;
+            })
+            
+            .addCase(fetchRevenueAnalytics.pending, (state) => { state.loading = true; })
+            .addCase(fetchRevenueAnalytics.fulfilled, (state, action) => {
+                state.loading = false;
+                state.revenueAnalytics = action.payload.data;
+            })
+            .addCase(fetchRevenueAnalytics.rejected, (state, action) => {
+                state.loading = false;
+            });
 
 
     }

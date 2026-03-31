@@ -44,6 +44,7 @@ const BlogCategoryAdmin = () => {
         {
             header: 'Created',
             accessor: 'createdAt',
+            searchKey: (item) => new Date(item.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }),
             exportValue: (item) => new Date(item.createdAt).toLocaleString(),
             render: (item) => new Date(item.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })
         },

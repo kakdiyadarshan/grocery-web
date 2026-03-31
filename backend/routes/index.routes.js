@@ -8,7 +8,7 @@ const { createCategory, getAllCategories, getCategoryById, updateCategory, delet
 const { getCart, addToCart, updateCartQuantity, removeFromCart, clearCart } = require('../controllers/cart.controller');
 
 const { getWishlist, addToWishlist, removeFromWishlist } = require('../controllers/wishlist.controller');
-const { createProduct, getAllProducts, getProductById, updateProduct, deleteProduct, getFeaturedProducts, importProducts } = require('../controllers/product.controller');
+const { createProduct, getAllProducts, getProductById, updateProduct, deleteProduct, getFeaturedProducts, importProducts, getBestSellingProducts } = require('../controllers/product.controller');
 const { auth, authorizeRoles } = require('../middleware/auth.middleware');
 const { uploadPrivacyImage, saveAllPrivacyPolicies, getAllPrivacyPolicies, getPrivacyPolicyById } = require('../controllers/privacy.controller');
 const { addNewBlogCategoryController, getAllBlogCategoryController, getBlogCategoryByIdController, updateBlogCategoryController, deleteBlogCategoryController } = require('../controllers/blog.category.controller');
@@ -21,11 +21,12 @@ const { createOffer, getAllOffers, getOfferById, updateOffer, deleteOffer } = re
 const { createFAQ, getAllFAQs, getFAQById, updateFAQ, deleteFAQ } = require('../controllers/faq.controller');
 const { createReview, getReviewById, getAllReviews, deleteReview } = require('../controllers/review.controller');
 const { createCoupon, getAllCoupons, deleteCoupon, getCouponById, updateCoupon } = require('../controllers/coupon.controller');
-const { createOrder, getAllOrders, getOrderById, updateOrderStatus, deleteOrder, getUserOrders, cancelOrder, trackOrder, handleStripeWebhook, verifyStripeSession } = require('../controllers/order.controller');
+const { createOrder, getAllOrders, getOrderById, updateOrderStatus, deleteOrder, getUserOrders, cancelOrder, trackOrder, handleStripeWebhook, getOrderMonthlyAnalytics, getRevenueAnalytics,verifyStripeSession } = require('../controllers/order.controller');
 const { createPayment, getPaymentById, getAllPayments, deletePayment, getPaymentByUserId, getPaymentByOrderId } = require('../controllers/payment.controller');
 const { addAddress, getAddresses, updateAddress, deleteAddress, setDefaultAddress } = require('../controllers/address.controller');
 const { createOfferBanner, getAllOfferBanners, updateOfferBanner, deleteOfferBanner } = require('../controllers/offerbanner.controller');
 const { createBanner, getAllBanners, updateBanner, deleteBanner } = require('../controllers/banner.controller');
+const { getMyNotifications, markSeen, clearAll } = require('../controllers/notification.controller');
 
 // Auth routes
 indexRoutes.post('/register', createUser);
@@ -56,6 +57,7 @@ indexRoutes.delete('/deleteCategory/:id', auth, authorizeRoles('admin'), deleteC
 indexRoutes.post('/createProduct', auth, authorizeRoles('admin'), upload.array('images', 10), createProduct);
 indexRoutes.get('/getAllProducts', getAllProducts);
 indexRoutes.get('/getFeaturedProducts', getFeaturedProducts);
+indexRoutes.get('/getBestSellingProducts', getBestSellingProducts);
 indexRoutes.get('/getProductById/:id', getProductById);
 indexRoutes.put('/updateProduct/:id', auth, authorizeRoles('admin'), upload.array('images', 10), updateProduct);
 indexRoutes.delete('/deleteProduct/:id', auth, authorizeRoles('admin'), deleteProduct);
@@ -182,6 +184,8 @@ indexRoutes.delete('/deleteOrder/:id', auth, authorizeRoles('admin'), deleteOrde
 indexRoutes.get('/getUserOrders', auth, getUserOrders);
 indexRoutes.put('/cancelOrder/:id', auth, cancelOrder);
 indexRoutes.get('/trackOrder/:id', auth, trackOrder);
+indexRoutes.get('/order-monthly-analytics', auth, authorizeRoles('admin'), getOrderMonthlyAnalytics);
+indexRoutes.get('/revenue-analytics', auth, authorizeRoles('admin'), getRevenueAnalytics);
 
 // Payment Routes
 indexRoutes.post('/createPayment', auth, createPayment);
@@ -197,6 +201,11 @@ indexRoutes.get('/addresses', auth, getAddresses);
 indexRoutes.put('/address/:addressId', auth, updateAddress);
 indexRoutes.delete('/address/:addressId', auth, deleteAddress);
 indexRoutes.put('/address-default/:addressId', auth, setDefaultAddress);
+
+// Notifications routes
+indexRoutes.get('/notifications', auth, authorizeRoles('admin'), getMyNotifications);
+indexRoutes.put('/notifications/:id/seen', auth, authorizeRoles('admin'), markSeen);
+indexRoutes.put('/notifications', auth, authorizeRoles('admin'), clearAll);
 
 // Stripe Webhook
 indexRoutes.post('/stripe-webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);

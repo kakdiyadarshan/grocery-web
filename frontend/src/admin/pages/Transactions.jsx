@@ -18,6 +18,8 @@ const Transactions = () => {
         {
             header: 'Date',
             accessor: 'createdAt',
+            searchKey: (row) => new Date(row.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }) + " " + new Date(row.createdAt).toLocaleTimeString(),
+            exportValue: (row) => new Date(row.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
             render: (row) => (
                 <div>
                     <div>
@@ -32,6 +34,7 @@ const Transactions = () => {
         {
             header: 'Transaction ID',
             accessor: 'orderId',
+            exportValue: (row) => row.orderId.slice(-6).toUpperCase(),
             render: (row) => (
                 <span className="font-medium font-mono">
                     #{row.orderId?.slice(-6).toUpperCase()}
@@ -40,7 +43,8 @@ const Transactions = () => {
         },
         {
             header: 'User',
-            searchKey: (row) => `${row.user?.username} ${row.user?.email}`,
+            searchKey: (row) => `${row.userId?.firstname + " " + row.userId?.lastname} ${row.userId?.email}`,
+            exportValue: (row) => `${row.userId?.firstname + " " + row.userId?.lastname}`,
             accessor: 'user',
             render: (row) => (
                 <div className="flex flex-col">
@@ -94,6 +98,8 @@ const Transactions = () => {
             <DataTable
                 columns={columns}
                 data={payments}
+                allowExport={true}
+                exportFileName="Transactions"
             />
         </>
     );
