@@ -14,6 +14,7 @@ const initialState = {
     allProducts: [],
     totalProducts: 0,
     featuredProducts: [],
+    bestSellingProducts: [],
     product: null,
     loading: false,
     error: null,
@@ -150,6 +151,18 @@ export const getFeaturedProducts = createAsyncThunk(
     }
 );
 
+export const getBestSellingProducts = createAsyncThunk(
+    'product/getBestSellingProducts',
+    async (_, { dispatch, rejectWithValue }) => {
+        try {
+            const response = await axios.get(`${BASE_URL}/getBestSellingProducts`);
+            return response.data.products;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
 const productSlice = createSlice({
     name: 'product',
     initialState,
@@ -202,7 +215,13 @@ const productSlice = createSlice({
                 state.loading = false;
                 state.featuredProducts = action.payload;
             })
-            .addCase(getFeaturedProducts.rejected, (state) => { state.loading = false; });
+            .addCase(getFeaturedProducts.rejected, (state) => { state.loading = false; })
+            .addCase(getBestSellingProducts.pending, (state) => { state.loading = true; })
+            .addCase(getBestSellingProducts.fulfilled, (state, action) => {
+                state.loading = false;
+                state.bestSellingProducts = action.payload;
+            })
+            .addCase(getBestSellingProducts.rejected, (state) => { state.loading = false; });
     }
 });
 

@@ -3,7 +3,7 @@ import { MdKeyboardArrowRight, MdVisibility, MdKeyboardArrowUp, MdKeyboardArrowD
 import { AiOutlineHeart, AiFillStar, AiOutlineStar, AiFillHeart } from "react-icons/ai";
 import { IoIosGitCompare } from "react-icons/io";
 import { FiArrowRight, FiMinus, FiPlus, FiShoppingCart } from "react-icons/fi";
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getProductById, getAllProducts } from '../redux/slice/product.slice';
 import { addToCart } from '../redux/slice/cart.slice';
@@ -18,8 +18,10 @@ import ReviewDrawer from '../admin/component/ReviewDrawer';
 function ProductDetail() {
     const { id } = useParams();
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { product, products, loading } = useSelector(state => state.product);
     const { wishlist } = useSelector((state) => state.wishlist);
+    const { cart } = useSelector((state) => state.cart);
     const wishlistItems = wishlist?.items || [];
 
     const isInWishlist = wishlistItems.some(wish => {
@@ -95,20 +97,42 @@ function ProductDetail() {
             setSelectedImage(product.images[0].url);
         }
         if (product?.weighstWise?.length > 0) {
-            setSelectedVariant(product.weighstWise[0]);
+            const firstInStock = product.weighstWise.find(v => v.stock > 0);
+            setSelectedVariant(firstInStock || product.weighstWise[0]);
+            setQuantity(1);
         }
     }, [product]);
+
+    const isOutOfStock = selectedVariant?.stock === 0;
 
     const incrementQuantity = () => setQuantity(prev => prev + 1);
     const decrementQuantity = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
 
     const handleAddToCart = () => {
-        if (product) {
+        if (product && !isOutOfStock) {
             dispatch(addToCart({
                 productId: product._id,
                 variantId: selectedVariant?._id,
                 quantity
             }));
+        }
+    };
+
+    const handleBuyNow = () => {
+        if (product && !isOutOfStock) {
+            const isInCart = cart?.items?.some(item =>
+                (item.productId?._id || item.productId).toString() === product._id &&
+                (item.variantId === selectedVariant?._id)
+            );
+
+            if (!isInCart) {
+                dispatch(addToCart({
+                    productId: product._id,
+                    variantId: selectedVariant?._id,
+                    quantity
+                }));
+            }
+            navigate('/cart');
         }
     };
 
@@ -308,9 +332,9 @@ function ProductDetail() {
 
                         {/* Quantity & Stock Status */}
                         <div className="flex items-center gap-4 mt-6">
-                            <span className="text-base font-semibold text-[#333333]">Quantity:</span>
-                            <span className="bg-[#2E7D32] text-white px-3 py-1 rounded text-sm font-semibold">
-                                In Stock
+                            <span className="text-base font-semibold text-[#333333]">Status:</span>
+                            <span className={`${isOutOfStock ? 'bg-red-600' : 'bg-[#2E7D32]'} text-white px-3 py-1 rounded text-sm font-semibold`}>
+                                {isOutOfStock ? 'Out of Stock' : 'In Stock'}
                             </span>
                         </div>
 
@@ -330,7 +354,7 @@ function ProductDetail() {
                         {/* Subtotal */}
                         <div className="flex items-center gap-2 mt-6">
                             <span className="text-base font-semibold text-[#333333]">Subtotal:</span>
-                            <span className="text-gray-500 text-base">${(quantity * (product.discountPrice || (selectedVariant?.price || 0))).toFixed(2)}</span>
+                            <span className="text-gray-500 text-base">${(quantity * (selectedVariant?.discountPrice || selectedVariant?.price || 0)).toFixed(2)}</span>
                         </div>
 
 
@@ -340,7 +364,10 @@ function ProductDetail() {
                                 {product.weighstWise?.map((variant) => (
                                     <button
                                         key={variant._id}
-                                        onClick={() => setSelectedVariant(variant)}
+                                        onClick={() => {
+                                            setSelectedVariant(variant);
+                                            setQuantity(1);
+                                        }}
                                         className={`px-4 py-1 border rounded-md text-sm sm:text-base font-medium transition ${selectedVariant?._id === variant._id ? 'border-[var(--primary)] text-[var(--primary)] bg-white' : 'border-gray-200 text-gray-500 hover:border-gray-400'}`}
                                     >
                                         {variant.weight} {variant.unit}
@@ -350,16 +377,20 @@ function ProductDetail() {
                         </div>
 
 
-                        {/* Main Action Buttons */}
                         <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
                             <button
                                 onClick={handleAddToCart}
-                                className="w-full sm:flex-1 h-12 bg-[#EEEEEE] hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 rounded text-[#333333] font-semibold text-lg"
+                                disabled={isOutOfStock}
+                                className={`w-full sm:flex-1 h-12 transition-colors flex items-center justify-center gap-2 rounded font-semibold text-lg ${isOutOfStock ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-[#EEEEEE] hover:bg-gray-200 text-[#333333]'}`}
                             >
                                 <FiShoppingCart className="text-xl" />
                                 Add to cart
                             </button>
-                            <button className="w-full sm:flex-1 h-12 bg-[#333333] hover:bg-black transition-colors flex items-center justify-center text-white font-semibold text-lg rounded">
+                            <button
+                                onClick={handleBuyNow}
+                                disabled={isOutOfStock}
+                                className={`w-full sm:flex-1 h-12 transition-colors flex items-center justify-center text-white font-semibold text-lg rounded ${isOutOfStock ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#333333] hover:bg-black'}`}
+                            >
                                 Buy Now
                             </button>
                         </div>

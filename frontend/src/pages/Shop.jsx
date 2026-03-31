@@ -237,7 +237,7 @@ const Shop = () => {
                                 <div className={`transition-all duration-300 overflow-hidden ${expandedFilters.price ? 'mt-4 opacity-100 max-h-[300px]' : 'max-h-0 opacity-0'}`}>
                                     <p className="text-[12px] text-gray-400 mb-4 font-medium flex items-center gap-1.5">
                                         <span className="inline-block w-1 h-1 rounded-full bg-gray-300"></span>
-                                        Highest price is ${filterOptions.maxPrice.toFixed(2)}
+                                        Highest price is ${filterOptions.maxPrice}
                                     </p>
 
                                     <div className="flex items-center gap-2">
@@ -440,11 +440,12 @@ const Shop = () => {
                                 : "flex flex-col gap-6"
                             }>
                                 {filteredProductsSlice.map((product) => {
-                                    const minPrice = product.weighstWise?.length > 0
-                                        ? Math.min(...product.weighstWise.map(w => Number(w.price) || 0))
-                                        : 0;
-                                    const hasDiscount = product.discountPrice > 0 && product.discountPrice < minPrice;
-                                    const outOfStock = product.weighstWise?.every(w => w.stock <= 0);
+                                    const variant = product.weighstWise?.find(v => v.stock > 0) || product.weighstWise?.[0];
+                                    const outOfStock = variant?.stock === 0;
+                                    const currentPrice = variant?.discountPrice || variant?.price || 0;
+                                    const originalPrice = variant?.price || 0;
+                                    const hasDiscount = currentPrice < originalPrice;
+
                                     const avgRating = product.reviews?.length > 0
                                         ? product.reviews.reduce((acc, rev) => acc + (rev.rating || 0), 0) / product.reviews.length
                                         : 0;
@@ -461,7 +462,7 @@ const Shop = () => {
                                             <div className="absolute top-4 left-4 z-20 flex flex-col gap-1.5 pointer-events-none">
                                                 {hasDiscount && (
                                                     <span className="bg-[#E73959] text-white text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-sm shadow-sm tracking-wide uppercase">
-                                                        {Math.round(((minPrice - product.discountPrice) / minPrice) * 100)}% OFF
+                                                        {product.offer?.offer_type === "Fixed" ? `$${product.offer?.offer_value}` : `${product.offer?.offer_value}%`} OFF
                                                     </span>
                                                 )}
                                                 {outOfStock && (
@@ -502,7 +503,11 @@ const Shop = () => {
                                                     onClick={(e) => {
                                                         e.preventDefault();
                                                         e.stopPropagation();
-                                                        if (!outOfStock) dispatch(addToCart({ productId: product._id, quantity: 1 }));
+                                                        if (!outOfStock) dispatch(addToCart({
+                                                            productId: product._id,
+                                                            variantId: variant?._id,
+                                                            quantity: 1
+                                                        }));
                                                     }}
                                                     disabled={outOfStock}
                                                     className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 bg-white border border-gray-100/50 text-[#62728f] hover:text-[var(--primary)] disabled:opacity-50 disabled:cursor-not-allowed`}
@@ -552,15 +557,15 @@ const Shop = () => {
                                                         {hasDiscount ? (
                                                             <>
                                                                 <span className="text-[11px] sm:text-[12px] text-gray-400 line-through font-medium mb-0.5">
-                                                                    ${minPrice.toFixed(2)}
+                                                                    ${originalPrice}
                                                                 </span>
                                                                 <span className="text-[17px] sm:text-[18px] font-[600] text-gray-900 leading-none tracking-tight">
-                                                                    ${(Number(product.discountPrice || minPrice) || 0).toFixed(2)}
+                                                                    ${currentPrice}
                                                                 </span>
                                                             </>
                                                         ) : (
                                                             <span className="text-[18px] sm:text-[20px] font-bold text-[var(--primary)] leading-none tracking-tight">
-                                                                ${(Number(minPrice) || 0).toFixed(2)}
+                                                                ${originalPrice}
                                                             </span>
                                                         )}
                                                     </div>
@@ -569,7 +574,11 @@ const Shop = () => {
                                                             onClick={(e) => {
                                                                 e.preventDefault();
                                                                 e.stopPropagation();
-                                                                if (!outOfStock) dispatch(addToCart({ productId: product._id, quantity: 1 }));
+                                                                if (!outOfStock) dispatch(addToCart({
+                                                                    productId: product._id,
+                                                                    variantId: variant?._id,
+                                                                    quantity: 1
+                                                                }));
                                                             }}
                                                             disabled={outOfStock}
                                                             className="relative overflow-hidden flex items-center justify-center gap-2 font-[600] transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed h-10 px-6 bg-[var(--primary)] text-white rounded-md hover:bg-[var(--primary-hover)] whitespace-nowrap"

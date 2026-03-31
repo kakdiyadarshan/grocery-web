@@ -830,7 +830,7 @@ exports.getBestSellingProducts = async (req, res) => {
         ]);
 
         if (bestSellingStage.length === 0) {
-            return res.status(200).json({ success: true, data: [] });
+            return res.status(200).json({ success: true, products: [] });
         }
 
         const productIds = bestSellingStage.map(item => item._id);
@@ -935,7 +935,7 @@ exports.getBestSellingProducts = async (req, res) => {
             return product ? { ...product, totalSold: soldStats.soldCount } : null;
         }).filter(p => p !== null);
 
-        res.status(200).json({ success: true, data: sortedProducts });
+        res.status(200).json({ success: true, products: sortedProducts });
 
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
