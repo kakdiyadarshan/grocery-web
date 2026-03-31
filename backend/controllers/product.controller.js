@@ -1,6 +1,7 @@
 const { default: mongoose } = require("mongoose");
 const Product = require("../models/product.model");
 const Category = require("../models/category.model");
+const Order = require("../models/order.model");
 const xlsx = require("xlsx");
 const { uploadToS3, uploadUrlToS3, updateS3, deleteFromS3, deleteManyFromS3 } = require("../utils/s3Service");
 
@@ -805,6 +806,138 @@ exports.importProducts = async (req, res) => {
 
     } catch (error) {
         console.error("Import Products Error:", error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+// Get Best Selling Products
+exports.getBestSellingProducts = async (req, res) => {
+    try {
+        const today = new Date();
+        const limit = parseInt(req.query.limit) || 10;
+
+        // Step 1: Identify best selling product IDs from the Order collection
+        const bestSellingStage = await Order.aggregate([
+            { $match: { status: { $nin: ['pending', 'cancelled'] } } },
+            { $unwind: '$items' },
+            {
+                $group: {
+                    _id: '$items.productId',
+                    soldCount: { $sum: '$items.quantity' }
+                }
+            },
+            { $sort: { soldCount: -1 } },
+            { $limit: limit }
+        ]);
+
+        if (bestSellingStage.length === 0) {
+            return res.status(200).json({ success: true, data: [] });
+        }
+
+        const productIds = bestSellingStage.map(item => item._id);
+
+        // Step 2: Fetch detailed product information using the same lookups as getAllProducts
+        const pipeline = [
+            { $match: { _id: { $in: productIds } } },
+            {
+                $lookup: {
+                    from: 'offers',
+                    let: { productId: '$_id' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $in: ['$$productId', '$product_id'] },
+                                        { $lte: ['$offer_start_date', today] },
+                                        { $gte: ['$offer_end_date', today] }
+                                    ]
+                                }
+                            }
+                        }
+                    ],
+                    as: 'offer'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'categories',
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$category',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'reviews',
+                    localField: '_id',
+                    foreignField: 'productId',
+                    as: 'reviews'
+                }
+            },
+            {
+                $addFields: {
+                    avgRating: { $avg: '$reviews.rating' },
+                    reviewCount: { $size: '$reviews' },
+                    offer: { $arrayElemAt: ['$offer', 0] }
+                }
+            },
+            {
+                $addFields: {
+                    weighstWise: {
+                        $map: {
+                            input: '$weighstWise',
+                            as: 'w',
+                            in: {
+                                $mergeObjects: [
+                                    '$$w',
+                                    {
+                                        discountPrice: {
+                                            $cond: {
+                                                if: { $ifNull: ['$offer', false] },
+                                                then: {
+                                                    $cond: {
+                                                        if: { $eq: ['$offer.offer_type', 'Discount'] },
+                                                        then: {
+                                                            $subtract: [
+                                                                '$$w.price',
+                                                                { $divide: [{ $multiply: ['$$w.price', '$offer.offer_value'] }, 100] }
+                                                            ]
+                                                        },
+                                                        else: {
+                                                            $max: [0, { $subtract: ['$$w.price', '$offer.offer_value'] }]
+                                                        }
+                                                    }
+                                                },
+                                                else: '$$w.price'
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        ];
+
+        const products = await Product.aggregate(pipeline);
+
+        // Sort the results back based on soldCount order
+        const sortedProducts = productIds.map(id => {
+            const product = products.find(p => p._id.toString() === id.toString());
+            const soldStats = bestSellingStage.find(item => item._id.toString() === id.toString());
+            return product ? { ...product, totalSold: soldStats.soldCount } : null;
+        }).filter(p => p !== null);
+
+        res.status(200).json({ success: true, data: sortedProducts });
+
+    } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 };
