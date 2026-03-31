@@ -222,7 +222,14 @@ const OrderDetails = () => {
     }
 
     // Destructure after checking currentOrder exists
-    const { userId, items, totalAmount, address, paymentMethod, payment, status, createdAt } = currentOrder;
+    const { userId, items, totalAmount, address, paymentMethod, payment, status, createdAt, couponId } = currentOrder;
+
+    const subtotal = items.reduce((acc, item) => {
+        const price = item.selectedVariant?.discountPrice ?? item.selectedVariant?.price ?? 0;
+        return acc + (price * item.quantity);
+    }, 0);
+
+    const tax = subtotal * 0.08;
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500 md:my-6 my-4">
@@ -327,12 +334,24 @@ const OrderDetails = () => {
                             <div className="w-full max-w-xs space-y-3">
                                 <div className="flex justify-between text-sm text-textSecondary font-medium">
                                     <span>Subtotal</span>
-                                    <span className="text-textPrimary font-bold">${totalAmount.toFixed(2)}</span>
+                                    <span className="text-textPrimary font-bold">${subtotal.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between text-sm text-textSecondary font-medium">
+                                    <span>Estimated Tax (8%)</span>
+                                    <span className="text-textPrimary font-bold">${tax.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm text-textSecondary font-medium">
                                     <span>Shipping Fee</span>
                                     <span className="text-emerald-600 font-bold uppercase text-[10px]">Free</span>
                                 </div>
+                                {couponId && couponId.code && (
+                                    <div className="flex justify-between text-primary text-sm">
+                                        <span className="flex items-center gap-1">
+                                            Coupon ({couponId.code}) - {couponId.discount}% off
+                                        </span>
+                                        <span className="font-[600]">(-${((subtotal * couponId.discount) / 100).toFixed(2)})</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between text-xl font-black text-textPrimary border-t border-borderColor pt-4 mt-2">
                                     <span>Total Amount</span>
                                     <span className="text-primary">${totalAmount.toFixed(2)}</span>
