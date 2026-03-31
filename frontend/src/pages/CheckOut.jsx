@@ -195,6 +195,7 @@ const CheckOut = () => {
           discountPrice: item.selectedVariant?.discountPrice !== undefined ? item.selectedVariant.discountPrice : null
         })),
         totalAmount: totalAmount,
+        couponId: appliedCouponData?._id || null,
         couponCode: appliedCouponData?.code || null,
         couponDiscount: couponDiscount,
         paymentMethod: paymentMethod === 'cod' ? 'COD' : paymentMethod === 'upi' ? 'UPI' : paymentMethod === 'netbanking' ? 'Bank' : 'Stripe',
