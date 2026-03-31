@@ -150,8 +150,34 @@ exports.getAllProducts = async (req, res) => {
             {
                 $lookup: {
                     from: 'reviews',
-                    localField: '_id',
-                    foreignField: 'productId',
+                    let: { productId: '$_id' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$productId', '$$productId'] } } },
+                        {
+                            $lookup: {
+                                from: 'users',
+                                localField: 'userId',
+                                foreignField: '_id',
+                                as: 'user'
+                            }
+                        },
+                        { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+                        {
+                            $addFields: {
+                                'user.name': {
+                                    $trim: {
+                                        input: {
+                                            $concat: [
+                                                { $ifNull: ['$user.firstname', ''] },
+                                                ' ',
+                                                { $ifNull: ['$user.lastname', ''] }
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ],
                     as: 'reviews'
                 }
             }
@@ -333,8 +359,34 @@ exports.getProductById = async (req, res) => {
             {
                 $lookup: {
                     from: 'reviews',
-                    localField: '_id',
-                    foreignField: 'productId',
+                    let: { productId: '$_id' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$productId', '$$productId'] } } },
+                        {
+                            $lookup: {
+                                from: 'users',
+                                localField: 'userId',
+                                foreignField: '_id',
+                                as: 'user'
+                            }
+                        },
+                        { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+                        {
+                            $addFields: {
+                                'user.name': {
+                                    $trim: {
+                                        input: {
+                                            $concat: [
+                                                { $ifNull: ['$user.firstname', ''] },
+                                                ' ',
+                                                { $ifNull: ['$user.lastname', ''] }
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ],
                     as: 'reviews'
                 }
             },
@@ -533,8 +585,34 @@ exports.getFeaturedProducts = async (req, res) => {
             {
                 $lookup: {
                     from: 'reviews',
-                    localField: '_id',
-                    foreignField: 'productId',
+                    let: { productId: '$_id' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$productId', '$$productId'] } } },
+                        {
+                            $lookup: {
+                                from: 'users',
+                                localField: 'userId',
+                                foreignField: '_id',
+                                as: 'user'
+                            }
+                        },
+                        { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+                        {
+                            $addFields: {
+                                'user.name': {
+                                    $trim: {
+                                        input: {
+                                            $concat: [
+                                                { $ifNull: ['$user.firstname', ''] },
+                                                ' ',
+                                                { $ifNull: ['$user.lastname', ''] }
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ],
                     as: 'reviews'
                 }
             },
