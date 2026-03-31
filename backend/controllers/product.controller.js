@@ -813,7 +813,7 @@ exports.importProducts = async (req, res) => {
 exports.getBestSellingProducts = async (req, res) => {
     try {
         const today = new Date();
-        const limit = parseInt(req.query.limit) || 10;
+        const limit = parseInt(req.query.limit) || 100;
 
         // Step 1: Identify best selling product IDs from the Order collection
         const bestSellingStage = await Order.aggregate([
