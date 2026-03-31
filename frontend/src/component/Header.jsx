@@ -108,8 +108,8 @@ const Header = () => {
     }
   }, [location.pathname, location.search]);
 
-  const cartCount = isAuthenticated ? (cart?.items?.filter(item => item?.productId).length || 0) : 0;
-  const wishlistCount = isAuthenticated ? (wishlist?.items?.filter(item => item?.productId).length || 0) : 0;
+  const cartCount = isAuthenticated ? (cart?.items?.filter(item => item?.productId && (item.productId.name || item.productId.productName))?.length || 0) : 0;
+  const wishlistCount = isAuthenticated ? (wishlist?.items?.filter(item => item?.productId && (item.productId.name || item.productId.productName))?.length || 0) : 0;
 
   const userPhotoUrl = user?.photo?.url || '';
   const userFullName = `${user?.firstname || ''} ${user?.lastname || ''}`.trim() || user?.name || '';
