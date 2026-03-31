@@ -147,6 +147,13 @@ function ProductDetail() {
         }
     };
 
+    const relatedProducts = products.filter(p => {
+        if (p._id === id) return false;
+        const cat1 = typeof p.category === 'object' ? p.category?.categoryName : p.category;
+        const cat2 = typeof product.category === 'object' ? product.category?.categoryName : product.category;
+        return cat1 && cat2 && cat1 === cat2;
+    });
+
     if (loading && !product) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
     if (!product) return <div className="min-h-screen flex items-center justify-center">Product not found.</div>;
 
@@ -436,8 +443,16 @@ function ProductDetail() {
                                         <>
                                             {product.reviews.slice(0, 2).map((review, i) => (
                                                 <div key={i} className="flex gap-4 pb-3 border-b border-gray-100 last:border-0">
-                                                    <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-gray-100">
-                                                        <img src={`https://ui-avatars.com/api/?name=${review.user?.name}&background=random`} alt={review.user?.name} className="w-full h-full object-cover" />
+                                                    <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border border-emerald-100 bg-emerald-50 flex items-center justify-center text-[#2E7D32] font-bold text-lg shadow-sm">
+                                                        {review.user?.photo?.url ? (
+                                                            <img src={review.user.photo.url} alt={review.user.name} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            review.user?.name ? (
+                                                                review.user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+                                                            ) : (
+                                                                'U'
+                                                            )
+                                                        )}
                                                     </div>
                                                     <div className="space-y-1">
                                                         <h4 className="font-semibold text-[#1F2937] text-base">{review.user?.name}</h4>
@@ -486,17 +501,14 @@ function ProductDetail() {
                 </div>
 
                 {/* Related Products */}
-                <ProductSlider
-                    title="Related Products"
-                    products={products.filter(p => {
-                        if (p._id === id) return false;
-                        const cat1 = typeof p.category === 'object' ? p.category?.categoryName : p.category;
-                        const cat2 = typeof product.category === 'object' ? product.category?.categoryName : product.category;
-                        return cat1 && cat2 && cat1 === cat2;
-                    })}
-                    className="mt-8 pt-4"
-                />
-
+                {relatedProducts.length > 0 && (
+                    <ProductSlider
+                        title="Related Products"
+                        products={relatedProducts}
+                        className="mt-8 pt-4"
+                    />
+                )}
+    
                 {/* Newsletter */}
                 <Newsletter className="w-full pt-6 mt-10" />
 
