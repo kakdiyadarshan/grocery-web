@@ -132,7 +132,9 @@ const Table = ({ columns = [], data = [], onEdit, onView, onDelete, itemsPerPage
     }, [columns, sortedData, exportFileName]);
 
     // 3. Pagination
-    const totalPages = isManual ? manualTotalPages : Math.ceil(sortedData.length / rowsPerPage);
+    const totalPages = isManual
+        ? (manualTotalPages !== undefined ? manualTotalPages : Math.ceil(manualTotalItems / effectiveRowsPerPage))
+        : Math.ceil(sortedData.length / rowsPerPage);
 
     const paginatedData = useMemo(() => {
         if (isManual) return sortedData; // Expecting data to be the current page's data
@@ -367,7 +369,7 @@ const Table = ({ columns = [], data = [], onEdit, onView, onDelete, itemsPerPage
                         >
                             <option value={5}>5</option>
                             <option value={10}>10</option>
-                            <option value={12}>12</option>
+                            {/* <option value={12}>12</option> */}
                             <option value={20}>20</option>
                             <option value={50}>50</option>
                         </select>

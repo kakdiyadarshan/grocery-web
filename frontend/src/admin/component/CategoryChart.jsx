@@ -195,7 +195,7 @@ const CategoryChart = ({ products, categories }) => {
     const minChartWidth = Math.max(categories.length * 80, 500);
 
     return (
-        <div className="w-full h-full overflow-x-auto custom-scrollbar overflow-y-hidden">
+        <div className="w-full h-full overflow-x-auto custom-scrollbar overflow-y-hidden no-scrollbar">
             <div style={{ width: `${minChartWidth}px`, minWidth: '100%' }} className="space-y-4">
                 <div id="wrapper" className="bg-white p-4 rounded-lg">
                     <div id="chart-line2">

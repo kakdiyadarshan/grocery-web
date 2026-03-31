@@ -11,6 +11,8 @@ const handleErrors = (error, dispatch, rejectWithValue) => {
 
 const initialState = {
     products: [],
+    allProducts: [],
+    totalProducts: 0,
     featuredProducts: [],
     product: null,
     loading: false,
@@ -57,15 +59,35 @@ export const importProducts = createAsyncThunk(
 
 export const getAllProducts = createAsyncThunk(
     'product/getAllProducts',
-    async (_, { dispatch, rejectWithValue }) => {
+    async (params = {}, { dispatch, rejectWithValue }) => {
         try {
-            const response = await axios.get(`${BASE_URL}/getAllProducts`);
-            return response.data.products;
+            const { page, limit, paginate, search, category, minPrice, maxPrice, weights, availability, sort } = params;
+            let url = `${BASE_URL}/getAllProducts`;
+            const queryParams = new URLSearchParams();
+            if (page) queryParams.append('page', page);
+            if (limit) queryParams.append('limit', limit);
+            if (paginate !== undefined) queryParams.append('paginate', paginate);
+            if (search) queryParams.append('search', search);
+            if (category) queryParams.append('category', category);
+            if (minPrice) queryParams.append('minPrice', minPrice);
+            if (maxPrice) queryParams.append('maxPrice', maxPrice);
+            if (weights) queryParams.append('weights', weights);
+            if (availability) queryParams.append('availability', availability);
+            if (sort) queryParams.append('sort', sort);
+
+            if (queryParams.toString()) {
+                url += `?${queryParams.toString()}`;
+            }
+
+            const response = await axios.get(url);
+            return response.data;
         } catch (error) {
             return handleErrors(error, dispatch, rejectWithValue);
         }
     }
 );
+
+
 
 export const getProductById = createAsyncThunk(
     'product/getProductById',
@@ -148,9 +170,17 @@ const productSlice = createSlice({
             .addCase(getAllProducts.pending, (state) => { state.loading = true; })
             .addCase(getAllProducts.fulfilled, (state, action) => {
                 state.loading = false;
-                state.products = action.payload;
+                if (action.payload.totalProducts !== undefined) {
+                    state.products = action.payload.products;
+                    state.totalProducts = action.payload.totalProducts;
+                } else {
+                    state.products = action.payload.products;
+                    state.allProducts = action.payload.products; // For shop filters
+                    state.totalProducts = action.payload.products.length;
+                }
             })
             .addCase(getAllProducts.rejected, (state) => { state.loading = false; })
+
             .addCase(getProductById.pending, (state) => { state.loading = true; })
             .addCase(getProductById.fulfilled, (state, action) => {
                 state.loading = false;
