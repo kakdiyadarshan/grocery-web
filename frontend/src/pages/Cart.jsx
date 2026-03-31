@@ -10,7 +10,7 @@ const Cart = () => {
     const navigate = useNavigate();
     const { cart, loading } = useSelector((state) => state.cart);
     const { coupons } = useSelector((state) => state.coupon);
-    
+
 
     useEffect(() => {
         dispatch(getCart());
@@ -27,7 +27,7 @@ const Cart = () => {
     };
 
 
-    const cartItems = cart?.items || [];
+    const cartItems = cart?.items?.filter(item => item?.productId && (item.productId.name || item.productId.productName)) || [];
 
     // Coupon state
     const [couponCode, setCouponCode] = useState('');
@@ -41,25 +41,25 @@ const Cart = () => {
     const handleApplyCoupon = () => {
         const code = couponCode.trim().toUpperCase();
         if (!code) { setCouponError('Please enter a coupon code.'); return; }
-        
+
         setCouponLoading(true);
         setCouponError('');
-        
+
         setTimeout(() => {
             const validCoupon = activeCoupons.find(coupon => coupon.code.toUpperCase() === code);
-            
+
             if (validCoupon) {
                 // Check if coupon has expired
                 const expiryDate = new Date(validCoupon.expiryDate);
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
-                
+
                 if (expiryDate < today) {
                     setCouponError('This coupon has expired.');
                     setCouponLoading(false);
                     return;
                 }
-                
+
                 setAppliedCoupon({
                     code: validCoupon.code,
                     discount: validCoupon.discount,
@@ -82,8 +82,9 @@ const Cart = () => {
     // Calculations
     const subtotal = cartItems.reduce((acc, item) => {
         const variant = item.selectedVariant;
-        const price = variant?.discountPrice || variant?.price || 0;
-        return acc + (price * item.quantity);
+        const price = Number(variant?.discountPrice || variant?.price || 0);
+        const quantity = Number(item.quantity || 0);
+        return acc + (price * quantity);
     }, 0);
 
     const shippingBase = cartItems.length > 0 ? (subtotal >= 50 ? 0 : 5.99) : 0;
@@ -222,7 +223,7 @@ const Cart = () => {
                                                 {/* Total */}
                                                 <div className="md:w-[36%] flex flex-col items-center justify-center">
                                                     <span className="md:hidden text-gray-400 font-bold text-[10px] uppercase tracking-wider mb-1">Total</span>
-                                                    <span className="text-primary text-sm md:text-[15px] font-semibold">${(price * wish.quantity).toFixed(2)}</span>
+                                                    <span className="text-primary text-sm md:text-[15px] font-semibold">${(price * (Number(wish.quantity) || 0)).toFixed(2)}</span>
                                                 </div>
                                             </div>
                                         </div>

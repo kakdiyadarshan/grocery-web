@@ -106,8 +106,8 @@ const Header = () => {
     }
   }, [location.pathname, location.search]);
 
-  const cartCount = cart?.items?.filter(item => item?.productId).length || 0;
-  const wishlistCount = wishlist?.items?.filter(item => item?.productId).length || 0;
+  const cartCount = cart?.items?.filter(item => item?.productId && (item.productId.name || item.productId.productName)).length || 0;
+  const wishlistCount = wishlist?.items?.filter(item => item?.productId && (item.productId.name || item.productId.productName)).length || 0;
 
   const userPhotoUrl = user?.photo?.url || '';
   const userFullName = `${user?.firstname || ''} ${user?.lastname || ''}`.trim() || user?.name || '';
