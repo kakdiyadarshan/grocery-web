@@ -23,7 +23,7 @@ const OrderCompleted = () => {
           const token = localStorage.getItem('token');
           await fetch(`${BASE_URL}/verifyStripeSession`, {
             method: 'POST',
-            headers: { 
+            headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${token}`
             },
@@ -82,10 +82,18 @@ const OrderCompleted = () => {
 
   const tax = subtotal * 0.08;
   const shipping = subtotal >= 50 ? 0 : 5.99;
-  const total = currentOrder.totalAmount || subtotal + tax + shipping;
+  
+  // Calculate coupon discount
+  const couponDiscount = currentOrder.coupon ? (subtotal * currentOrder.coupon.discount) / 100 : 0;
+  const total = currentOrder.totalAmount || (subtotal + tax + shipping - couponDiscount);
 
   const downloadInvoicePDF = async () => {
-    // ── Load logo as base64 ──────────────────────────────────────
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    const green = [30, 122, 30]; // #1E7A1E
+
+    // ===== LOAD LOGO =====
     const loadImage = (src) =>
       new Promise((resolve) => {
         const img = new Image();
@@ -95,295 +103,202 @@ const OrderCompleted = () => {
           canvas.width = img.width;
           canvas.height = img.height;
           canvas.getContext("2d").drawImage(img, 0, 0);
-          resolve({
-            base64: canvas.toDataURL("image/png"),
-            width: img.width,
-            height: img.height,
-          });
+          resolve(canvas.toDataURL("image/png"));
         };
         img.src = src;
       });
 
-    const logoData = await loadImage(logo);
-    const logoBase64 = logoData.base64;
+    const logoBase64 = await loadImage(logo);
 
-    const doc = new jsPDF({ unit: "mm", format: "a4" });
-    const pageW = doc.internal.pageSize.getWidth();
-    const pageH = doc.internal.pageSize.getHeight();
+    // ===== LOGO =====
+    doc.addImage(logoBase64, "PNG", 20, 15, 35, 15);
 
-    // ── Colors ───────────────────────────────────────────────────
-    const green      = [34, 139, 34];
-    const darkGray   = [30, 30, 30];
-    const lightGray  = [247, 248, 249];
-    const midGray    = [100, 105, 110];
-    const white      = [255, 255, 255];
-    const borderGray = [230, 230, 230];
-
-    // ── HEADER BAND ──────────────────────────────────────────────
-    // Logo image - preserve aspect ratio
-    const maxLogoW = 38;
-    const maxLogoH = 24;
-    let logoW = maxLogoW;
-    let logoH = (logoData.height / logoData.width) * maxLogoW;
-    if (logoH > maxLogoH) {
-      logoH = maxLogoH;
-      logoW = (logoData.width / logoData.height) * maxLogoH;
-    }
-    const logoY = 8 + (maxLogoH - logoH) / 2;
-    doc.addImage(logoBase64, "PNG", 14, logoY, logoW, logoH);
-
-    // Company info below logo
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.5);
-    doc.setTextColor(...midGray);
-    doc.text("123 Market Street, Ahmedabad, Gujarat 380001", 14, 38);
-    doc.text("support@freshmart.com  |  +91 98765 43210", 14, 43);
-
-    // RIGHT — Invoice label + number
+    // ===== HEADER =====
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(24);
-    doc.setTextColor(...darkGray);
-    doc.text("INVOICE", pageW - 14, 22, { align: "right" });
+    doc.setFontSize(18);
+    doc.setTextColor(...green);
+    doc.text("INVOICE", pageWidth - 20, 20, { align: "right" });
 
     doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(...midGray);
-    const invoiceNo = `#${currentOrder._id?.toString().slice(-8).toUpperCase()}`;
-    doc.text(invoiceNo, pageW - 14, 29, { align: "right" });
+    doc.text(
+      `#${currentOrder._id.slice(-6).toUpperCase()}`,
+      pageWidth - 20,
+      26,
+      { align: "right" }
+    );
 
-    // ── BILL TO / DELIVER TO BAND ────────────────────────────────
-    doc.setFillColor(249, 250, 251);
-    doc.rect(0, 52, pageW, 30, "F");
-
-    // vertical divider
-    doc.setDrawColor(...borderGray);
-    doc.line(pageW / 2, 56, pageW / 2, 78);
-
-    const billName = addr.firstname
-      ? `${addr.firstname} ${addr.lastname}`
-      : "Customer";
-
-    // BILL TO
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(7);
-    doc.setTextColor(...midGray);
-    doc.text("BILL TO", 14, 59);
-
-    doc.setFont("helvetica", "bold");
+    // ===== COMPANY INFO =====
     doc.setFontSize(9);
-    doc.setTextColor(...darkGray);
-    doc.text(billName, 14, 65);
+    doc.text("123 Market Street, Ahmedabad", 20, 35);
+    doc.text("support@freshmart.com", 20, 40);
 
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.5);
-    doc.setTextColor(...midGray);
-    if (addr.email) doc.text(addr.email, 14, 70);
-    if (addr.phone) doc.text(`Phone: ${addr.phone}`, 14, 75);
-
-    // DELIVER TO
+    // ===== BILL TO =====
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(7);
-    doc.setTextColor(...midGray);
-    doc.text("DELIVER TO", pageW / 2 + 8, 59);
+    doc.setTextColor(...green);
+    doc.text("Bill To:", 20, 55);
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    doc.setTextColor(...darkGray);
-    doc.text(billName, pageW / 2 + 8, 65);
+    const addr = currentOrder.address || {};
 
+    doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.5);
-    doc.setTextColor(...midGray);
-    const addrLine = addr.address
-      ? `${addr.address}, ${addr.city}, ${addr.state} - ${addr.zip}`
+    doc.text(`${addr.firstname || ""} ${addr.lastname || ""}`, 20, 61);
+    doc.text(addr.email || "-", 20, 66);
+    doc.text(addr.phone || "-", 20, 71);
+
+    // ===== DELIVERY =====
+    const deliveryAddress = addr.address
+      ? `${addr.address}, ${addr.city}, ${addr.state} - ${addr.zip}, ${addr.country}`
       : "Address not available";
-    doc.text(addrLine, pageW / 2 + 8, 70, { maxWidth: 88 });
-
-    // ── META INFO BOXES ──────────────────────────────────────────
-    const metaY = 88;
-    const metaItems = [
-      {
-        label: "ORDER DATE",
-        value: new Date(currentOrder.createdAt).toLocaleDateString("en-IN", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        }),
-      },
-      { label: "STATUS",  value: currentOrder.status.toUpperCase() },
-      { label: "PAYMENT", value: currentOrder.paymentMethod || "COD" },
-      { label: "ITEMS",   value: String(orderItems.length) },
-    ];
-    const boxW = (pageW - 28 - 9) / 4;
-
-    metaItems.forEach((info, i) => {
-      const x = 14 + i * (boxW + 3);
-      doc.setFillColor(...lightGray);
-      doc.roundedRect(x, metaY, boxW, 18, 2, 2, "F");
-      doc.setDrawColor(...borderGray);
-      doc.roundedRect(x, metaY, boxW, 18, 2, 2, "S");
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(6.5);
-      doc.setTextColor(...midGray);
-      doc.text(info.label, x + boxW / 2, metaY + 6, { align: "center" });
-
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(9);
-      doc.setTextColor(...darkGray);
-      doc.text(info.value, x + boxW / 2, metaY + 14, { align: "center" });
-    });
-
-    // ── TABLE ─────────────────────────────────────────────────────
-    const tY   = metaY + 26;
-    const rowH = 16;
-
-    // Column center/anchor positions
-    const col = {
-      itemLeft:    16,
-      qtyCenter:   105,
-      priceCenter: 135,
-      savCenter:   160,
-      totalRight:  pageW - 14,
-    };
-
-    // Table header
-    doc.setFillColor(...green);
-    doc.rect(14, tY, pageW - 28, 10, "F");
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(7.5);
-    doc.setTextColor(...white);
-    const thY = tY + 5;
-    doc.text("ITEM",       col.itemLeft,    thY, { align: "left", baseline: "middle" });
-    doc.text("QTY",        col.qtyCenter,   thY, { align: "center", baseline: "middle" });
-    doc.text("UNIT PRICE", col.priceCenter, thY, { align: "center", baseline: "middle" });
-    doc.text("SAVINGS",    col.savCenter,   thY, { align: "center", baseline: "middle" });
-    doc.text("TOTAL",      col.totalRight,  thY, { align: "right", baseline: "middle" });
+    doc.setTextColor(...green);
+    doc.text("Delivery:", 120, 55);
 
-    // Table rows
-    orderItems.forEach((item, i) => {
-      const rY          = tY + 10 + i * rowH;
-      const product     = item.productId || {};
-      const variant     = item.selectedVariant;
-      const origPrice   = variant?.price || 0;
-      const discPrice   = variant?.discountPrice || origPrice;
-      const savings     = origPrice - discPrice;
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("helvetica", "normal");
+    doc.text(deliveryAddress, 120, 61, { maxWidth: 70 });
 
-      // Alternating stripe
-      if (i % 2 !== 0) {
-        doc.setFillColor(249, 250, 251);
-        doc.rect(14, rY, pageW - 28, rowH, "F");
-      }
+    // ===== TABLE HEADER =====
+    let y = 85;
 
-      // Row bottom border
-      doc.setDrawColor(...borderGray);
-      doc.line(14, rY + rowH, pageW - 14, rY + rowH);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...green);
 
-      // Item name + variant
+    doc.text("Item", 20, y);
+    doc.text("Qty", 110, y);
+    doc.text("Unit Price", 135, y);
+    doc.text("Savings", 160, y);
+    doc.text("Total", 190, y, { align: "right" });
+
+    doc.setTextColor(0, 0, 0);
+
+    y += 5;
+    doc.line(20, y, 190, y);
+
+    // ===== ITEMS =====
+    const orderItems = currentOrder.items || [];
+
+    doc.setFont("helvetica", "normal");
+
+    orderItems.forEach((item) => {
+      const product = item.productId || {};
+      const variant = item.selectedVariant;
+
+      const originalPrice = variant?.price || 0;
+      const discountPrice = variant?.discountPrice || originalPrice;
+      const savings = originalPrice - discountPrice;
+
+      y += 12;
+
+      // Product Name
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(8.5);
-      doc.setTextColor(...darkGray);
-      doc.text(product.name || "Product", col.itemLeft, rY + 6);
+      doc.text(product.name || "Product", 20, y);
 
+      // Variant
       if (variant) {
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(7);
-        doc.setTextColor(...midGray);
-        doc.text(`${variant.weight} ${variant.unit}`, col.itemLeft, rY + 11);
+        doc.setFontSize(8);
+        doc.text(`${variant.weight} ${variant.unit}`, 20, y + 5);
+        doc.setFontSize(10);
       }
 
       // Qty
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(8.5);
-      doc.setTextColor(...darkGray);
-      doc.text(String(item.quantity), col.qtyCenter, rY + 9, { align: "center" });
+      doc.text(String(item.quantity), 110, y);
 
-      // Unit price
-      doc.text(`$${origPrice.toFixed(2)}`, col.priceCenter, rY + 9, { align: "center" });
+      // Unit Price
+      doc.text(`$${originalPrice.toFixed(2)}`, 135, y);
 
-      // Savings
+      // Savings (green)
       if (savings > 0) {
         doc.setTextColor(...green);
+        doc.text(`- $${savings.toFixed(2)}`, 160, y);
+        doc.setTextColor(0, 0, 0);
       } else {
-        doc.setTextColor(...midGray);
+        doc.text("-", 160, y);
       }
-      doc.text(
-        savings > 0 ? `- $${savings.toFixed(2)}` : "—",
-        col.savCenter, rY + 9, { align: "center" }
-      );
 
-      // Row total
+      // Total
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(...darkGray);
       doc.text(
-        `$${(discPrice * item.quantity).toFixed(2)}`,
-        col.totalRight, rY + 9, { align: "right" }
+        `$${(discountPrice * item.quantity).toFixed(2)}`,
+        190,
+        y,
+        { align: "right" }
       );
-    });
 
-    // ── TOTALS BOX ────────────────────────────────────────────────
-    const tableBottom = tY + 10 + orderItems.length * rowH;
-    const totBoxX  = pageW / 2 + 10;
-    const totBoxW  = pageW - 14 - totBoxX;
-    const totBoxY  = tableBottom + 10;
-    const totLineH = 9;
-
-    const totalsData = [
-      { label: "Subtotal",  value: `$${subtotal.toFixed(2)}` },
-      { label: "Shipping",  value: shipping === 0 ? "FREE" : `$${shipping.toFixed(2)}` },
-      { label: "Tax (8%)",  value: `$${tax.toFixed(2)}` },
-    ];
-
-    const totBoxH = totalsData.length * totLineH + 22;
-
-    doc.setFillColor(...lightGray);
-    doc.roundedRect(totBoxX, totBoxY, totBoxW, totBoxH, 3, 3, "F");
-    doc.setDrawColor(...borderGray);
-    doc.roundedRect(totBoxX, totBoxY, totBoxW, totBoxH, 3, 3, "S");
-
-    totalsData.forEach((t, i) => {
-      const ly = totBoxY + 9 + i * totLineH;
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(8.5);
-      doc.setTextColor(...midGray);
-      doc.text(t.label, totBoxX + 6, ly);
-      doc.text(t.value, totBoxX + totBoxW - 6, ly, { align: "right" });
     });
 
-    // Divider inside totals box
-    const divY = totBoxY + totalsData.length * totLineH + 10;
-    doc.setDrawColor(...borderGray);
-    doc.line(totBoxX + 4, divY, totBoxX + totBoxW - 4, divY);
+    // ===== CALCULATIONS =====
+    const subtotal = orderItems.reduce((acc, item) => {
+      const variant = item.selectedVariant;
+      const price = variant?.discountPrice || variant?.price || 0;
+      return acc + price * item.quantity;
+    }, 0);
 
-    // Grand total green band
-    doc.setFillColor(...green);
-    doc.roundedRect(totBoxX, divY + 3, totBoxW, 13, 2, 2, "F");
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    doc.setTextColor(...white);
-    doc.text("TOTAL AMOUNT", totBoxX + 6, divY + 11);
-    doc.text(`$${total.toFixed(2)}`, totBoxX + totBoxW - 6, divY + 11, { align: "right" });
+    const tax = subtotal * 0.08;
+    const shipping = subtotal >= 50 ? 0 : 5.99;
+    const couponDiscount = currentOrder.coupon ? (subtotal * currentOrder.coupon.discount) / 100 : 0;
+    const total = currentOrder.totalAmount || subtotal + tax + shipping - couponDiscount;
 
-    // ── FOOTER ────────────────────────────────────────────────────
-    doc.setFillColor(...green);
-    doc.rect(0, pageH - 20, pageW, 20, "F");
+    // ===== TOTAL SECTION =====
+    y += 15;
+    doc.line(120, y, 190, y);
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(8.5);
-    doc.setTextColor(...white);
-    doc.text(
-      "Thank you for shopping with GSORE Organic Food!",
-      pageW / 2, pageH - 12, { align: "center" }
-    );
+    y += 10;
 
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(7);
-    doc.setTextColor(200, 240, 200);
+    doc.text("Subtotal:", 120, y);
+    doc.text(`$${subtotal.toFixed(2)}`, 190, y, { align: "right" });
+
+    y += 8;
+    doc.text("Shipping:", 120, y);
     doc.text(
-      "For queries: support@freshmart.com  |  +91 98765 43210",
-      pageW / 2, pageH - 6, { align: "center" }
+      shipping === 0 ? "FREE" : `$${shipping.toFixed(2)}`,
+      190,
+      y,
+      { align: "right" }
     );
+
+    y += 8;
+    doc.text("Tax:", 120, y);
+    doc.text(`$${tax.toFixed(2)}`, 190, y, { align: "right" });
+
+    // Coupon Discount
+    if (couponDiscount > 0) {
+      y += 6;
+      doc.setTextColor(...green);
+      doc.text(`Coupon (${currentOrder.coupon.code}):`, 120, y);
+      doc.text(`-$${couponDiscount.toFixed(2)}`, 190, y, { align: "right" });
+      doc.setTextColor(0, 0, 0);
+    }
+
+    // ===== TOTAL (GREEN TEXT ONLY) =====
+    y += 12;
+
+    // Top border line only - light and subtle
+    doc.setDrawColor(220, 220, 220); // lighter grey border
+    doc.setLineWidth(0.3);
+    doc.line(120, y - 8, 190, y - 8);
+
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...green);
+    doc.text("TOTAL AMOUNT", 120, y);
+
+    doc.text(`$${total.toFixed(2)}`, 190, y, { align: "right" });
+
+    // reset text color back to black for footer
+    doc.setTextColor(0, 0, 0);
+
+    // ===== FOOTER =====
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(0, 0, 0);
+    doc.text("Thank you for your purchase!", pageWidth / 2, 280, {
+      align: "center",
+    });
 
     doc.save(`Invoice_${currentOrder._id}.pdf`);
   };
@@ -466,11 +381,11 @@ const OrderCompleted = () => {
           </h3>
           <div className="space-y-3">
             {orderItems.map((item, i) => {
-              const product      = item.productId || {};
-              const variant      = item.selectedVariant;
+              const product = item.productId || {};
+              const variant = item.selectedVariant;
               const originalPrice = variant?.price || 0;
-              const price        = variant?.discountPrice || originalPrice;
-              const hasOffer     = price < originalPrice;
+              const price = variant?.discountPrice || originalPrice;
+              const hasOffer = price < originalPrice;
 
               return (
                 <div
@@ -538,6 +453,12 @@ const OrderCompleted = () => {
             <span>Estimated Tax</span>
             <span className="text-gray-900 font-bold">${tax.toFixed(2)}</span>
           </div>
+          {couponDiscount > 0 && (
+            <div className="flex justify-between items-center text-green-600 font-medium">
+              <span>Coupon Discount ({currentOrder.coupon.code})</span>
+              <span className="text-green-600 font-bold">-${couponDiscount.toFixed(2)}</span>
+            </div>
+          )}
           <div className="flex justify-between items-end pt-5 mt-2 border-t border-gray-200/60">
             <span className="text-gray-900 font-bold text-lg uppercase tracking-wide">
               Total Amount

@@ -171,13 +171,13 @@ const getOrderWithOffers = async (orderId) => {
         },
         {
             $lookup: {
-                from: 'payments',
-                localField: '_id',
-                foreignField: 'orderId',
-                as: 'payment'
+                from: 'coupons',
+                localField: 'couponId',
+                foreignField: '_id',
+                as: 'coupon'
             }
         },
-        { $unwind: { path: '$payment', preserveNullAndEmptyArrays: true } },
+        { $unwind: { path: '$coupon', preserveNullAndEmptyArrays: true } },
         {
             $group: {
                 _id: '$_id',
@@ -191,7 +191,9 @@ const getOrderWithOffers = async (orderId) => {
                 createdAt: { $first: '$createdAt' },
                 updatedAt: { $first: '$updatedAt' },
                 payment: { $first: '$payment' },
-                trackingHistory: { $first: '$trackingHistory' }
+                trackingHistory: { $first: '$trackingHistory' },
+                couponId: { $first: '$couponId' },
+                coupon: { $first: '$coupon' }
             }
         }
     ]);
