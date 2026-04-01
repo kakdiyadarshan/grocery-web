@@ -9,9 +9,11 @@ import { BASE_URL } from '../utils/baseUrl';
 import { toast } from 'sonner';
 import { createOrder as triggerCreateOrder } from '../redux/slice/order.slice';
 import { clearCart, removeCoupon } from '../redux/slice/cart.slice';
-import { fetchAddresses } from '../redux/slice/address.slice';
-
-
+import { fetchAddresses, addAddress, updateAddress, deleteAddress } from '../redux/slice/address.slice';
+import { Formik, Form, Field } from 'formik';
+import * as Yup from 'yup';
+import { FiPlus, FiMapPin } from 'react-icons/fi';
+import DeleteModal from '../admin/component/DeleteModal';
 
 
 const CheckOut = () => {
@@ -23,8 +25,11 @@ const CheckOut = () => {
   const navigate = useNavigate();
   const { user } = useSelector(state => state.auth);
   const { cart, appliedCoupon } = useSelector(state => state.cart);
-  const { addresses } = useSelector(state => state.address);
+  const { addresses, submitLoading } = useSelector(state => state.address);
   const items = cart?.items || [];
+
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [editingAddress, setEditingAddress] = useState(null);
 
   const appliedCouponData = React.useMemo(() => {
     if (appliedCoupon) return appliedCoupon;
@@ -65,6 +70,8 @@ const CheckOut = () => {
   const [errors, setErrors] = useState({});
   const [useSavedAddress, setUseSavedAddress] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [addressToDelete, setAddressToDelete] = useState(null);
 
   const defaultAddress = addresses?.find(addr => addr.isDefault) || addresses?.[0] || null;
 
@@ -115,6 +122,40 @@ const CheckOut = () => {
     "Kotak Mahindra Bank"
   ];
 
+  const handleAddressSubmit = async (values, { resetForm, setSubmitting }) => {
+    try {
+      if (editingAddress) {
+        await dispatch(updateAddress({ addressId: editingAddress._id, addressData: values })).unwrap();
+      } else {
+        await dispatch(addAddress(values)).unwrap();
+      }
+      setIsAddressModalOpen(false);
+      setEditingAddress(null);
+      resetForm();
+    } catch (error) {
+      // error toast handled by slice
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteAddress = (id) => {
+    setAddressToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDeleteAddress = async () => {
+    if (addressToDelete) {
+      try {
+        await dispatch(deleteAddress(addressToDelete)).unwrap();
+        setIsDeleteModalOpen(false);
+        setAddressToDelete(null);
+      } catch (error) {
+        // error toast handled by slice
+      }
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === "phone") {
@@ -136,26 +177,16 @@ const CheckOut = () => {
 
   const handlePlaceOrder = async () => {
     const newErrors = {};
-    if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
-    if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email is invalid";
+
+    if (!selectedAddress) {
+      toast.error("Please select a shipping address");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
     }
-    if (!formData.phone.trim()) {
-      newErrors.phone = "Phone number is required";
-    } else if (!/^[0-9]{10}$/.test(formData.phone)) {
-      newErrors.phone = "Enter valid 10-digit number";
-    }
-    if (!formData.address.trim()) newErrors.address = "Street address is required";
-    if (!formData.country) newErrors.country = "Please select a country";
-    if (!formData.city.trim()) newErrors.city = "Town / City is required";
-    if (!formData.zip.trim()) newErrors.zip = "ZIP/Postcode is required";
 
     // Payment specific validation
     if (paymentMethod === 'upi') {
-      if (!formData.upiId.trim()) {
+      if (!formData.upiId?.trim()) {
         newErrors.upiId = "UPI ID is required";
       } else if (!/^[a-zA-Z0-9.\-_]{3,}@[a-zA-Z]{3,}$/.test(formData.upiId.trim())) {
         newErrors.upiId = "Enter a valid UPI ID (e.g., username@bank)";
@@ -201,14 +232,14 @@ const CheckOut = () => {
         paymentMethod: paymentMethod === 'cod' ? 'COD' : paymentMethod === 'upi' ? 'UPI' : paymentMethod === 'netbanking' ? 'Bank' : 'Stripe',
         addressId: selectedAddress?._id || null,
         addressDetails: {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          phone: formData.phone,
-          address: formData.address,
-          city: formData.city,
-          zip: formData.zip,
-          country: formData.country
+          firstName: selectedAddress?.firstname || selectedAddress?.firstName || formData.firstName,
+          lastName: selectedAddress?.lastname || selectedAddress?.lastName || formData.lastName,
+          email: selectedAddress?.email || formData.email,
+          phone: selectedAddress?.phone || formData.phone,
+          address: selectedAddress?.address || formData.address,
+          city: selectedAddress?.city || formData.city,
+          zip: selectedAddress?.zip || selectedAddress?.postcode || formData.zip,
+          country: selectedAddress?.country || formData.country
         },
         upiDetails: paymentMethod === 'upi' ? { upiId: formData.upiId } : undefined,
         bankDetails: paymentMethod === 'netbanking' ? { bankName: formData.selectedBank } : undefined
@@ -276,82 +307,77 @@ const CheckOut = () => {
         <div className="container mx-auto px-4 lg:px-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
 
-            {/* Left Column: Billing Details */}
+            {/* Left Column: Addresses */}
             <div className="lg:col-span-8">
-              <div className="bg-white rounded border border-gray-100 p-6 sm:p-8 shadow-sm">
-                <div className='mb-6 border-b border-gray-100 pb-4 flex justify-between items-center'>
-                  <h2 className="text-[18px] sm:text-[20px] font-bold text-[var(--text-gray)] ">Billing Details</h2>
-                  <button className='bg-[var(--primary)] text-white py-2 px-5 rounded text-sm' onClick={handleNavigate}>Manage Addresses</button>
-                </div>
-                <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
-                  {/* Name Fields */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                      <label className="block text-[14px] font-bold text-[var(--text-gray)] mb-2">First Name <span className="text-red-500">*</span></label>
-                      <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} className={`w-full px-4 py-3 rounded border outline-none text-[14px] text-gray-700 transition-colors ${errors.firstName ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[var(--primary)]'}`} placeholder="e.g. John" />
-                      {errors.firstName && <p className="text-red-500 text-[12px] mt-1.5 font-medium">{errors.firstName}</p>}
-                    </div>
-                    <div>
-                      <label className="block text-[14px] font-bold text-[var(--text-gray)] mb-2">Last Name <span className="text-red-500">*</span></label>
-                      <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} className={`w-full px-4 py-3 rounded border outline-none text-[14px] text-gray-700 transition-colors ${errors.lastName ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[var(--primary)]'}`} placeholder="e.g. Doe" />
-                      {errors.lastName && <p className="text-red-500 text-[12px] mt-1.5 font-medium">{errors.lastName}</p>}
-                    </div>
-                  </div>
+              {/* Add Address Button */}
+              <div
+                className="bg-white rounded-[4px] border border-gray-100 p-4 mb-4 shadow-sm flex items-center gap-2 cursor-pointer hover:bg-gray-50 transition-colors"
+                onClick={() => { setEditingAddress(null); setIsAddressModalOpen(true); }}
+              >
+                <FiPlus className="text-gray-800 font-bold" size={18} />
+                <span className="text-gray-800 font-bold text-sm tracking-tight">Add address</span>
+              </div>
 
-                  {/* Contact Fields */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                      <label className="block text-[14px] font-bold text-[var(--text-gray)] mb-2">Email Address <span className="text-red-500">*</span></label>
-                      <input type="email" name="email" value={formData.email} onChange={handleChange} className={`w-full px-4 py-3 rounded border outline-none text-[14px] text-gray-700 transition-colors ${errors.email ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[var(--primary)]'}`} placeholder="e.g. john@example.com" />
-                      {errors.email && <p className="text-red-500 text-[12px] mt-1.5 font-medium">{errors.email}</p>}
+              {/* Saved Addresses List */}
+              <div className="space-y-4">
+                {(!addresses || addresses.length === 0) ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center bg-white rounded-[4px] border border-dashed border-gray-200">
+                    <div className="w-14 h-14 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 mb-4 shadow-sm">
+                      <FiMapPin size={28} />
                     </div>
-                    <div>
-                      <label className="block text-[14px] font-bold text-[var(--text-gray)] mb-2">Phone Number <span className="text-red-500">*</span></label>
-                      <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className={`w-full px-4 py-3 rounded border outline-none text-[14px] text-gray-700 transition-colors ${errors.phone ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[var(--primary)]'}`} placeholder="e.g. +1 234 567 8900" />
-                      {errors.phone && <p className="text-red-500 text-[12px] mt-1.5 font-medium">{errors.phone}</p>}
-                    </div>
+                    <h3 className="text-[16px] font-bold text-[var(--text-gray)]">No Addresses Found</h3>
+                    <p className="text-[13px] text-gray-500 mt-1.5 max-w-xs px-4">
+                      Please add a shipping address to your account to proceed with checkout.
+                    </p>
                   </div>
+                ) : (
+                  addresses.map((addr) => (
+                    <div key={addr._id} className="bg-white rounded-[4px] border border-gray-100 p-5 shadow-sm">
+                      <div className="flex items-start gap-4">
+                        <div className="mt-1">
+                          <input
+                            type="radio"
+                            name="selectedAddress"
+                            checked={selectedAddress?._id === addr._id}
+                            onChange={() => {
+                              setSelectedAddress(addr);
+                              setUseSavedAddress(true);
+                            }}
+                            className="w-[18px] h-[18px] accent-[var(--primary)] cursor-pointer"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-[15px] text-[var(--text-gray)] mb-2">
+                            {addr.firstname || addr.firstName} {addr.lastname || addr.lastName}
+                          </h4>
+                          <p className="text-[13px] text-gray-500 mb-1 leading-relaxed">
+                            {addr.address}, {addr.city}, {addr.state} {addr.zip || addr.postcode}
+                          </p>
+                          <p className="text-[13px] text-gray-500 mb-4">
+                            Phone : {addr.phone}
+                          </p>
 
-                  {/* Address */}
-                  <div>
-                    <label className="block text-[14px] font-bold text-[var(--text-gray)] mb-2">Street Address <span className="text-red-500">*</span></label>
-                    <input type="text" name="address" value={formData.address} onChange={handleChange} className={`w-full px-4 py-3 rounded border outline-none text-[14px] text-gray-700 transition-colors mb-2 ${errors.address ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[var(--primary)]'}`} placeholder="House number and street name" />
-                    {errors.address && <p className="text-red-500 text-[12px] mt-1 mb-2 font-medium">{errors.address}</p>}
-                    <input type="text" className="w-full px-4 py-3 rounded border border-gray-200 outline-none focus:border-[var(--primary)] text-[14px] text-gray-700 transition-colors mt-2" placeholder="Apartment, suite, unit, etc. (optional)" />
-                  </div>
-
-                  {/* City & Location */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                    <div className="sm:col-span-1">
-                      <label className="block text-[14px] font-bold text-[var(--text-gray)] mb-2">Country / Region <span className="text-red-500">*</span></label>
-                      <select name="country" value={formData.country} onChange={handleChange} className={`w-full px-4 py-3 rounded border outline-none text-[14px] text-gray-700 transition-colors bg-white appearance-none cursor-pointer ${errors.country ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[var(--primary)]'}`}>
-                        <option value="">Select Country</option>
-                        <option value="US">United States</option>
-                        <option value="UK">United Kingdom</option>
-                        <option value="IN">India</option>
-                        <option value="CA">Canada</option>
-                      </select>
-                      {errors.country && <p className="text-red-500 text-[12px] mt-1.5 font-medium">{errors.country}</p>}
+                          <div className="flex items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteAddress(addr._id)}
+                              className="px-4 py-1.5 border border-gray-200 text-[13px] font-medium text-gray-600 rounded-[4px] hover:bg-gray-50 transition-colors"
+                            >
+                              Remove
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { setEditingAddress(addr); setIsAddressModalOpen(true); }}
+                              className="px-4 py-1.5 border border-gray-200 text-[13px] font-medium text-gray-600 rounded-[4px] hover:bg-gray-50 transition-colors"
+                            >
+                              Edit
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="sm:col-span-1">
-                      <label className="block text-[14px] font-bold text-[var(--text-gray)] mb-2">Town / City <span className="text-red-500">*</span></label>
-                      <input type="text" name="city" value={formData.city} onChange={handleChange} className={`w-full px-4 py-3 rounded border outline-none text-[14px] text-gray-700 transition-colors ${errors.city ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[var(--primary)]'}`} />
-                      {errors.city && <p className="text-red-500 text-[12px] mt-1.5 font-medium">{errors.city}</p>}
-                    </div>
-                    <div className="sm:col-span-1">
-                      <label className="block text-[14px] font-bold text-[var(--text-gray)] mb-2">Postcode / ZIP <span className="text-red-500">*</span></label>
-                      <input type="text" name="zip" value={formData.zip} onChange={handleChange} className={`w-full px-4 py-3 rounded border outline-none text-[14px] text-gray-700 transition-colors ${errors.zip ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[var(--primary)]'}`} />
-                      {errors.zip && <p className="text-red-500 text-[12px] mt-1.5 font-medium">{errors.zip}</p>}
-                    </div>
-                  </div>
-
-                  {/* Order Notes */}
-                  <div className="pt-2">
-                    <label className="block text-[14px] font-bold text-[var(--text-gray)] mb-2">Order Notes (Optional)</label>
-                    <textarea rows="4" className="w-full px-4 py-3 rounded border border-gray-200 outline-none focus:border-[var(--primary)] text-[14px] text-gray-700 transition-colors resize-none" placeholder="Notes about your order, e.g. special notes for delivery."></textarea>
-                  </div>
-
-                </form>
+                  ))
+                )}
               </div>
             </div>
 
@@ -560,6 +586,211 @@ const CheckOut = () => {
           </div>
         </div>
       </main>
+
+      {/* Address Edit/Add Modal */}
+      {isAddressModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsAddressModalOpen(false)}></div>
+          <div className="bg-white rounded-[4px] w-full max-w-2xl shadow-2xl relative animate-in zoom-in-95 duration-200 overflow-hidden">
+            <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center">
+              <h3 className="text-[18px] font-bold text-[var(--text-gray)]">
+                {editingAddress ? 'Edit Address' : 'Add New Address'}
+              </h3>
+              <button
+                onClick={() => setIsAddressModalOpen(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400"
+              >
+                <FiPlus className="rotate-45" size={24} />
+              </button>
+            </div>
+
+            <div className="p-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+              <Formik
+                initialValues={{
+                  firstname: editingAddress?.firstname || '',
+                  lastname: editingAddress?.lastname || '',
+                  address: editingAddress?.address || '',
+                  city: editingAddress?.city || '',
+                  state: editingAddress?.state || '',
+                  zip: editingAddress?.zip || '',
+                  country: editingAddress?.country || 'India',
+                  phone: editingAddress?.phone || '',
+                  email: editingAddress?.email || user?.email || '',
+                  isDefault: editingAddress?.isDefault || addresses.length === 0,
+                }}
+                validationSchema={Yup.object().shape({
+                  firstname: Yup.string().required('First name is required'),
+                  lastname: Yup.string().required('Last name is required'),
+                  address: Yup.string().required('Address is required'),
+                  city: Yup.string().required('City is required'),
+                  state: Yup.string().required('State is required'),
+                  zip: Yup.string().required('Zip is required'),
+                  phone: Yup.string().required('Phone is required'),
+                  email: Yup.string().email('Invalid email').required('Email is required'),
+                })}
+                onSubmit={handleAddressSubmit}
+              >
+                {({ isSubmitting, errors, touched }) => (
+                  <Form className="space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-700 block mb-2 ml-1">First Name <span className="text-red-500">*</span></label>
+                        <Field
+                          name="firstname"
+                          placeholder="First Name"
+                          className={`block w-full px-3 py-3 border rounded-[4px] outline-none transition-all text-sm font-medium bg-gray-50 focus:bg-white text-gray-800 placeholder-gray-400 ${errors.firstname && touched.firstname
+                            ? 'border-red-500 focus:ring-red-100'
+                            : 'border-gray-200 focus:ring-2 focus:ring-[var(--primary)]/10 focus:border-[var(--primary)]'
+                            }`}
+                        />
+                        {errors.firstname && touched.firstname && <div className="mt-1 text-xs text-red-500 ml-1">{errors.firstname}</div>}
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-700 block mb-2 ml-1">Last Name <span className="text-red-500">*</span></label>
+                        <Field
+                          name="lastname"
+                          placeholder="Last Name"
+                          className={`block w-full px-3 py-3 border rounded-[4px] outline-none transition-all text-sm font-medium bg-gray-50 focus:bg-white text-gray-800 placeholder-gray-400 ${errors.lastname && touched.lastname
+                            ? 'border-red-500 focus:ring-red-100'
+                            : 'border-gray-200 focus:ring-2 focus:ring-[var(--primary)]/10 focus:border-[var(--primary)]'
+                            }`}
+                        />
+                        {errors.lastname && touched.lastname && <div className="mt-1 text-xs text-red-500 ml-1">{errors.lastname}</div>}
+                      </div>
+
+                      <div className="md:col-span-2 space-y-2">
+                        <label className="text-sm font-medium text-gray-700 block mb-2 ml-1">Street Address <span className="text-red-500">*</span></label>
+                        <Field
+                          name="address"
+                          placeholder="Suite, building, street, etc."
+                          className={`block w-full px-3 py-3 border rounded-[4px] outline-none transition-all text-sm font-medium bg-gray-50 focus:bg-white text-gray-800 placeholder-gray-400 ${errors.address && touched.address
+                            ? 'border-red-500 focus:ring-red-100'
+                            : 'border-gray-200 focus:ring-2 focus:ring-[var(--primary)]/10 focus:border-[var(--primary)]'
+                            }`}
+                        />
+                        {errors.address && touched.address && <div className="mt-1 text-xs text-red-500 ml-1">{errors.address}</div>}
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-700 block mb-2 ml-1">City <span className="text-red-500">*</span></label>
+                        <Field
+                          name="city"
+                          placeholder="City"
+                          className={`block w-full px-3 py-3 border rounded-[4px] outline-none transition-all text-sm font-medium bg-gray-50 focus:bg-white text-gray-800 placeholder-gray-400 ${errors.city && touched.city
+                            ? 'border-red-500 focus:ring-red-100'
+                            : 'border-gray-200 focus:ring-2 focus:ring-[var(--primary)]/10 focus:border-[var(--primary)]'
+                            }`}
+                        />
+                        {errors.city && touched.city && <div className="mt-1 text-xs text-red-500 ml-1">{errors.city}</div>}
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-700 block mb-2 ml-1">State <span className="text-red-500">*</span></label>
+                        <Field
+                          name="state"
+                          placeholder="State"
+                          className={`block w-full px-3 py-3 border rounded-[4px] outline-none transition-all text-sm font-medium bg-gray-50 focus:bg-white text-gray-800 placeholder-gray-400 ${errors.state && touched.state
+                            ? 'border-red-500 focus:ring-red-100'
+                            : 'border-gray-200 focus:ring-2 focus:ring-[var(--primary)]/10 focus:border-[var(--primary)]'
+                            }`}
+                        />
+                        {errors.state && touched.state && <div className="mt-1 text-xs text-red-500 ml-1">{errors.state}</div>}
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-700 block mb-2 ml-1">Zip Code <span className="text-red-500">*</span></label>
+                        <Field
+                          name="zip"
+                          placeholder="Zip Code"
+                          className={`block w-full px-3 py-3 border rounded-[4px] outline-none transition-all text-sm font-medium bg-gray-50 focus:bg-white text-gray-800 placeholder-gray-400 ${errors.zip && touched.zip
+                            ? 'border-red-500 focus:ring-red-100'
+                            : 'border-gray-200 focus:ring-2 focus:ring-[var(--primary)]/10 focus:border-[var(--primary)]'
+                            }`}
+                        />
+                        {errors.zip && touched.zip && <div className="mt-1 text-xs text-red-500 ml-1">{errors.zip}</div>}
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-700 block mb-2 ml-1">Country <span className="text-red-500">*</span></label>
+                        <Field
+                          name="country"
+                          placeholder="Country"
+                          className="block w-full px-3 py-3 border border-gray-200 rounded-[4px] outline-none transition-all text-sm font-medium bg-gray-50 focus:bg-white text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-[var(--primary)]/10 focus:border-[var(--primary)]"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-700 block mb-2 ml-1">Phone Number <span className="text-red-500">*</span></label>
+                        <Field
+                          name="phone"
+                          placeholder="Phone Number"
+                          className={`block w-full px-3 py-3 border rounded-[4px] outline-none transition-all text-sm font-medium bg-gray-50 focus:bg-white text-gray-800 placeholder-gray-400 ${errors.phone && touched.phone
+                            ? 'border-red-500 focus:ring-red-100'
+                            : 'border-gray-200 focus:ring-2 focus:ring-[var(--primary)]/10 focus:border-[var(--primary)]'
+                            }`}
+                        />
+                        {errors.phone && touched.phone && <div className="mt-1 text-xs text-red-500 ml-1">{errors.phone}</div>}
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-700 block mb-2 ml-1">Email Address <span className="text-red-500">*</span></label>
+                        <Field
+                          name="email"
+                          placeholder="Email for this address"
+                          className={`block w-full px-3 py-3 border rounded-[4px] outline-none transition-all text-sm font-medium bg-gray-50 focus:bg-white text-gray-800 placeholder-gray-400 ${errors.email && touched.email
+                            ? 'border-red-500 focus:ring-red-100'
+                            : 'border-gray-200 focus:ring-2 focus:ring-[var(--primary)]/10 focus:border-[var(--primary)]'
+                            }`}
+                        />
+                        {errors.email && touched.email && <div className="mt-1 text-xs text-red-500 ml-1">{errors.email}</div>}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-2">
+                      <Field
+                        type="checkbox"
+                        name="isDefault"
+                        id="isDefault"
+                        className="w-4 h-4 rounded border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)] cursor-pointer"
+                      />
+                      <label htmlFor="isDefault" className="text-sm font-medium text-gray-600 cursor-pointer">Set as default shipping address</label>
+                    </div>
+
+                    <div className="pt-6 border-t border-gray-100 flex flex-col sm:flex-row gap-4 justify-center">
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white font-medium py-3 px-4 rounded-[4px] transition-all duration-300 shadow-md transform active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        {isSubmitting ? (
+                          <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : editingAddress ? 'Update Address' : 'Save Address'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsAddressModalOpen(false)}
+                        className="px-8 py-3 border border-gray-200 text-gray-500 rounded-[4px] font-medium text-sm hover:bg-gray-50 transition-all active:scale-95"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </Form>
+                )}
+              </Formik>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => { setIsDeleteModalOpen(false); setAddressToDelete(null); }}
+        onConfirm={confirmDeleteAddress}
+        title="Delete Address"
+        message="Are you sure you want to delete this address?"
+        isLoading={submitLoading}
+      />
 
     </div>
   );
