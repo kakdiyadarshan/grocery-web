@@ -4,6 +4,7 @@ import { FiDownload, FiHash, FiClock, FiUser, FiInfo, FiDollarSign } from 'react
 import DataTable from '../component/DataTable';
 import { useDispatch, useSelector } from 'react-redux';
 import Breadcrumb from '../component/Breadcrumb';
+import CustomSelect from '../component/CustomSelect';
 
 const Transactions = () => {
     const dispatch = useDispatch();
@@ -93,19 +94,23 @@ const Transactions = () => {
             header: 'Status',
             accessor: 'status',
             render: (row) => (
-                <select
+                <CustomSelect
                     value={row.status}
-                    onChange={(e) => handleStatusChange(row._id, e.target.value)}
-                    className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border-none focus:ring-0 cursor-pointer ${row.status === 'completed' ? 'bg-green-100 text-green-800' :
-                        row.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                            row.status === 'failed' ? 'bg-red-100 text-red-800' :
-                                'bg-gray-100 text-gray-800'
-                        }`}
-                >
-                    <option value="pending">Pending</option>
-                    <option value="completed">Completed</option>
-                    <option value="failed">Failed</option>
-                </select>
+                    onChange={(val) => handleStatusChange(row._id, val)}
+                    searchable={false}
+                    className="w-32"
+                    buttonClassName={`!py-1.5 shadow-sm text-[10px] font-[600] tracking-widest capitalize ${
+                        row.status === 'paid' ? '!bg-emerald-50 !text-emerald-600 !border-emerald-200' :
+                        row.status === 'pending' ? '!bg-amber-50 !text-amber-600 !border-amber-200' :
+                        row.status === 'failed' ? '!bg-rose-50 !text-rose-600 !border-rose-200' :
+                        '!bg-gray-50 !text-gray-600 !border-gray-200'
+                    }`}
+                    options={[
+                        { value: 'pending', label: 'Pending' },
+                        { value: 'paid', label: 'Paid' },
+                        { value: 'failed', label: 'Failed' }
+                    ]}
+                />
             )
         }
     ], [handleStatusChange]);

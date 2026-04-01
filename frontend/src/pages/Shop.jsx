@@ -573,7 +573,7 @@ const Shop = () => {
                                                                 <span className="text-[11px] sm:text-[12px] text-gray-400 line-through font-medium mb-0.5">
                                                                     ${originalPrice}
                                                                 </span>
-                                                                <span className="text-[17px] sm:text-[18px] font-[600] text-gray-900 leading-none tracking-tight">
+                                                                <span className="text-[18px] sm:text-[20px] font-bold text-[var(--primary)] leading-none tracking-tight">
                                                                     ${currentPrice}
                                                                 </span>
                                                             </>

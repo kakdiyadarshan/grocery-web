@@ -241,7 +241,7 @@ exports.clearCart = async (req, res) => {
         const cart = await Cart.findOneAndDelete({ userId: userId });
         if (!cart) return res.status(404).json({ success: false, message: 'Cart not found' });
 
-          const updatedCart = await getCartWithOffers(userId);
+        const updatedCart = await getCartWithOffers(userId);
 
         return res.status(200).json({
             success: true,
