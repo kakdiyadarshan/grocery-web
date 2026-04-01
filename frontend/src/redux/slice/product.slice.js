@@ -183,13 +183,20 @@ const productSlice = createSlice({
             .addCase(getAllProducts.pending, (state) => { state.loading = true; })
             .addCase(getAllProducts.fulfilled, (state, action) => {
                 state.loading = false;
-                if (action.payload.totalProducts !== undefined) {
-                    state.products = action.payload.products;
-                    state.totalProducts = action.payload.totalProducts;
+                const params = action.meta.arg || {};
+
+                // If it's a non-paginated fetch for lookup/filter counts (only for sidebar purposes)
+                if (params.paginate === false) {
+                    state.allProducts = action.payload.products;
+                    // Note: products and totalProducts are only updated if they're currently empty
+                    if (state.products.length === 0) {
+                        state.products = action.payload.products;
+                        state.totalProducts = action.payload.products.length;
+                    }
                 } else {
+                    // This is for the UI grid (paginated/filtered)
                     state.products = action.payload.products;
-                    state.allProducts = action.payload.products; // For shop filters
-                    state.totalProducts = action.payload.products.length;
+                    state.totalProducts = action.payload.totalProducts || action.payload.products.length;
                 }
             })
             .addCase(getAllProducts.rejected, (state) => { state.loading = false; })

@@ -18,7 +18,7 @@ const Header = () => {
   const { cart } = useSelector((state) => state.cart);
   const { wishlist } = useSelector((state) => state.wishlist);
   const { categories } = useSelector((state) => state.category);
-  const { products = [] } = useSelector((state) => state.product || {});
+  const { products = [], allProducts = [] } = useSelector((state) => state.product || {});
   const { isAuthenticated, user } = useSelector((state) => state.auth);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -55,10 +55,10 @@ const Header = () => {
   }, [dispatch, isAuthenticated, location.pathname]);
 
   useEffect(() => {
-    if (!products.length) {
-      dispatch(getAllProducts());
+    if (!allProducts.length) {
+      dispatch(getAllProducts({ paginate: false }));
     }
-  }, [dispatch, products.length]);
+  }, [dispatch, allProducts.length]);
 
   useEffect(() => {
     try {
@@ -147,6 +147,16 @@ const Header = () => {
     }
     navigate(trimmedSearch ? `/shop?search=${encodeURIComponent(trimmedSearch)}` : '/shop');
   };
+
+  const availableCategories = useMemo(() => {
+    if (!categories || !allProducts) return [];
+    return categories.filter(cat =>
+      allProducts.some(product => {
+        const productCatName = typeof product.category === 'object' ? product.category?.categoryName : product.category;
+        return productCatName === cat.categoryName;
+      })
+    );
+  }, [categories, allProducts]);
 
   const suggestionProducts = useMemo(() => {
     const searchValue = debouncedSearchTerm.toLowerCase();
@@ -259,10 +269,10 @@ const Header = () => {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                        <span className="block text-[14px] font-semibold text-gray-800 truncate">{highlightMatch(product.name, debouncedSearchTerm)}</span>
-                        {product.weighstWise?.every(w => w.stock <= 0) && (
-                            <span className="text-[9px] bg-red-100 text-red-500 font-bold px-1.5 py-0.5 rounded uppercase shrink-0">Sold Out</span>
-                        )}
+                      <span className="block text-[14px] font-semibold text-gray-800 truncate">{highlightMatch(product.name, debouncedSearchTerm)}</span>
+                      {product.weighstWise?.every(w => w.stock <= 0) && (
+                        <span className="text-[9px] bg-red-100 text-red-500 font-bold px-1.5 py-0.5 rounded uppercase shrink-0">Sold Out</span>
+                      )}
                     </div>
                     <span className="block text-[12px] text-gray-400 font-medium truncate mt-0.5">{highlightMatch(product.category?.categoryName || 'General', debouncedSearchTerm)}</span>
                   </div>
@@ -549,7 +559,7 @@ const Header = () => {
                 {isCategoryMenuOpen && (
                   <div className="absolute top-full left-0 w-[240px] sm:w-[260px] bg-white border border-gray-100 shadow-xl rounded-b py-2 text-[var(--text-gray)]">
                     <ul className="flex flex-col">
-                      {categories?.length > 0 && categories.map((category) => (
+                      {availableCategories?.length > 0 && availableCategories.map((category) => (
                         <li key={category._id}>
                           <Link
                             to={`/shop?category=${encodeURIComponent(category.categoryName)}`}
