@@ -78,6 +78,15 @@ const OrderTracking = () => {
     return '';
   };
 
+  const items = data.items || [];
+  const subtotal = items.reduce((acc, item) => {
+      const price = item.selectedVariant?.discountPrice ?? item.selectedVariant?.price ?? 0;
+      return acc + (price * item.quantity);
+  }, 0);
+  const tax = subtotal * 0.08;
+  const shipping = items.length > 0 ? (subtotal >= 50 ? 0 : 5.99) : 0;
+  const couponId = data.couponId;
+
   return (
     <div className=" bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 ">
       <ReviewModal
@@ -193,21 +202,37 @@ const OrderTracking = () => {
                 );
               })}
             </div>
-            
+
             <div className="pt-6 border-t border-dashed space-y-4">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500 font-medium">Subtotal</span>
-                <span className="text-gray-900 font-bold">${data.totalAmount?.toFixed(2)}</span>
+                <span className="text-gray-900 font-bold">${subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500 font-medium">Shipping</span>
-                <span className="text-green-600 font-bold uppercase text-[11px] tracking-wider bg-green-50 px-2 py-0.5 rounded-md">Free</span>
+                <span className="text-gray-500 font-medium">Estimated Tax (8%)</span>
+                <span className="text-gray-900 font-bold">${tax.toFixed(2)}</span>
               </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500 font-medium">Shipping Fee</span>
+                {shipping === 0 ? (
+                  <span className="text-green-600 font-bold uppercase text-[11px] tracking-wider bg-green-50 px-2 py-0.5 rounded-md">Free</span>
+                ) : (
+                  <span className="text-gray-900 font-bold">${shipping.toFixed(2)}</span>
+                )}
+              </div>
+              {couponId && couponId.code && (
+                <div className="flex justify-between text-[var(--primary)] text-sm">
+                  <span className="flex items-center gap-1 font-medium">
+                    Coupon ({couponId.code}) - {couponId.discount}% off
+                  </span>
+                  <span className="font-bold">(-${((subtotal * couponId.discount) / 100).toFixed(2)})</span>
+                </div>
+              )}
               <div className="pt-4 border-t flex justify-between items-center">
                 <span className="text-gray-900 font-black text-lg">Total</span>
                 <div className="text-right">
-                   <span className="text-2xl font-black text-[var(--primary)]">${data.totalAmount?.toFixed(2)}</span>
-                   <p className="text-[10px] text-textSecondary font-[600] tracking-tighter">Taxes Included</p>
+                  <span className="text-2xl font-black text-[var(--primary)]">${data.totalAmount?.toFixed(2)}</span>
+                  <p className="text-[10px] text-textSecondary font-[600] tracking-tighter">Taxes Included</p>
                 </div>
               </div>
             </div>

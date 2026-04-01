@@ -222,14 +222,6 @@ const Header = ({ onToggleSidebar }) => {
                       </div>
                     )}
                   </div>
-
-                  {unseenNotifications.length > 0 && (
-                    <div className="px-5 py-3 bg-gray-50/50 border-t border-gray-50 text-center">
-                      <button className="text-xs font-bold text-gray-500 hover:text-primary transition-colors">
-                        View All Activity
-                      </button>
-                    </div>
-                  )}
                 </div>
               )}
             </div>

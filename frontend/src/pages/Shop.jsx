@@ -616,7 +616,7 @@ const Shop = () => {
                                                     <div className="flex items-center gap-2 relative top-0.5">
                                                         {hasDiscount ? (
                                                             <>
-                                                                <span className="text-base sm:text-lg font-semibold text-[var(--primary)] leading-none">
+                                                                <span className="text-[18px] sm:text-[20px] font-bold text-[var(--primary)] leading-none tracking-tight">
                                                                     ${currentPrice}
                                                                 </span>
 
@@ -625,7 +625,7 @@ const Shop = () => {
                                                                 </span>
                                                             </>
                                                         ) : (
-                                                            <span className="text-base sm:text-lg font-semibold text-[var(--primary)] leading-none">
+                                                            <span className="text-[18px] sm:text-[20px] font-bold text-[var(--primary)] leading-none">
                                                                 ${currentPrice}
                                                             </span>
                                                         )}

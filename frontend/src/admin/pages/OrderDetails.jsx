@@ -221,6 +221,7 @@ const OrderDetails = () => {
     }, 0);
 
     const tax = subtotal * 0.08;
+    const shipping = items.length > 0 ? (subtotal >= 50 ? 0 : 5.99) : 0;
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500 md:my-6 my-4">
@@ -333,7 +334,11 @@ const OrderDetails = () => {
                                 </div>
                                 <div className="flex justify-between text-sm text-textSecondary font-medium">
                                     <span>Shipping Fee</span>
-                                    <span className="text-emerald-600 font-bold uppercase text-[10px]">Free</span>
+                                    {shipping === 0 ? (
+                                        <span className="text-emerald-600 font-bold uppercase text-[10px]">Free</span>
+                                    ) : (
+                                        <span className="text-textPrimary font-bold">${shipping.toFixed(2)}</span>
+                                    )}
                                 </div>
                                 {couponId && couponId.code && (
                                     <div className="flex justify-between text-primary text-sm">
@@ -413,11 +418,11 @@ const OrderDetails = () => {
                             </div>
                             <div className="flex justify-between items-center rounded-[4px]">
                                 <span className="text-xs font-bold text-textSecondary capitalize">Status</span>
-                                <span className={`text-[10px] font-[600] capitalize tracking-widest px-2.5 py-1 rounded-[4px] border shadow-sm ${payment?.status === 'completed' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
-                                    payment?.status === 'failed' ? 'bg-rose-50 text-rose-600 border-rose-200' :
+                                <span className={`text-[10px] font-[600] capitalize tracking-widest px-2.5 py-1 rounded-[4px] border shadow-sm ${payment[0]?.status === 'completed' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                                    payment[0]?.status === 'failed' ? 'bg-rose-50 text-rose-600 border-rose-200' :
                                         'bg-amber-50 text-amber-600 border-amber-200'
                                     }`}>
-                                    {payment?.status}
+                                    {payment[0]?.status}
                                 </span>
                             </div>
                         </div>

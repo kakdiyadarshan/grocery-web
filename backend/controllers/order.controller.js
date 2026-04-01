@@ -209,7 +209,7 @@ const getOrderWithOffers = async (orderId) => {
     if (!orderData || orderData.length === 0) return null;
 
     const order = orderData[0];
-    order.displayStatus = calculateDynamicStatus(order);
+    // order.displayStatus = calculateDynamicStatus(order);
 
     order.items = order.items.map(item => {
         const product = item.productId;
@@ -348,7 +348,7 @@ exports.createOrder = async (req, res) => {
         });
 
         const populatedOrder = await Order.findById(order._id).populate('addressId').populate('items.productId');
-        res.status(201).json({ success: true, data: await transformAndAutoUpdate(populatedOrder) });
+        res.status(201).json({ success: true, data: populatedOrder });
     } catch (error) {
         console.error("Create Order Error:", error);
         res.status(500).json({ success: false, message: error.message });
@@ -494,7 +494,7 @@ exports.getAllOrders = async (req, res) => {
         ]);
 
         const ordersWithPayments = orders.map(order => {
-            order.displayStatus = calculateDynamicStatus(order);
+            // order.displayStatus = calculateDynamicStatus(order);
 
             order.items = order.items.map(item => {
                 const product = item.productId;
@@ -674,7 +674,7 @@ exports.getUserOrders = async (req, res) => {
         ]);
 
         const ordersWithPayments = orders.map(order => {
-            order.displayStatus = calculateDynamicStatus(order);
+            // order.displayStatus = calculateDynamicStatus(order);
 
             order.items = order.items.map(item => {
                 const product = item.productId;
@@ -782,13 +782,48 @@ exports.trackOrder = async (req, res) => {
         const order = await getOrderWithOffers(req.params.id);
         if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
 
+        const trackingMap = {};
+        if (order.trackingHistory) {
+            order.trackingHistory.forEach(entry => {
+                trackingMap[entry.status.toLowerCase()] = entry.timestamp || entry.date || new Date();
+            });
+        }
+
         const createdAt = new Date(order.createdAt);
+        
+        const getStepTime = (statusId, fallbackMinutes) => {
+            if (trackingMap[statusId]) return new Date(trackingMap[statusId]);
+            return new Date(createdAt.getTime() + fallbackMinutes * 60 * 1000);
+        };
+
+        const displayStatus = (order.displayStatus || order.status)?.toLowerCase();
+
         const steps = [
-            { status: "Order Placed", date: createdAt, isCompleted: true },
-            { status: "Processing", date: new Date(createdAt.getTime() + 15 * 60 * 1000), isCompleted: ['processing', 'shipped', 'out for delivery', 'delivered', 'completed'].includes(order.displayStatus) },
-            { status: "Shipped", date: new Date(createdAt.getTime() + 45 * 60 * 1000), isCompleted: ['shipped', 'out for delivery', 'delivered', 'completed'].includes(order.displayStatus) },
-            { status: "Out for Delivery", date: new Date(createdAt.getTime() + 60 * 60 * 1000), isCompleted: ['out for delivery', 'delivered', 'completed'].includes(order.displayStatus) },
-            { status: "Delivered", date: new Date(createdAt.getTime() + 120 * 60 * 1000), isCompleted: ['delivered', 'completed'].includes(order.displayStatus) }
+            { 
+                status: "Order Placed", 
+                date: getStepTime('pending', 0), 
+                isCompleted: true 
+            },
+            { 
+                status: "Processing", 
+                date: getStepTime('processing', 15), 
+                isCompleted: ['processing', 'shipped', 'out for delivery', 'delivered', 'completed'].includes(displayStatus) 
+            },
+            { 
+                status: "Shipped", 
+                date: getStepTime('shipped', 45), 
+                isCompleted: ['shipped', 'out for delivery', 'delivered', 'completed'].includes(displayStatus) 
+            },
+            { 
+                status: "Out for Delivery", 
+                date: getStepTime('out for delivery', 60), 
+                isCompleted: ['out for delivery', 'delivered', 'completed'].includes(displayStatus) 
+            },
+            { 
+                status: "Delivered", 
+                date: getStepTime('delivered', 120), 
+                isCompleted: ['delivered', 'completed'].includes(displayStatus) 
+            }
         ];
 
         res.status(200).json({

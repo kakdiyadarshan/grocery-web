@@ -248,7 +248,7 @@ exports.clearCart = async (req, res) => {
             });
         }
 
-          const updatedCart = await getCartWithOffers(userId);
+        const updatedCart = await getCartWithOffers(userId);
 
         return res.status(200).json({
             success: true,
