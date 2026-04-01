@@ -8,7 +8,7 @@ const Cart = ({ isOpen, onClose }) => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { cart } = useSelector((state) => state.cart);
-    const [showInstructions, setShowInstructions] = useState(false);
+    // const [showInstructions, setShowInstructions] = useState(false);
     const [instructions, setInstructions] = useState('');
 
     const cartItems = cart?.items?.filter(item => item?.productId && (item.productId.name || item.productId.productName)) || [];
@@ -167,7 +167,7 @@ const Cart = ({ isOpen, onClose }) => {
                 {/* Footer */}
                 {cartItems.length > 0 && (
                     <div className="px-4 sm:px-6 py-6 border-t border-gray-100 bg-white">
-                        <div className="mb-6 border-b border-gray-100 pb-6">
+                        {/* <div className="mb-6 border-b border-gray-100 pb-6">
                             <button
                                 onClick={() => setShowInstructions(!showInstructions)}
                                 className="flex items-center justify-between w-full text-[14px] sm:text-[15px] text-[var(--text-gray)] group text-left"
@@ -186,7 +186,7 @@ const Cart = ({ isOpen, onClose }) => {
                                     ></textarea>
                                 </div>
                             )}
-                        </div>
+                        </div>  */}
 
                         <div className="flex items-center justify-between mb-2">
                             <span className="font-bold text-[var(--text-gray)] text-[15px] sm:text-[17px] tracking-wide shrink-0">Subtotal</span>

@@ -190,34 +190,30 @@ const Dashboard = () => {
   }, [allorders]);
 
   const categoryDistribution = useMemo(() => {
-    if (!allorders || !categories) return { names: [], counts: [] };
+    if (!products || !categories) return { names: [], counts: [] };
 
     const countsMap = {};
     categories.forEach(c => { countsMap[c._id] = 0; });
 
-    allorders.forEach(order => {
-      if (order.status === 'cancelled') return;
-      order.items?.forEach(item => {
-        const product = item.productId || item.product;
-        if (product && product.category) {
-          const catId = product.category._id || product.category;
-          if (countsMap[catId] !== undefined) {
-            countsMap[catId] += item.quantity || 1;
-          }
+    products.forEach(product => {
+      if (product.category) {
+        const catId = product.category._id || product.category;
+        if (countsMap[catId] !== undefined) {
+          countsMap[catId] += 1;
         }
-      });
+      }
     });
 
     const sorted = categories
       .map(c => ({ name: c.categoryName, count: countsMap[c._id] || 0 }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 8);
+      .slice(0, 10);
 
     return {
       names: sorted.map(c => c.name),
       counts: sorted.map(c => c.count)
     };
-  }, [allorders, categories]);
+  }, [products, categories]);
 
   const topSellingProducts = useMemo(() => {
     if (!allorders) return [];
@@ -583,7 +579,7 @@ const Dashboard = () => {
                 tooltip: {
                   custom: function ({ series, seriesIndex, dataPointIndex, w }) {
                     return '<div class="px-3 py-2 bg-white border border-slate-100 rounded-lg shadow-lg font-bold text-xs text-slate-700">' +
-                      w.globals.labels[dataPointIndex] + ': <span style="color: ' + primaryColor + '">' + series[seriesIndex][dataPointIndex] + ' Units</span>' +
+                      w.globals.labels[dataPointIndex] + ': <span style="color: ' + primaryColor + '">' + series[seriesIndex][dataPointIndex] + ' Products</span>' +
                       '</div>';
                   }
                 },
@@ -627,7 +623,7 @@ const Dashboard = () => {
               }}
               series={[
                 {
-                  name: "Units Sold",
+                  name: "Total Products",
                   data: categoryDistribution.counts,
                 },
               ]}

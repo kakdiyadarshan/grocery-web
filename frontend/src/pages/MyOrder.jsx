@@ -216,88 +216,108 @@ const MyOrder = ({ isEmbedded = false }) => {
                                 to={`/order-tracking/${order.id}`}
                                 state={{ order: order.rawOrder }}
                                 key={index}
-                                className="border border-gray-200 rounded-2xl p-4 md:p-6 bg-white hover:shadow-md transition-shadow cursor-pointer flex items-center justify-between gap-2 md:gap-4 w-full block text-left"
+                                className="border border-gray-200 rounded-2xl bg-white hover:shadow-md transition-shadow cursor-pointer w-full flex flex-col group overflow-hidden"
                             >
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex flex-wrap items-center gap-2 mb-4 text-sm">
-                                        <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full font-medium text-xs sm:text-sm ${order.status.toLowerCase() !== 'delivered' && order.status.toLowerCase() !== 'cancelled' ? 'bg-orange-50 text-orange-600' :
-                                            order.status.toLowerCase() === 'delivered' ? 'bg-[#f4f8ec] text-[#6b9b3e]' :
-                                                'bg-red-50 text-red-600'
-                                            }`}>
-                                            <span className={`w-2 h-2 rounded-full flex-shrink-0 ${order.status.toLowerCase() === 'in progress' ? 'bg-orange-500' :
-                                                order.status.toLowerCase() === 'delivered' ? 'bg-[#6b9b3e]' :
-                                                    'bg-red-500'
-                                                }`}></span>
+                                {/* Card Header - Status & Date */}
+                                <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/30">
+                                    <div className="flex items-center gap-2">
+                                        <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full font-bold text-[10px] uppercase tracking-wider ${
+                                            order.status.toLowerCase() !== 'delivered' && order.status.toLowerCase() !== 'cancelled' ? 'bg-orange-100 text-orange-600' :
+                                            order.status.toLowerCase() === 'delivered' ? 'bg-green-100 text-green-600' :
+                                            'bg-red-100 text-red-600'
+                                        }`}>
+                                            <span className={`w-1.5 h-1.5 rounded-full ${
+                                                order.status.toLowerCase() === 'in progress' ? 'bg-orange-500 animate-pulse' :
+                                                order.status.toLowerCase() === 'delivered' ? 'bg-green-600' :
+                                                'bg-red-500'
+                                            }`}></span>
                                             {order.status}
                                         </span>
                                         {order.status.toLowerCase() === 'in progress' && (
-                                            <span className="bg-[var(--primary-light)] text-[var(--primary)] px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter shadow-sm border border-[var(--primary)]/10">
-                                                2hr Express
+                                            <span className="bg-[var(--primary)] text-white px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tight shadow-sm">
+                                                Express
                                             </span>
                                         )}
-                                        <span className="text-gray-400 text-xs font-medium flex items-center gap-1">
-                                            <Calendar className="w-3 h-3" /> {order.date}
-                                        </span>
+                                    </div>
+                                    <span className="text-gray-400 text-[11px] font-bold flex items-center gap-1">
+                                        <Calendar className="w-3 h-3" /> {order.date}
+                                    </span>
+                                </div>
+
+                                {/* Card Body - Content */}
+                                <div className="p-4 md:p-5 flex gap-4">
+                                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-white p-1 border border-gray-100 shrink-0 flex items-center justify-center shadow-sm">
+                                        {order.image ? (
+                                            <img src={order.image} alt={order.title} className="max-w-full max-h-full object-contain" />
+                                        ) : (
+                                            <Package className="w-8 h-8 text-gray-300" />
+                                        )}
                                     </div>
 
-                                    <div className="flex gap-4 items-start md:items-center">
-                                        <div className="relative shrink-0 mt-1 md:mt-0">
-                                            <div className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden border border-gray-100 flex items-center justify-center">
-                                                {order.image ? (
-                                                    <img src={order.image} alt={order.title} className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <Package className="w-8 h-8 text-gray-300" />
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <div className="flex-1 min-w-0">
-                                            <h4 className="text-[var(--primary)] font-bold text-sm mb-1 truncate">Order ID: {order.displayId}</h4>
-                                            <p className="text-gray-600 text-[13px] mb-2 md:mb-1 line-clamp-1">
+                                    <div className="flex-1 min-w-0 flex flex-col justify-between">
+                                        <div>
+                                            <h4 className="text-[var(--primary)] font-black text-xs sm:text-sm mb-1 uppercase tracking-wider">
+                                                Order ID: {order.displayId}
+                                            </h4>
+                                            <p className="text-gray-900 font-bold text-sm sm:text-base line-clamp-1 mb-1">
                                                 {order.title}
                                             </p>
                                             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2">
                                                 {order.rawOrder.address && (
-                                                    <p className="text-[11px] text-gray-500 flex items-center gap-1 font-medium">
+                                                    <p className="text-[11px] text-gray-500 flex items-center gap-1 font-medium capitalize">
                                                         <MapPin className="w-3 h-3 text-[var(--primary)]" /> {order.rawOrder.address.city}
                                                     </p>
                                                 )}
-                                                <p className="text-[11px] text-gray-500 font-medium">Phone: {order.rawOrder.address?.phone || 'N/A'}</p>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <p className="font-bold text-gray-900 text-[16px]">${order.price}</p>
-                                                {order.hasActiveOffer && parseFloat(order.originalPrice) > parseFloat(order.price) && (
-                                                    <span className="text-textSecondary text-xs line-through font-medium">${order.originalPrice}</span>
-                                                )}
+                                                <p className="text-[11px] text-gray-500 font-medium">
+                                                    Phone: {order.rawOrder.address?.phone || 'N/A'}
+                                                </p>
                                             </div>
                                         </div>
+                                        
+                                        <div className="flex items-center gap-3">
+                                            <p className="font-black text-[var(--primary)] text-lg sm:text-xl">${order.price}</p>
+                                            {order.hasActiveOffer && parseFloat(order.originalPrice) > parseFloat(order.price) && (
+                                                <span className="text-gray-400 text-xs line-through font-medium leading-none">${order.originalPrice}</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="hidden sm:flex items-center">
+                                        <ChevronRight className="text-gray-300 group-hover:text-[var(--primary)] w-6 h-6 transition-colors" />
                                     </div>
                                 </div>
-                                <div className="flex shrink-0 ml-2 md:ml-4 items-center justify-center gap-3">
-                                    {['pending', 'processing'].includes(order.rawOrder.displayStatus || order.rawOrder.status) && (
-                                        <button
-                                            onClick={(e) => handleCancelClick(order.id, e)}
-                                            disabled={cancellingOrderId === order.id}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg font-medium text-xs transition-colors disabled:opacity-50"
-                                        >
-                                            {cancellingOrderId === order.id ? (
-                                                <div className="w-3.5 h-3.5 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
-                                            ) : (
-                                                <X className="w-3.5 h-3.5" />
-                                            )}
-                                            Cancel
-                                        </button>
-                                    )}
-                                    {order.status.toLowerCase() === 'delivered' && (
-                                        <button
-                                            onClick={(e) => handleReviewClick(order.rawOrder, e)}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-50 hover:bg-yellow-100 text-yellow-600 rounded-lg font-bold text-xs transition-colors shadow-sm"
-                                        >
-                                            <Star className="w-3.5 h-3.5 fill-yellow-600" />
-                                            Rate Product
-                                        </button>
-                                    )}
-                                    <ChevronRight className="text-[var(--primary)] w-5 h-5" />
+
+                                {/* Card Footer - Actions (Mobile Specific Layout) */}
+                                <div className="px-4 py-3 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between sm:justify-end gap-3">
+                                    <div className="sm:hidden flex items-center text-gray-400 gap-1 text-[11px] font-bold uppercase tracking-wider">
+                                        Details <ChevronRight className="w-3 h-3" />
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-2">
+                                        {['pending', 'processing'].includes(order.rawOrder.displayStatus || order.rawOrder.status) && (
+                                            <button
+                                                onClick={(e) => handleCancelClick(order.id, e)}
+                                                disabled={cancellingOrderId === order.id}
+                                                className="flex items-center gap-1.5 px-4 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg font-bold text-xs transition-all border border-red-100 disabled:opacity-50"
+                                            >
+                                                {cancellingOrderId === order.id ? (
+                                                    <div className="w-3.5 h-3.5 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                                                ) : (
+                                                    <X className="w-3.5 h-3.5" />
+                                                )}
+                                                Cancel Order
+                                            </button>
+                                        )}
+                                        {order.status.toLowerCase() === 'delivered' && (
+                                            <button
+                                                onClick={(e) => handleReviewClick(order.rawOrder, e)}
+                                                className="flex items-center gap-1.5 px-4 py-1.5 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 rounded-lg font-bold text-xs transition-all border border-yellow-100 shadow-sm"
+                                            >
+                                                <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
+                                                Rate Product
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </Link>
                         ))

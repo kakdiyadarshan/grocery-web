@@ -52,13 +52,6 @@ const Footer = () => {
                             +81 520-150-001
                         </p>
 
-                        <div className="flex items-center gap-3.5 mt-2">
-                            <TiMessages className="w-9 h-9 text-[var(--primary)] stroke-[1.5]" />
-                            <div className="flex flex-col">
-                                <span className="text-[15px] font-bold text-[var(--text-gray)] tracking-wide">Online Chat</span>
-                                <span className="text-[13.5px] text-[var(--text-gray)] font-medium">Get Expert Help</span>
-                            </div>
-                        </div>
                     </div>
 
                     {/* Column 2: Quick Links */}
