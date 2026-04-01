@@ -98,19 +98,15 @@ const Subscribe = () => {
     }
 
     return (
-        <div className="py-8">
+        <div className="">
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                <div>
-                    <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-                        Subscribers
-                        <span className="bg-primary/10 text-primary text-sm py-1 px-3 rounded-full font-medium">
-                            {data?.length || 0}
-                        </span>
-                    </h2>
+
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 md:my-6 my-4">
+                <div className="flex flex-col">
+                    <h2 className="text-2xl font-bold text-gray-800 text-textprimary tracking-tight">Subscribers</h2>
                     <Breadcrumb />
                 </div>
-                <div className="flex items-center gap-3">
+                <div className='flex items-center justify-end gap-2 ms-auto'>
                     <button
                         onClick={() => setShowEmailModal(true)}
                         disabled={!activeCount}
