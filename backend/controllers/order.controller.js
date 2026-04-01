@@ -277,7 +277,7 @@ const transformAndAutoUpdate = async (order) => {
 
 exports.createOrder = async (req, res) => {
     try {
-        let { userId, items, totalAmount, couponId, paymentMethod, addressId, upiDetails, bankDetails } = req.body;
+        let { userId, items, totalAmount, couponId, paymentMethod, addressId } = req.body;
 
         if (!userId || !items || !totalAmount || !paymentMethod) {
             return res.status(400).json({ success: false, message: 'Required fields missing' });
@@ -314,7 +314,7 @@ exports.createOrder = async (req, res) => {
             return res.status(200).json({ success: true, data: { orderId: order._id, paymentUrl: session.url } });
         }
 
-        await Payment.create({ userId, orderId: order._id, paymentMethod, amount: totalAmount, status: 'pending', upiDetails, bankDetails });
+        await Payment.create({ userId, orderId: order._id, paymentMethod, amount: totalAmount, status: 'pending' });
 
         // stock minus variant wise
         for (const item of items) {
