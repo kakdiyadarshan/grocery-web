@@ -210,7 +210,7 @@ const getOrderWithOffers = async (orderId) => {
 
     const order = orderData[0];
     order.displayStatus = calculateDynamicStatus(order);
-    
+
     order.items = order.items.map(item => {
         const product = item.productId;
         // If order stores its own prices (new system), use them!
@@ -278,16 +278,20 @@ const transformAndAutoUpdate = async (order) => {
 exports.createOrder = async (req, res) => {
     try {
         let { userId, items, totalAmount, couponId, paymentMethod, addressId, upiDetails, bankDetails } = req.body;
-        
+
         if (!userId || !items || !totalAmount || !paymentMethod) {
             return res.status(400).json({ success: false, message: 'Required fields missing' });
         }
 
         totalAmount = parseFloat(Number(totalAmount).toFixed(2));
-        const order = await Order.create({ 
+        const order = await Order.create({
             userId, items, totalAmount, couponId, paymentMethod, addressId,
             trackingHistory: [{ status: 'pending', description: 'Order successfully placed' }]
         });
+
+        if (couponId) {
+            await Coupon.findByIdAndUpdate(couponId, { $addToSet: { usedBy: userId } });
+        }
 
         if (paymentMethod === 'Stripe') {
             const session = await stripe.checkout.sessions.create({
@@ -311,7 +315,7 @@ exports.createOrder = async (req, res) => {
         }
 
         await Payment.create({ userId, orderId: order._id, paymentMethod, amount: totalAmount, status: 'pending', upiDetails, bankDetails });
-        
+
         // stock minus variant wise
         for (const item of items) {
             await adjustProductStock(item, -item.quantity);
@@ -478,10 +482,10 @@ exports.getAllOrders = async (req, res) => {
 
         const ordersWithPayments = orders.map(order => {
             order.displayStatus = calculateDynamicStatus(order);
-            
+
             order.items = order.items.map(item => {
                 const product = item.productId;
-                
+
                 // New system: use prices from the order items
                 if (item.price !== undefined && item.price !== null) {
                     item.selectedVariant = {
@@ -658,7 +662,7 @@ exports.getUserOrders = async (req, res) => {
 
         const ordersWithPayments = orders.map(order => {
             order.displayStatus = calculateDynamicStatus(order);
-            
+
             order.items = order.items.map(item => {
                 const product = item.productId;
                 if (item.price !== undefined && item.price !== null) {
@@ -700,9 +704,9 @@ exports.getOrderById = async (req, res) => {
     try {
         const order = await getOrderWithOffers(req.params.id);
         if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
-        
-        return res.status(200).json({ 
-            success: true, 
+
+        return res.status(200).json({
+            success: true,
             data: order
         });
     } catch (error) {
@@ -713,7 +717,7 @@ exports.getOrderById = async (req, res) => {
 exports.updateOrderStatus = async (req, res) => {
     try {
         const { status } = req.body;
-        await Order.findByIdAndUpdate(req.params.id, { 
+        await Order.findByIdAndUpdate(req.params.id, {
             status,
             $push: { trackingHistory: { status, timestamp: new Date(), description: `Order status updated to ${status}` } }
         });
@@ -764,7 +768,7 @@ exports.trackOrder = async (req, res) => {
     try {
         const order = await getOrderWithOffers(req.params.id);
         if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
-        
+
         const createdAt = new Date(order.createdAt);
         const steps = [
             { status: "Order Placed", date: createdAt, isCompleted: true },
@@ -873,21 +877,21 @@ exports.verifyStripeSession = async (req, res) => {
         if (!sessionId) return res.status(400).json({ success: false, message: 'Session ID is required' });
 
         const session = await stripe.checkout.sessions.retrieve(sessionId);
-        
+
         if (session.payment_status === 'paid') {
             const orderId = session.metadata.orderId;
             const order = await Order.findById(orderId);
-            
+
             if (order && order.status !== 'completed') {
                 order.status = 'completed';
                 await order.save();
-                
+
                 await Payment.findOneAndUpdate({ orderId: order._id }, { status: 'paid' });
                 await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] });
             }
             return res.status(200).json({ success: true, message: 'Payment verified', data: order });
         }
-        
+
         return res.status(400).json({ success: false, message: 'Payment not completed or session invalid' });
     } catch (error) {
         console.error("verifyStripeSession error:", error);

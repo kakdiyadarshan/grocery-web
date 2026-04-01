@@ -60,13 +60,16 @@ const Cart = () => {
         const code = couponCode.trim().toUpperCase();
         if (!code) { setCouponError('Please enter a coupon code.'); return; }
 
-        setCouponLoading(true);
-        setCouponError('');
+        const foundCoupon = (coupons || []).find(c => c.code.toUpperCase() === code);
+        if (!foundCoupon) {
+            setCouponError('Invalid coupon code.');
+            return;
+        }
 
         setCouponLoading(true);
         setCouponError('');
 
-        dispatch(applyCouponFromServer({ code }))
+        dispatch(applyCouponFromServer({ id: foundCoupon._id }))
           .unwrap()
           .then((couponData) => {
             dispatch(applyCoupon({ code: couponData.code, discount: couponData.discount, _id: couponData.couponId }));

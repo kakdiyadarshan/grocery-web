@@ -224,6 +224,7 @@ const CheckOut = () => {
         const newOrderId = data?.orderId || data?.order?._id || data?._id;
 
         dispatch(removeCoupon());
+        localStorage.removeItem('appliedCoupon');
 
         if (data?.paymentUrl) {
           // Clear cart before stripe redirect

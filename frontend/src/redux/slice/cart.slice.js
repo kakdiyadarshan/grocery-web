@@ -88,10 +88,10 @@ export const removeFromCart = createAsyncThunk(
 
 export const applyCouponFromServer = createAsyncThunk(
     'cart/applyCouponFromServer',
-    async ({ code }, { rejectWithValue }) => {
+    async ({ id }, { rejectWithValue }) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.post(`${BASE_URL}/applyCoupon`, { code }, {
+            const response = await axios.post(`${BASE_URL}/applyCoupon`, { id }, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
