@@ -320,7 +320,7 @@ function ProductDetail() {
                         {/* Short Description with Read More */}
                         <div className="mt-4">
                             <div
-                                className="text-[#6B7280] leading-relaxed text-sm md:text-base line-clamp-2 ql-content"
+                                className="text-[#6B7280] leading-relaxed text-sm md:text-base line-clamp-2 ql-content break-words"
                                 dangerouslySetInnerHTML={{ __html: product.description }}
                             />
                             <button
@@ -423,12 +423,11 @@ function ProductDetail() {
                     </div>
 
                     {/* Tab Content */}
-                    {/* Tab Content */}
-                    <div className="bg-white rounded-xl">
+                    <div className="bg-white overflow-hidden">
                         {activeTab === 'description' ? (
                             // Full Description Content
                             <div className="animate-fadeIn">
-                                <div className="ql-content prose prose-sm sm:prose-base max-w-none text-gray-500 leading-relaxed"
+                                <div className="ql-content prose prose-sm sm:prose-base max-w-full text-gray-500 leading-relaxed break-words"
                                     dangerouslySetInnerHTML={{ __html: product.description }}
                                 />
                             </div>

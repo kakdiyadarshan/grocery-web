@@ -21,6 +21,8 @@
 .ql-content {
     color: #4b5563;
     line-height: 1.6;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 .ql-content h1, .ql-content h2, .ql-content h3 {
     font-weight: 700;
