@@ -245,14 +245,9 @@ const CheckOut = () => {
         localStorage.removeItem('appliedCoupon');
 
         if (data?.paymentUrl) {
-          // Clear cart before stripe redirect
-          dispatch(clearCart());
           // Stripe Redirect
           window.location.href = data.paymentUrl;
         } else {
-          // COD Success
-          dispatch(clearCart());
-          toast.success("Order placed successfully!");
           if (newOrderId) {
             navigate(`/order-completed?order_id=${newOrderId}`);
           } else {

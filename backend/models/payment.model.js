@@ -9,7 +9,11 @@ const paymentSchema = new mongoose.Schema({
     orderId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Order",
-        required: true
+        required: false // Changed to false because Stripe orders are created after payment
+    },
+    pendingOrderData: {
+        type: Object,
+        default: null
     },
     paymentMethod: {
         type: String,

@@ -239,7 +239,14 @@ exports.clearCart = async (req, res) => {
         const userId = req.user.id;
 
         const cart = await Cart.findOneAndDelete({ userId: userId });
-        if (!cart) return res.status(404).json({ success: false, message: 'Cart not found' });
+        // If no cart found, it's already empty, so just return success
+        if (!cart) {
+            return res.status(200).json({
+                success: true,
+                cart: { items: [] },
+                message: 'Cart is already empty'
+            });
+        }
 
           const updatedCart = await getCartWithOffers(userId);
 

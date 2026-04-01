@@ -4,6 +4,7 @@ import { Check, ArrowRight, Download } from "lucide-react";
 import jsPDF from "jspdf";
 import { useDispatch, useSelector } from "react-redux";
 import { getOrderById } from "../redux/slice/order.slice";
+import { getCart, clearCart, removeCoupon } from "../redux/slice/cart.slice";
 import { BASE_URL } from "../utils/baseUrl";
 import logo from "../Image/logo.png";
 
@@ -16,12 +17,17 @@ const OrderCompleted = () => {
 
   const { currentOrder, loading } = useSelector((state) => state.order);
 
+  const [verifiedOrderId, setVerifiedOrderId] = React.useState(null);
+  const effectiveOrderId = orderId || verifiedOrderId;
+
   useEffect(() => {
     const verifyAndLoadOrder = async () => {
-      if (sessionId) {
+      let currentId = orderId;
+
+      if (sessionId && !orderId) {
         try {
           const token = localStorage.getItem('token');
-          await fetch(`${BASE_URL}/verifyStripeSession`, {
+          const response = await fetch(`${BASE_URL}/verifyStripeSession`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -29,14 +35,24 @@ const OrderCompleted = () => {
             },
             body: JSON.stringify({ sessionId })
           });
+          const result = await response.json();
+          if (result.success && result.data?._id) {
+            setVerifiedOrderId(result.data._id);
+            currentId = result.data._id;
+          }
         } catch (error) {
           console.error("Stripe session verification failed:", error);
         }
       }
 
-      if (orderId) {
-        dispatch(getOrderById(orderId));
-      } else {
+      if (currentId) {
+        dispatch(getOrderById(currentId));
+        // Force refresh frontend and clear server-side cart
+        dispatch(clearCart());
+        dispatch(getCart());
+        dispatch(removeCoupon());
+        localStorage.removeItem('appliedCoupon');
+      } else if (!sessionId) {
         console.warn("OrderCompleted: order_id query parameter missing");
       }
     };
