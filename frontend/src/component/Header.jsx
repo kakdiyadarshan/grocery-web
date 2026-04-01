@@ -581,7 +581,6 @@ const Header = () => {
                 onClick={() => setIsMobileMenuOpen(true)}
                 className="flex items-center gap-2 text-[#2c4e68] text-[var(--text-gray)] hover:text-[var(--primary)] font-bold text-[15px] sm:text-[16px] transition-colors"
               >
-                Menu
                 <Menu className="w-6 h-6 stroke-[2]" />
               </button>
             </div>
