@@ -99,18 +99,16 @@ exports.updateCoupon = async(req,res) => {
 exports.applyCoupon = async (req, res) => {
     try {
         const userId = req.user?._id || req.body.userId;
-        const { code } = req.body;
+        const { id } = req.body;
 
-        if (!code) {
+        if (!id) {
             return res.status(400).json({
                 success: false,
-                message: 'Coupon code is required'
+                message: 'Coupon ID is required'
             });
         }
 
-        const coupon = await Coupon.findOne({
-            code: code.trim().toUpperCase()
-        });
+        const coupon = await Coupon.findById(id);
 
         if (!coupon) {
             return res.status(404).json({
@@ -129,7 +127,13 @@ exports.applyCoupon = async (req, res) => {
             });
         }
 
-        // No per-user usage restriction - allow repeated use even for same user.
+        // Restrict per-user usage to one time
+        if (userId && coupon.usedBy && coupon.usedBy.some(uId => uId.toString() === userId.toString())) {
+            return res.status(400).json({
+                success: false,
+                message: 'You have already used this coupon'
+            });
+        }
 
         res.status(200).json({
             success: true,
