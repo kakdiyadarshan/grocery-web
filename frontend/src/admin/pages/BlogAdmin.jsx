@@ -266,29 +266,29 @@ const BlogAdmin = () => {
     return (
         <div className="font-jost">
             {/* Header */}
-            <div className="flex justify-between items-center md:my-6 my-4">
-                <div>
-                    <h2 className="text-2xl font-bold text-gray-800">Blogs Management</h2>
+
+
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 md:my-6 my-4">
+                <div className="flex flex-col">
+                    <h2 className="text-2xl font-bold text-gray-800 text-textprimary tracking-tight">Blogs</h2>
                     <Breadcrumb />
                 </div>
-                <div className="flex items-center gap-2">
+                <div className='flex items-center justify-end gap-2 ms-auto'>
                     {view === 'list' && (
-                        <>
-                            <button
-                                onClick={() => { setIsEditing(false); setView('form'); }}
-                                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-[4px] hover:bg-primaryHover transition-colors font-medium text-sm"
-                            >
-                                <FiPlus size={16} />
-                                Add New Blog
-                            </button>
-                        </>
+                    <button
+                        onClick={() => { setIsEditing(false); setView('form'); }}
+                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-[4px] hover:bg-primaryHover transition-colors font-medium text-sm"
+                    >
+                        <FiPlus size={18} />
+                        <span>Add Blog</span> 
+                    </button> 
                     )}
                     {(view === 'form' || view === 'view') && (
                         <button
                             onClick={closeForm}
-                            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-[4px] hover:bg-gray-200 transition-colors font-medium text-sm"
+                            className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-gray-100 text-gray-700 rounded-[4px] hover:bg-gray-50 hover:border-gray-200 transition-all font-medium text-sm  shadow-gray-200/50"
                         >
-                            <FiArrowLeft size={16} />
+                            <FiArrowLeft size={18} />
                             Back to Blogs
                         </button>
                     )}
@@ -374,7 +374,7 @@ const BlogAdmin = () => {
 
             {/* ──── FORM VIEW (Create / Edit) ──── */}
             {view === 'form' && (
-                <div className="bg-white rounded-[4px] shadow-sm border border-gray-100 p-6">
+                <div className="bg-white rounded-[4px] shadow-sm border border-gray-100 sm:p-6 p-4">
                     <h3 className="text-xl font-bold text-gray-800 border-b border-gray-100 pb-4 mb-6">
                         {isEditing ? 'Edit Blog' : 'Create New Blog'}
                     </h3>
@@ -465,7 +465,7 @@ const BlogAdmin = () => {
                                     >
                                         <FiX size={14} />
                                     </button>
-                                   
+
                                 </div>
                             )}
                             <div className={`flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-[4px] hover:border-primary transition-colors cursor-pointer relative bg-gray-50 ${errors.heroImage ? 'border-red-500 bg-red-50/10' : 'border-gray-300'}`}>
@@ -488,17 +488,20 @@ const BlogAdmin = () => {
                         </div>
 
                         {/* Sections */}
-                        <div className="pt-4 border-t border-gray-100">
-                            <div className="flex items-center justify-between mb-4">
+                        <div className="pt-6 border-t border-gray-100">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                                 <div>
-                                    <h4 className="text-base font-bold text-gray-800">Blog Sections</h4>
-                                    <p className="text-xs text-gray-500">Each section can have a title, descriptions, bullet points, and images</p>
+                                    <h4 className="text-lg font-bold text-gray-800 tracking-tight">Blog Sections</h4>
+                                    <p className="text-xs text-gray-500 mt-1 max-w-sm">
+                                        Each section can have a title, descriptions, bullet points, and images to create a rich reading experience.
+                                    </p>
                                 </div>
                                 <button
-                                    type="button" onClick={handleAddSection}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-[4px] text-sm font-medium transition-colors"
+                                    type="button"
+                                    onClick={handleAddSection}
+                                    className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-[4px] text-sm font-bold transition-all hover:bg-primaryHover shadow-sm whitespace-nowrap w-full sm:w-auto"
                                 >
-                                    <FiPlus size={14} /> Add Section
+                                    <FiPlus size={18} /> Add New Section
                                 </button>
                             </div>
 

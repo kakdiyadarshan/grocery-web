@@ -106,18 +106,19 @@ const BlogCategoryAdmin = () => {
     return (
         <>
             {/* Header */}
-            <div className="flex justify-between items-center md:my-6 my-4">
-                <div>
-                    <h2 className="text-2xl font-bold text-gray-800">Blog Categories</h2>
+
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 md:my-6 my-4">
+                <div className="flex flex-col">
+                    <h2 className="text-2xl font-bold text-gray-800 text-textprimary tracking-tight">Blog Categories</h2>
                     <Breadcrumb />
                 </div>
-                <div className="flex items-center gap-2">
+                <div className='flex items-center justify-end gap-2 ms-auto'>
                     <button
                         onClick={() => setIsModalOpen(true)}
                         className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-[4px] hover:bg-primaryHover transition-colors font-medium text-sm"
                     >
-                        <FiPlus size={16} />
-                        Add Category
+                        <FiPlus size={18} />
+                        <span>Add Blog Category</span>
                     </button>
                 </div>
             </div>
