@@ -339,29 +339,21 @@ function ProductDetail() {
 
                         {/* Quantity & Stock Status */}
                         <div className="flex items-center gap-4 mt-6">
-                            <span className="text-base font-semibold text-[#333333]">Quantity:</span>
-                            <span className={`${selectedVariant?.stock > 0 ? 'bg-[#2E7D32]' : 'bg-red-500'} text-white px-3 py-1 rounded text-sm font-semibold uppercase tracking-wide`}>
-                                {selectedVariant?.stock > 0 ? 'In Stock' : 'Out of Stock'}
+                            <span className="text-base font-semibold text-[#333333]">Status:</span>
+                            <span className={`${isOutOfStock ? 'bg-red-600' : 'bg-[#2E7D32]'} text-white px-3 py-1 rounded text-sm font-semibold`}>
+                                {isOutOfStock ? 'Out of Stock' : 'In Stock'}
                             </span>
                         </div>
 
                         {/* Quantity Selector */}
                         <div className="flex items-center bg-[#F3F4F6] rounded-md w-32 h-10 mt-4 overflow-hidden">
-                            <button
-                                onClick={decrementQuantity}
-                                disabled={selectedVariant?.stock <= 0}
-                                className={`flex-1 flex items-center justify-center text-gray-500 hover:text-black transition ${selectedVariant?.stock <= 0 ? 'opacity-30 cursor-not-allowed' : ''}`}
-                            >
+                            <button onClick={decrementQuantity} className="flex-1 flex items-center justify-center text-gray-500 hover:text-black transition">
                                 <FiMinus className="text-xl" />
                             </button>
-                            <span className={`flex-1 flex items-center justify-center font-semibold text-gray-800 text-lg ${selectedVariant?.stock <= 0 ? 'opacity-30' : ''}`}>
-                                {selectedVariant?.stock > 0 ? quantity : 0}
+                            <span className="flex-1 flex items-center justify-center font-semibold text-gray-800 text-lg">
+                                {quantity}
                             </span>
-                            <button
-                                onClick={incrementQuantity}
-                                disabled={selectedVariant?.stock <= 0 || quantity >= selectedVariant?.stock}
-                                className={`flex-1 flex items-center justify-center text-gray-500 hover:text-black transition ${selectedVariant?.stock <= 0 || quantity >= selectedVariant?.stock ? 'opacity-30 cursor-not-allowed' : ''}`}
-                            >
+                            <button onClick={incrementQuantity} className="flex-1 flex items-center justify-center text-gray-500 hover:text-black transition">
                                 <FiPlus className="text-xl" />
                             </button>
                         </div>
@@ -369,7 +361,7 @@ function ProductDetail() {
                         {/* Subtotal */}
                         <div className="flex items-center gap-2 mt-6">
                             <span className="text-base font-semibold text-[#333333]">Subtotal:</span>
-                            <span className="text-gray-500 text-base">${(selectedVariant?.stock > 0 ? (quantity * (product.discountPrice || (selectedVariant?.price || 0))) : 0).toFixed(2)}</span>
+                            <span className="text-gray-500 text-base">${(quantity * (selectedVariant?.discountPrice || selectedVariant?.price || 0)).toFixed(2)}</span>
                         </div>
 
 
@@ -379,11 +371,13 @@ function ProductDetail() {
                                 {product.weighstWise?.map((variant) => (
                                     <button
                                         key={variant._id}
-                                        onClick={() => setSelectedVariant(variant)}
-                                        className={`px-4 py-1 border rounded-md text-sm sm:text-base font-medium transition ${selectedVariant?._id === variant._id ? 'border-[var(--primary)] text-[var(--primary)] bg-white shadow-sm' : 'border-gray-200 text-gray-500 hover:border-gray-400'} ${variant.stock <= 0 ? 'opacity-50 border-dashed hover:border-red-200' : ''}`}
+                                        onClick={() => {
+                                            setSelectedVariant(variant);
+                                            setQuantity(1);
+                                        }}
+                                        className={`px-4 py-1 border rounded-md text-sm sm:text-base font-medium transition ${selectedVariant?._id === variant._id ? 'border-[var(--primary)] text-[var(--primary)] bg-white' : 'border-gray-200 text-gray-500 hover:border-gray-400'}`}
                                     >
                                         {variant.weight} {variant.unit}
-                                        {variant.stock <= 0 && <span className="ml-1 text-[10px] text-red-500">(OOS)</span>}
                                     </button>
                                 ))}
                             </div>
@@ -393,15 +387,16 @@ function ProductDetail() {
                         <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
                             <button
                                 onClick={handleAddToCart}
-                                disabled={selectedVariant?.stock <= 0}
-                                className={`w-full sm:flex-1 h-12 transition-all flex items-center justify-center gap-2 rounded font-semibold text-lg ${selectedVariant?.stock > 0 ? 'bg-[#EEEEEE] hover:bg-gray-200 text-[#333333] active:scale-95' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
+                                disabled={isOutOfStock}
+                                className={`w-full sm:flex-1 h-12 transition-colors flex items-center justify-center gap-2 rounded font-semibold text-lg ${isOutOfStock ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-[#EEEEEE] hover:bg-gray-200 text-[#333333]'}`}
                             >
                                 <FiShoppingCart className="text-xl" />
-                                {selectedVariant?.stock > 0 ? 'Add to cart' : 'Out of Stock'}
+                                Add to cart
                             </button>
                             <button
-                                disabled={selectedVariant?.stock <= 0}
-                                className={`w-full sm:flex-1 h-12 transition-all flex items-center justify-center text-white font-semibold text-lg rounded ${selectedVariant?.stock > 0 ? 'bg-[#333333] hover:bg-black active:scale-95' : 'bg-gray-800 opacity-50 cursor-not-allowed'}`}
+                                onClick={handleBuyNow}
+                                disabled={isOutOfStock}
+                                className={`w-full sm:flex-1 h-12 transition-colors flex items-center justify-center text-white font-semibold text-lg rounded ${isOutOfStock ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#333333] hover:bg-black'}`}
                             >
                                 Buy Now
                             </button>

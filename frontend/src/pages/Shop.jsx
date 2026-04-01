@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { ChevronDown, ChevronRight, Eye, Grid, Heart, List, ShoppingCart, SlidersHorizontal, Star, X } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, Eye, Grid, Heart, List, ShoppingCart, SlidersHorizontal, Star, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { getAllProducts } from '../redux/slice/product.slice';
 import { getAllCategories } from '../redux/slice/category.slice';
@@ -55,11 +55,20 @@ const Shop = () => {
     useEffect(() => {
         if (categoryParam) {
             setSelectedCategories([categoryParam]);
+            // Reset other filters to ensure only that category is shown
+            setSelectedAvailability([]);
+            setPriceRange({ min: '', max: '' });
+            setSelectedWeights([]);
         } else {
+            // Only clear categories if we're not filtering via the sidebar (i.e. no URL param)
+            // But usually, navigating back to /shop without params means clear everything.
             setSelectedCategories([]);
+            setSelectedAvailability([]);
+            setPriceRange({ min: '', max: '' });
+            setSelectedWeights([]);
         }
         setCurrentPage(1);
-    }, [categoryParam]);
+    }, [categoryParam, location.key]); // Use location.key to catch clicks on the same link
 
     useEffect(() => {
         // Fetch paginated products based on all filters
@@ -67,15 +76,15 @@ const Shop = () => {
             page: currentPage,
             limit: itemsPerPage,
             paginate: true,
-            search: searchParams.get('search'),
-            category: selectedCategories.join(','),
+            search: searchParams.get('search') || undefined,
+            category: (selectedCategories.length > 0 ? selectedCategories.join(',') : categoryParam) || undefined,
             minPrice: priceRange.min,
             maxPrice: priceRange.max,
             weights: selectedWeights.join(','),
             availability: selectedAvailability.length === 1 ? selectedAvailability[0] : undefined,
             sort: sortBy
         }));
-    }, [dispatch, currentPage, itemsPerPage, selectedCategories, priceRange, selectedWeights, selectedAvailability, sortBy, searchParams]);
+    }, [dispatch, currentPage, itemsPerPage, selectedCategories, priceRange, selectedWeights, selectedAvailability, sortBy, searchParams, categoryParam]);
 
     // Compute dynamic filter options from products
     const filterOptions = React.useMemo(() => {
@@ -85,7 +94,7 @@ const Shop = () => {
         let inStockCount = 0;
         let outOfStockCount = 0;
 
-        products.forEach(product => {
+        allProducts.forEach(product => {
             if (product.weighstWise) {
                 product.weighstWise.forEach(w => {
                     if (w.price > maxProductPrice) maxProductPrice = w.price;
@@ -175,6 +184,11 @@ const Shop = () => {
                                             setPriceRange({ min: '', max: '' });
                                             setSelectedWeights([]);
                                             setSelectedCategories([]);
+                                            // Reset URL parameters
+                                            const newParams = new URLSearchParams(searchParams);
+                                            newParams.delete('category');
+                                            newParams.delete('search');
+                                            setSearchParams(newParams);
                                         }}
                                         className="text-xs font-bold text-red-500 hover:text-red-700 uppercase tracking-wider transition-colors hover:underline underline-offset-2"
                                     >
@@ -202,15 +216,15 @@ const Shop = () => {
                                                     <div className="relative flex items-center justify-center">
                                                         <input
                                                             type="checkbox"
-                                                            checked={selectedCategories.includes(item.label)}
+                                                            checked={selectedCategories.some(cat => cat.toLowerCase() === item.label.toLowerCase())}
                                                             onChange={() => handleCategoryChange(item.label)}
                                                             className="peer sr-only"
                                                         />
-                                                        <div className="w-5 h-5 rounded-[4px] border border-gray-200 peer-checked:bg-[var(--primary)] peer-checked:border-[var(--primary)] transition-all duration-200 flex items-center justify-center group-hover:border-[var(--primary)]/50">
-                                                            <svg className="w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity duration-200 scale-50 peer-checked:scale-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                                        <div className="w-5 h-5 rounded-[4px] border border-gray-200 peer-checked:border-[var(--primary)] transition-all duration-200 flex items-center justify-center group-hover:border-[var(--primary)]/50">
+                                                            <Check size={14} className={`text-[var(--primary)] transition-all duration-200 ${selectedCategories.some(cat => cat.toLowerCase() === item.label.toLowerCase()) ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`} />
                                                         </div>
                                                     </div>
-                                                    <span className={`text-[14px] transition-colors duration-200 ${selectedCategories.includes(item.label) ? 'text-gray-900 font-medium' : 'text-gray-600 group-hover:text-gray-900'}`}>
+                                                    <span className={`text-[14px] transition-colors duration-200 ${selectedCategories.some(cat => cat.toLowerCase() === item.label.toLowerCase()) ? 'text-gray-900 font-medium' : 'text-gray-600 group-hover:text-gray-900'}`}>
                                                         {item.label}
                                                     </span>
                                                 </div>
@@ -294,9 +308,9 @@ const Shop = () => {
                                                         />
                                                         <div className={`w-5 h-5 rounded-[4px] border transition-all duration-200 flex items-center justify-center
                                                                 ${item.id === 'in-stock'
-                                                                ? (isChecked ? 'bg-emerald-500 border-emerald-500' : 'border-emerald-300/70 group-hover:border-emerald-400')
-                                                                : (isChecked ? 'bg-rose-400 border-rose-400' : 'border-rose-200/80 group-hover:border-rose-300')}`}>
-                                                            <svg className="w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity duration-200 scale-50 peer-checked:scale-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                                                ? (isChecked ? 'border-emerald-500' : 'border-emerald-300/70 group-hover:border-emerald-400')
+                                                                : (isChecked ? 'border-rose-400' : 'border-rose-200/80 group-hover:border-rose-300')}`}>
+                                                            <Check size={14} className={`${item.id === 'in-stock' ? 'text-emerald-500' : 'text-rose-400'} transition-all duration-200 ${isChecked ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`} />
                                                         </div>
                                                     </div>
                                                     <span className={`text-[14px] transition-colors duration-200 ${isChecked ? 'text-gray-900 font-medium' : 'text-gray-600 group-hover:text-gray-900'}`}>

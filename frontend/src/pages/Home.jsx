@@ -23,12 +23,12 @@ function Home() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { categories: apiCategories } = useSelector((state) => state.category);
-  const { products: apiProducts, featuredProducts, bestSellingProducts } = useSelector((state) => state.product);
+  const { products: apiProducts, allProducts, featuredProducts, bestSellingProducts } = useSelector((state) => state.product);
   const { offerbanners } = useSelector((state) => state.offerbanner);
 
   useEffect(() => {
     dispatch(getAllCategories());
-    dispatch(getAllProducts());
+    dispatch(getAllProducts({ paginate: false }));
     dispatch(getFeaturedProducts());
     dispatch(fetchOfferBanners());
     dispatch(getBestSellingProducts());
@@ -37,18 +37,19 @@ function Home() {
   const scrollRef = useRef(null);
   const [isPending, setIsPending] = useState(false);
 
+  const availableFeaturedCategories = useMemo(() => {
+    if (!apiCategories || !allProducts) return [];
+    return apiCategories.filter(cat =>
+      allProducts.some(product => {
+        const productCatName = typeof product.category === 'object' ? product.category?.categoryName : product.category;
+        return productCatName === cat.categoryName;
+      })
+    );
+  }, [apiCategories, allProducts]);
+
   const categories = useMemo(() => {
-    if (!apiCategories || !apiProducts) return [];
-    return apiCategories
-      .filter(cat =>
-        apiProducts.some(product => {
-          const catName = typeof product.category === 'object' ? product.category?.categoryName : product.category;
-          return catName === cat.categoryName;
-        })
-      )
-      .map(c => c.categoryName)
-      .slice(0, 3); // Limit to top 3 categories with products
-  }, [apiCategories, apiProducts]);
+    return availableFeaturedCategories.map(c => c.categoryName).slice(0, 3);
+  }, [availableFeaturedCategories]);
 
   const [activeTab, setActiveTab] = useState("");
 
@@ -157,7 +158,7 @@ function Home() {
               ref={scrollRef}
               className='flex overflow-x-auto no-scrollbar pt-4 pb-6 gap-6 md:gap-10 lg:gap-14 px-5 sm:px-8 scroll-smooth w-full cursor-grab'
             >
-              {apiCategories?.map((category, index) => (
+              {availableFeaturedCategories?.map((category, index) => (
                 <div key={category._id || index}
                   className='group cursor-pointer text-center flex-shrink-0'
                   onClick={() => navigate(`/shop?category=${encodeURIComponent(category.categoryName)}`)}
