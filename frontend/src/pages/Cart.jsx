@@ -67,22 +67,22 @@ const Cart = () => {
         setCouponError('');
 
         dispatch(applyCouponFromServer({ code }))
-          .unwrap()
-          .then((couponData) => {
-            dispatch(applyCoupon({ code: couponData.code, discount: couponData.discount, _id: couponData.couponId }));
-            localStorage.setItem('appliedCoupon', JSON.stringify({ code: couponData.code, discount: couponData.discount, _id: couponData.couponId }));
-            setCouponError('');
-          })
-          .catch((error) => {
-            const message =
-              typeof error === 'string'
-                ? error
-                : error?.message || error?.data?.message || 'Invalid or inactive coupon code.';
-            setCouponError(message);
-          })
-          .finally(() => {
-            setCouponLoading(false);
-          });
+            .unwrap()
+            .then((couponData) => {
+                dispatch(applyCoupon({ code: couponData.code, discount: couponData.discount, _id: couponData.couponId }));
+                localStorage.setItem('appliedCoupon', JSON.stringify({ code: couponData.code, discount: couponData.discount, _id: couponData.couponId }));
+                setCouponError('');
+            })
+            .catch((error) => {
+                const message =
+                    typeof error === 'string'
+                        ? error
+                        : error?.message || error?.data?.message || 'Invalid or inactive coupon code.';
+                setCouponError(message);
+            })
+            .finally(() => {
+                setCouponLoading(false);
+            });
     };
 
     const handleRemoveCoupon = () => {
@@ -105,6 +105,12 @@ const Cart = () => {
     const tax = cartItems.length > 0 ? (subtotal * 0.08) : 0; // 8% tax
     const couponDiscount = appliedCoupon ? (subtotal * appliedCoupon.discount) / 100 : 0;
     const total = Math.max(0, subtotal + shipping + tax - couponDiscount);
+
+    const hasOutOfStockItems = cartItems.some(item => {
+        const variant = item.selectedVariant;
+        if (!variant) return false;
+        return variant.stock !== undefined && (variant.stock <= 0 || item.quantity > variant.stock);
+    });
 
 
     if (loading && !cart) {
@@ -221,10 +227,20 @@ const Cart = () => {
                                                             <Plus size={14} strokeWidth={2.5} />
                                                         </button>
                                                     </div>
-                                                    {variant?.stock !== undefined && wish.quantity >= variant.stock && (
-                                                        <span className="text-[10px] text-orange-500 font-bold mt-1">
-                                                            {wish.quantity > variant.stock ? `Only ${variant.stock} left` : 'Max stock reached'}
-                                                        </span>
+                                                    {variant?.stock !== undefined && (
+                                                        (variant.stock <= 0) ? (
+                                                            <span className="text-[10px] text-red-500 font-bold mt-1">
+                                                                Out of Stock
+                                                            </span>
+                                                        ) : wish.quantity > variant.stock ? (
+                                                            <span className="text-[10px] text-red-500 font-bold mt-1">
+                                                                Only {variant.stock} left in stock
+                                                            </span>
+                                                        ) : wish.quantity === variant.stock ? (
+                                                            <span className="text-[10px] text-orange-500 font-bold mt-1">
+                                                                Max stock reached
+                                                            </span>
+                                                        ) : null
                                                     )}
                                                 </div>
 
@@ -386,9 +402,22 @@ const Cart = () => {
                                     <p className="text-xs text-[var(--text-secondary)] mt-1.5 text-right">Pre-tax currency USD </p>
                                 </div>
 
-                                <button onClick={handleclick} className="w-full flex items-center justify-center gap-2 py-4 bg-[var(--primary)] text-white rounded-md font-[500] text-lg hover:bg-[var(--primary-hover)] transition-all duration-300 shadow-md shadow-[var(--primary)]/20 active:scale-95 mb-4 border border-transparent">
+                                <button
+                                    onClick={handleclick}
+                                    disabled={hasOutOfStockItems}
+                                    className={`w-full flex items-center justify-center gap-2 py-4 text-white rounded-md font-[500] text-lg transition-all duration-300 shadow-md active:scale-95 mb-4 border border-transparent ${hasOutOfStockItems
+                                        ? 'bg-gray-400 cursor-not-allowed shadow-none'
+                                        : 'bg-[var(--primary)] hover:bg-[var(--primary-hover)] shadow-[var(--primary)]/20'
+                                        }`}
+                                >
                                     Proceed to Checkout <ArrowRight size={20} />
                                 </button>
+
+                                {hasOutOfStockItems && (
+                                    <p className="text-xs text-red-500 font-bold text-center mb-4 px-2">
+                                        Please remove or update out-of-stock items to proceed.
+                                    </p>
+                                )}
 
 
                                 <div className="flex items-center justify-center gap-4 text-[var(--text-secondary)] mt-6 border-t border-[var(--border)] pt-6">

@@ -87,14 +87,26 @@ const MyOrder = ({ isEmbedded = false }) => {
     const handleReviewClick = (order, e) => {
         e.preventDefault();
         e.stopPropagation();
-        const item = order.items?.[0];
-        const product = item?.productId;
-        if (product) {
-            setReviewProduct(product);
-            setReviewModalOpen(true);
-        } else {
-            toast.error("Product information not found");
+        
+        if (!order.items || order.items.length === 0) {
+            toast.error("No products found in this order");
+            return;
         }
+
+        if (order.items.length > 1) {
+            // Pass the whole items array for selection
+            setReviewProduct(order.items);
+        } else {
+            // Pass just the single product
+            const product = order.items[0]?.productId;
+            if (product) {
+                setReviewProduct(product);
+            } else {
+                toast.error("Product information not found");
+                return;
+            }
+        }
+        setReviewModalOpen(true);
     };
 
     const getDisplayStatus = (status) => {

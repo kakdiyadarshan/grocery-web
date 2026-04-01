@@ -19,6 +19,12 @@ const Cart = ({ isOpen, onClose }) => {
         return acc + (price * quantity);
     }, 0);
 
+    const hasOutOfStockItems = cartItems.some(item => {
+        const variant = item.selectedVariant;
+        if (!variant) return false;
+        return variant.stock !== undefined && (variant.stock <= 0 || item.quantity > variant.stock);
+    });
+
 
     const handleUpdateQuantity = (productId, variantId, newQuantity) => {
         if (newQuantity < 1) return;
@@ -199,10 +205,22 @@ const Cart = ({ isOpen, onClose }) => {
                             <button onClick={handleViewCart} className="flex-1 bg-gray-100 text-gray-700 py-3 sm:py-3.5 rounded text-[14px] sm:text-[15px] font-bold hover:bg-gray-200 transition-colors w-full">
                                 View Cart
                             </button>
-                            <button onClick={handleCheckout} className="flex-1 bg-[var(--primary)] text-white py-3 sm:py-3.5 rounded text-[14px] sm:text-[15px] font-bold hover:bg-[var(--primary-hover)] transition-colors w-full">
+                            <button
+                                onClick={handleCheckout}
+                                disabled={hasOutOfStockItems}
+                                className={`flex-1 text-white py-3 sm:py-3.5 rounded text-[14px] sm:text-[15px] font-bold transition-colors w-full active:scale-95 ${hasOutOfStockItems
+                                    ? 'bg-gray-400 cursor-not-allowed'
+                                    : 'bg-[var(--primary)] hover:bg-[var(--primary-hover)]'
+                                    }`}
+                            >
                                 Check Out
                             </button>
                         </div>
+                        {hasOutOfStockItems && (
+                            <p className="text-[10px] text-red-500 font-bold text-center mt-3">
+                                * Please fix out-of-stock items to checkout
+                            </p>
+                        )}
                     </div>
                 )}
             </div>

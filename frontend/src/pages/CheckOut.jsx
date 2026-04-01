@@ -50,6 +50,12 @@ const CheckOut = () => {
   const couponDiscount = appliedCouponData ? (subtotal * appliedCouponData.discount) / 100 : 0;
   const totalAmount = parseFloat(Math.max(0, subtotal + shipping + tax - couponDiscount).toFixed(2));
 
+  const hasOutOfStockItems = items.some(item => {
+    const variant = item.selectedVariant;
+    if (!variant) return false;
+    return variant.stock !== undefined && (variant.stock <= 0 || item.quantity > variant.stock);
+  });
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -182,6 +188,12 @@ const CheckOut = () => {
 
       if (items.length === 0 || totalAmount === 0) {
         toast.error("Your cart is empty");
+        return;
+      }
+
+      if (hasOutOfStockItems) {
+        toast.error("Some items in your cart are out of stock. Please update your cart.");
+        navigate('/cart');
         return;
       }
 
@@ -380,6 +392,11 @@ const CheckOut = () => {
                               {variant && <span>{variant.weight} {variant.unit} | </span>}
                               Qty: {item.quantity}
                             </p>
+                            {variant?.stock !== undefined && (variant.stock <= 0 || item.quantity > variant.stock) && (
+                              <p className="text-[11px] text-red-500 font-bold mt-1 uppercase">
+                                {variant.stock <= 0 ? "Out of Stock" : `Only ${variant.stock} available`}
+                              </p>
+                            )}
                           </div>
                         </div>
                         <div className="flex flex-col items-end">
@@ -545,10 +562,17 @@ const CheckOut = () => {
                   Your personal data will be used to process your order, support your experience throughout this website, and for other purposes described in our privacy policy.
                 </p>
 
-                <button onClick={handlePlaceOrder} disabled={orderLoading} className="w-full bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors text-white py-4 rounded font-bold text-[16px] shadow-md flex justify-center items-center disabled:opacity-50">
+                <button
+                  onClick={handlePlaceOrder}
+                  disabled={orderLoading || hasOutOfStockItems}
+                  className={`w-full py-4 rounded font-bold text-[16px] shadow-md flex justify-center items-center transition-all duration-300 ${(orderLoading || hasOutOfStockItems)
+                    ? 'bg-gray-400 cursor-not-allowed shadow-none'
+                    : 'bg-[var(--primary)] hover:bg-[var(--primary-hover)]'
+                    }`}
+                >
                   {orderLoading ? (
                     <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : "Place Order"}
+                  ) : hasOutOfStockItems ? "Fix Out of Stock Items" : "Place Order"}
                 </button>
 
 
