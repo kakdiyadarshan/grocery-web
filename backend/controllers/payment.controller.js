@@ -3,15 +3,13 @@ const User = require('../models/user.model'); // Import User to register the mod
 
 exports.createPayment = async (req, res) => {
     try {
-        const { userId, orderId, paymentMethod, amount, status, upiDetails, bankDetails } = req.body;
+        const { userId, orderId, paymentMethod, amount, status } = req.body;
         const payment = new Payment({
             userId,
             orderId,
             paymentMethod,
             amount,
-            status,
-            upiDetails,
-            bankDetails
+            status
         });
         await payment.save();
         const populatedPayment = await Payment.findById(payment._id).populate("userId", "firstname lastname email");
