@@ -45,6 +45,42 @@ const Shop = () => {
     };
 
     useEffect(() => {
+        // Handle body scroll locking and prevent layout shift
+        const handleBodyScroll = () => {
+            const isMobileFilter = isFilterOpen && window.innerWidth < 1024;
+
+            if (isMobileFilter) {
+                // Prevent scrolling and compensate for scrollbar width to avoid layout jump
+                const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+                document.body.style.overflow = 'hidden';
+                document.body.style.paddingRight = `${scrollbarWidth}px`;
+            } else {
+                // Restore scrolling and remove compensation padding
+                document.body.style.overflow = 'auto';
+                document.body.style.paddingRight = '';
+            }
+        };
+
+        handleBodyScroll();
+
+        // Close mobile filter and restore scroll when screen is resized to desktop
+        const handleResize = () => {
+            handleBodyScroll();
+            if (window.innerWidth >= 1024 && isFilterOpen) {
+                setIsFilterOpen(false);
+            }
+        };
+
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+            document.body.style.overflow = 'auto';
+            document.body.style.paddingRight = '';
+            window.removeEventListener('resize', handleResize);
+        };
+    }, [isFilterOpen]);
+
+    useEffect(() => {
         dispatch(getAllProducts({ paginate: false }));
         dispatch(getAllCategories());
         if (isAuthenticated) {
@@ -97,7 +133,8 @@ const Shop = () => {
         allProducts.forEach(product => {
             if (product.weighstWise) {
                 product.weighstWise.forEach(w => {
-                    if (w.price > maxProductPrice) maxProductPrice = w.price;
+                    const priceValue = w.discountPrice || w.price || 0;
+                    if (priceValue > maxProductPrice) maxProductPrice = priceValue;
                 });
             }
             const isInStock = product.weighstWise?.some(w => w.stock > 0);
@@ -160,9 +197,18 @@ const Shop = () => {
                 </div>
             </div>
 
-            <div className="container mx-auto px-4 py-8">
+            <div className="container mx-auto px-4">
                 <div className="flex flex-col lg:flex-row gap-8">
-                    <aside className={`lg:w-1/4 xl:w-[22%] shrink-0 transition-opacity duration-300 ${isFilterOpen ? 'fixed inset-0 z-50 bg-white/95 backdrop-blur-md p-6 overflow-y-auto lg:relative lg:inset-auto lg:z-0 lg:p-0 lg:bg-transparent lg:backdrop-blur-none border-r border-gray-100/0' : 'hidden lg:block'}`}>
+                    {/* Mobile Filter Backdrop */}
+                    <div
+                        className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[55] lg:hidden transition-opacity duration-300 ${isFilterOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                        onClick={() => setIsFilterOpen(false)}
+                    />
+
+                    <aside className={`lg:w-1/4 xl:w-[22%] shrink-0 transition-all duration-300 ease-in-out flex flex-col ${isFilterOpen
+                        ? 'fixed top-0 left-0 bottom-0 w-[300px] z-[60] bg-white p-6 shadow-2xl translate-x-0'
+                        : 'fixed top-0 left-0 bottom-0 w-[300px] z-[60] bg-white p-6 -translate-x-full lg:translate-x-0'} 
+                        lg:relative lg:inset-auto lg:z-0 lg:p-0 lg:bg-transparent lg:shadow-none lg:overflow-visible border-r border-gray-100/0`}>
                         <div className="flex items-center justify-between mb-8 lg:hidden">
                             <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Filters</h2>
                             <button onClick={() => setIsFilterOpen(false)} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
@@ -170,7 +216,7 @@ const Shop = () => {
                             </button>
                         </div>
 
-                        <div className="space-y-6 sticky top-6 max-h-[calc(100vh-2rem)] overflow-y-auto pb-10 lg:pb-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 hover:[&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full pr-1 lg:pr-3">
+                        <div className="space-y-6 flex-1 lg:sticky lg:top-6 lg:max-h-[calc(100vh-2rem)] overflow-y-auto pb-10 lg:pb-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 hover:[&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full pr-3">
                             {/* Active Filters Display */}
                             {(selectedAvailability.length > 0 || priceRange.min !== '' || priceRange.max !== '' || selectedWeights.length > 0 || selectedCategories.length > 0) && (
                                 <div className="p-4 rounded-md border border-gray-200/80 mb-6 flex items-center justify-between">
@@ -450,14 +496,14 @@ const Shop = () => {
                             </div>
                         ) : (
                             <div className={viewType === 'grid'
-                                ? "grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
+                                ? "grid grid-cols-1 min-[425px]:grid-cols-2 min-[768px]:grid-cols-3 min-[1280px]:grid-cols-4 gap-4 sm:gap-6"
                                 : "flex flex-col gap-6"
                             }>
                                 {filteredProductsSlice.map((product) => {
                                     const variant = product.weighstWise?.find(v => v.stock > 0) || product.weighstWise?.[0];
                                     const outOfStock = variant?.stock === 0;
                                     const currentPrice = variant?.discountPrice || variant?.price || 0;
-                                    const originalPrice = variant?.price || 0;
+                                    const originalPrice = variant?.price || currentPrice;
                                     const hasDiscount = currentPrice < originalPrice;
 
                                     const avgRating = product.reviews?.length > 0
@@ -486,7 +532,7 @@ const Shop = () => {
                                                 )}
                                             </div>
 
-                                            <div className={`absolute top-4 right-4 z-20 flex flex-col gap-2 transition-all duration-300 ${viewType === 'grid' ? 'opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0' : ''}`}>
+                                            <div className={`absolute top-4 right-4 z-20 flex flex-col gap-2 transition-all duration-300 ${viewType === 'grid' ? 'sm:opacity-0 sm:translate-x-2 sm:group-hover:opacity-100 sm:group-hover:translate-x-0' : ''}`}>
                                                 {(() => {
                                                     const isInWishlist = wishlistItems.some(wish => {
                                                         const wishProductId = typeof wish.productId === 'object' ? wish.productId?._id : wish.productId;
@@ -503,13 +549,13 @@ const Shop = () => {
                                                                     dispatch(addToWishlist(product._id));
                                                                 }
                                                             }}
-                                                            className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 bg-white border border-gray-100/50 ${isInWishlist
+                                                            className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 bg-white border border-gray-100/50 ${isInWishlist
                                                                 ? 'text-[var(--primary)]'
                                                                 : 'text-[#62728f] hover:text-[var(--primary)]'
                                                                 }`}
                                                             title={isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
                                                         >
-                                                            <Heart size={18} fill={isInWishlist ? "currentColor" : "none"} className={isInWishlist ? 'scale-110' : ''} />
+                                                            <Heart size={16} fill={isInWishlist ? "currentColor" : "none"} className={isInWishlist ? 'sm:scale-110' : ''} />
                                                         </button>
                                                     );
                                                 })()}
@@ -524,18 +570,18 @@ const Shop = () => {
                                                         }));
                                                     }}
                                                     disabled={outOfStock}
-                                                    className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 bg-white border border-gray-100/50 ${outOfStock ? 'text-gray-300' : 'text-[#62728f] hover:text-[var(--primary)]'} disabled:opacity-50 disabled:cursor-not-allowed`}
+                                                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 bg-white border border-gray-100/50 ${outOfStock ? 'text-gray-300' : 'text-[#62728f] hover:text-[var(--primary)]'} disabled:opacity-50 disabled:cursor-not-allowed`}
                                                     title={outOfStock ? "Out of Stock" : "Add to Cart"}
                                                 >
-                                                    <ShoppingCart size={18} />
+                                                    <ShoppingCart size={16} />
                                                 </button>
                                                 <Link
                                                     to={`/product-details/${product._id}`}
                                                     onClick={(e) => e.stopPropagation()}
-                                                    className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center transition-all duration-300 bg-white border border-gray-100/50 text-[#62728f] hover:text-[var(--primary)] hover:scale-105 active:scale-95`}
+                                                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center transition-all duration-300 bg-white border border-gray-100/50 text-[#62728f] hover:text-[var(--primary)] hover:scale-105 active:scale-95`}
                                                     title="Quick View"
                                                 >
-                                                    <Eye size={18} />
+                                                    <Eye size={16} />
                                                 </Link>
                                             </div>
 
@@ -545,41 +591,42 @@ const Shop = () => {
                                                     <img
                                                         src={product.images?.[0]?.url || 'https://via.placeholder.com/400?text=No+Image'}
                                                         alt={product.name}
-                                                        className={`max-w-full max-h-[160px] object-contain transition-transform duration-500 group-hover:scale-105 ${outOfStock ? 'grayscale opacity-70' : ''}`}
+                                                        className={`max-w-full max-h-[140px] sm:max-h-[160px] object-contain transition-transform duration-500 group-hover:scale-105 ${outOfStock ? 'grayscale opacity-70' : ''}`}
                                                     />
                                                 </div>
                                             </div>
 
-                                            <div className={`flex flex-col flex-grow w-full ${viewType === 'list' ? 'p-4 sm:py-4 sm:px-0' : 'p-4 sm:p-5 pt-2'} ${outOfStock ? 'opacity-70' : ''}`}>
-                                                <div className="text-[13px] text-[#8e9aab] mb-1.5 font-medium transition-colors">
+                                            <div className={`flex flex-col flex-grow w-full ${viewType === 'list' ? 'p-4 sm:py-4 sm:px-0' : 'p-3 sm:p-5 pt-2'} ${outOfStock ? 'opacity-70' : ''}`}>
+                                                <div className="text-[11px] sm:text-[13px] text-[#8e9aab] mb-1 font-medium truncate transition-colors">
                                                     {product.category?.categoryName || 'Vegetables'}
                                                 </div>
-                                                <h3 className="text-[16px] font-[700] text-[#112a46] leading-snug mb-2 line-clamp-2 group-hover:text-[var(--primary)] transition-colors">
+                                                <h3 className="text-[14px] sm:text-[16px] font-[700] text-[#112a46] leading-tight sm:leading-snug mb-1.5 line-clamp-1 group-hover:text-[var(--primary)] transition-colors">
                                                     {product.name}
                                                 </h3>
-                                                <div className="flex items-center gap-1.5 mb-3">
+                                                <div className="flex items-center gap-1 mb-2 sm:mb-3">
                                                     <div className="flex items-center text-[#e2e8f0]">
                                                         {[...Array(5)].map((_, i) => (
-                                                            <Star key={i} size={14} fill={i < Math.round(avgRating) ? "#fbbf24" : "#e2e8f0"} className={i < Math.round(avgRating) ? "text-[#fbbf24]" : "text-[#e2e8f0]"} />
+                                                            <Star key={i} size={13} fill={i < Math.round(avgRating) ? "#fbbf24" : "#e2e8f0"} className={i < Math.round(avgRating) ? "text-[#fbbf24]" : "text-[#e2e8f0]"} />
                                                         ))}
                                                     </div>
-                                                    <span className="text-[13px] text-[#8e9aab] font-medium">({product.reviews?.length || 0})</span>
+                                                    <span className="text-[11px] sm:text-[13px] text-[#8e9aab] font-medium">({product.reviews?.length || 0})</span>
                                                 </div>
                                                 <div className="flex-grow"></div>
                                                 <div className={`flex items-center justify-between ${viewType === 'list' ? 'pt-2' : 'pt-1'}`}>
-                                                    <div className="flex flex-col relative top-0.5">
+                                                    <div className="flex items-center gap-2 relative top-0.5">
                                                         {hasDiscount ? (
                                                             <>
-                                                                <span className="text-[11px] sm:text-[12px] text-gray-400 line-through font-medium mb-0.5">
-                                                                    ${originalPrice}
-                                                                </span>
-                                                                <span className="text-[17px] sm:text-[18px] font-[600] text-gray-900 leading-none tracking-tight">
+                                                                <span className="text-base sm:text-lg font-semibold text-[var(--primary)] leading-none">
                                                                     ${currentPrice}
+                                                                </span>
+
+                                                                <span className="text-xs sm:text-sm text-gray-400 line-through font-medium">
+                                                                    ${originalPrice}
                                                                 </span>
                                                             </>
                                                         ) : (
-                                                            <span className="text-[18px] sm:text-[20px] font-bold text-[var(--primary)] leading-none tracking-tight">
-                                                                ${originalPrice}
+                                                            <span className="text-base sm:text-lg font-semibold text-[var(--primary)] leading-none">
+                                                                ${currentPrice}
                                                             </span>
                                                         )}
                                                     </div>
