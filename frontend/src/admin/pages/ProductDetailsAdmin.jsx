@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MdKeyboardArrowRight, MdKeyboardArrowUp, MdKeyboardArrowDown } from "react-icons/md";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
-import { FiMinus, FiPlus, FiX, FiArrowRight, FiMessageSquare } from "react-icons/fi";
+import { FiMinus, FiPlus, FiX, FiArrowRight, FiMessageSquare, FiShoppingCart } from "react-icons/fi";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getProductById, getAllProducts } from '../../redux/slice/product.slice';
 import ReviewChart from '../component/reviewChart';
 import Breadcrumb from '../component/Breadcrumb';
 import ReviewDrawer from '../component/ReviewDrawer';
+import AdminLoader from '../component/AdminLoader';
 
 function ProductDetailsAdmin() {
     const { id } = useParams();
@@ -73,7 +74,9 @@ function ProductDetailsAdmin() {
         }
     }, [product]);
 
-    if (loading && !product) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    if (loading) {
+        return <AdminLoader message="Loading Product Details..." icon={FiShoppingCart} />;
+    }
     if (!product) return <div className="min-h-screen flex items-center justify-center">Product not found.</div>;
 
     return (

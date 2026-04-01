@@ -1,8 +1,9 @@
-import  { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import DataTable from '../component/DataTable';
-import { FiPlus, FiX } from 'react-icons/fi';
+import { FiPlus, FiX, FiPercent, FiShoppingCart } from 'react-icons/fi';
 import { createOffer, getAllOffers, deleteOffer, updateOffer } from '../../redux/slice/offer.slice';
+import AdminLoader from '../component/AdminLoader';
 import CustomSelect from '../component/CustomSelect';
 import CustomMultiSelect from '../component/CustomMultiSelect';
 import { getAllProducts } from '../../redux/slice/product.slice';
@@ -229,11 +230,7 @@ const Offers = () => {
     }, [products]);
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="animate-spin rounded-full h-12 w-12 border-4 border-pink-color border-t-transparent"></div>
-            </div>
-        );
+        return <AdminLoader message="Loading offers..." icon={FiShoppingCart} />;
     }
 
     return (

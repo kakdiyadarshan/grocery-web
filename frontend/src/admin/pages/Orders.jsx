@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { fetchOrders, deleteOrder, updateOrderStatus } from '../../redux/slice/order.slice';
 import DataTable from '../component/DataTable';
+import AdminLoader from '../component/AdminLoader';
 import Breadcrumb from '../component/Breadcrumb';
 import { FiCheck, FiX, FiShoppingCart, FiMapPin, FiPackage, FiClock, FiTruck, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import { IMAGE_URL } from '../../utils/baseUrl';
@@ -120,7 +121,7 @@ const Orders = () => {
             render: (data) => (
                 <div className="text-sm font-medium text-textPrimary">
                     {data.paymentMethod}
-                    </div>
+                </div>
             )
         },
         {
@@ -136,7 +137,7 @@ const Orders = () => {
                 if (status === 'paid' || status === 'captured' || status === 'completed') {
                     config = { color: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
                 } else if (status === 'pending') {
-                    config = { color: 'bg-amber-50 text-amber-700 border-amber-200'};
+                    config = { color: 'bg-amber-50 text-amber-700 border-amber-200' };
                 } else if (status === 'failed' || status === 'error') {
                     config = { color: 'bg-rose-50 text-rose-700 border-rose-200' };
                 } else if (status === 'refunded') {
@@ -160,7 +161,7 @@ const Orders = () => {
                             data.status === 'shipped' ? 'bg-purple-50 text-purple-700 border-purple-200' :
                                 data.status === 'cancelled' ? 'bg-red-50 text-red-700 border-red-200' :
                                     'bg-yellow-50 text-yellow-700 border-yellow-200'}`}>
-                        {data.status}
+                    {data.status}
                 </span>
             )
         },
@@ -190,17 +191,7 @@ const Orders = () => {
     }, [dispatch]);
 
     if (loading) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-                <div className="relative w-16 h-16">
-                    <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary/20 border-t-primary"></div>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <FiShoppingCart className="text-primary animate-pulse" size={24} />
-                    </div>
-                </div>
-                <p className="text-textSecondary font-medium animate-pulse">Loading orders...</p>
-            </div>
-        );
+        return <AdminLoader message="Loading orders..." icon={FiShoppingCart} />;
     }
 
     return (

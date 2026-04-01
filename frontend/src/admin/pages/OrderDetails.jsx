@@ -2,9 +2,10 @@ import React, { useCallback, useEffect, useMemo, memo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getOrderById, updateOrderStatus } from '../../redux/slice/order.slice';
-import { FiArrowLeft, FiBox, FiCreditCard, FiMapPin, FiTruck, FiCheckCircle, FiClock, FiXCircle } from 'react-icons/fi';
+import { FiArrowLeft, FiBox, FiCreditCard, FiMapPin, FiTruck, FiCheckCircle, FiClock, FiXCircle, FiShoppingCart } from 'react-icons/fi';
 import CustomSelect from '../component/CustomSelect';
 import { IMAGE_URL } from '../../utils/baseUrl';
+import AdminLoader from '../component/AdminLoader';
 
 const TrackingNode = memo(({ title, time, time1, desc, isCompleted, isActive, isLast }) => {
     return (
@@ -195,18 +196,8 @@ const OrderDetails = () => {
     }, [currentOrder, trackingMap, formatDateTime]);
 
     if (loading) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-                <div className="relative w-16 h-16">
-                    <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary/20 border-t-primary"></div>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <FiBox className="text-primary animate-pulse" size={24} />
-                    </div>
-                </div>
-            </div>
-        );
+        return <AdminLoader message="Loading Order..." icon={FiShoppingCart} />;
     }
-
     if (!currentOrder) {
         return (
             <div className="text-center py-20 bg-card rounded-xl border border-borderColor shadow-sm">

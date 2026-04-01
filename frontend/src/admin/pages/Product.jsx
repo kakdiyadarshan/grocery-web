@@ -13,7 +13,8 @@ import {
 import { getAllCategories } from '../../redux/slice/category.slice';
 import Table from '../component/DataTable';
 import Breadcrumb from '../component/Breadcrumb';
-import { FiPlus, FiX, FiUpload, FiLoader, FiTrash2, FiPlusCircle, FiAlertTriangle, FiTag, FiCalendar, FiStar, FiAward, FiBarChart2 } from 'react-icons/fi';
+import AdminLoader from '../component/AdminLoader';
+import { FiPlus, FiX, FiUpload, FiLoader, FiTrash2, FiPlusCircle, FiAlertTriangle, FiTag, FiCalendar, FiStar, FiAward, FiBarChart2, FiPackage, FiShoppingCart } from 'react-icons/fi';
 import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
 import DeleteModal from '../component/DeleteModal';
 import StockChart from '../component/StockChart';
@@ -368,6 +369,10 @@ const Product = () => {
             exportValue: (row) => row.weighstWise.reduce((acc, v) => acc + (Number(v.stock) || 0), 0)
         },
     ];
+
+    if (loading) {
+        return <AdminLoader message="Loading products..." icon={FiShoppingCart} />;
+    }
 
     return (
         <>

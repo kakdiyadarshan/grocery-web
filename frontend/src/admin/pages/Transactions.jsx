@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { fetchPayments, updatePaymentStatus } from '../../redux/slice/payment.slice';
-import { FiDownload, FiHash, FiClock, FiUser, FiInfo, FiDollarSign } from 'react-icons/fi';
+import AdminLoader from '../component/AdminLoader';
+import { FiDownload, FiHash, FiClock, FiUser, FiInfo, FiDollarSign, FiShoppingCart } from 'react-icons/fi';
 import DataTable from '../component/DataTable';
 import { useDispatch, useSelector } from 'react-redux';
 import Breadcrumb from '../component/Breadcrumb';
@@ -111,13 +112,7 @@ const Transactions = () => {
     ], [handleStatusChange]);
 
     if (loading) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-                <div className="relative w-12 h-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary/20 border-t-primary"></div>
-                </div>
-            </div>
-        );
+        return <AdminLoader message="Loading transactions..." icon={FiShoppingCart} />;
     }
 
     return (

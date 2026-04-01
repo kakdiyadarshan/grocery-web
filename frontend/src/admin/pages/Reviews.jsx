@@ -5,7 +5,8 @@ import DataTable from '../component/DataTable';
 import Breadcrumb from '../component/Breadcrumb';
 import { IMAGE_URL } from '../../utils/baseUrl';
 import { deleteReview } from '../../redux/slice/review.slice';
-import { FiX } from 'react-icons/fi';
+import { FiX, FiStar, FiShoppingCart } from 'react-icons/fi';
+import AdminLoader from '../component/AdminLoader';
 
 const Reviews = () => {
     const dispatch = useDispatch();
@@ -111,11 +112,7 @@ const Reviews = () => {
     ], []);
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="animate-spin rounded-full h-12 w-12 border-4 border-pink-color border-t-transparent"></div>
-            </div>
-        );
+        return <AdminLoader message="Loading reviews..." icon={FiShoppingCart} />;
     }
 
 

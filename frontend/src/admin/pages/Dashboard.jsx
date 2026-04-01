@@ -10,10 +10,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchOrders } from '../../redux/slice/order.slice';
 import { fetchOrderMonthlyAnalytics, fetchRevenueAnalytics } from '../../redux/slice/dashboard.slice';
 import { getAllProducts } from '../../redux/slice/product.slice';
-import { FiPackage, FiClock, } from 'react-icons/fi';
+import { FiPackage, FiClock, FiShoppingCart, } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { getAllCategories } from '../../redux/slice/category.slice';
 import { Sparklines, SparklinesBars, SparklinesLine } from 'react-sparklines';
+import AdminLoader from '../component/AdminLoader';
 
 
 
@@ -45,8 +46,8 @@ const renderActiveShape = (props) => {
     fill, payload, percent, value
   } = props;
 
-  const revenueFormatted = payload.revenue >= 1000 
-    ? `$${(payload.revenue / 1000).toFixed(1).replace(/\.0$/, '')}k` 
+  const revenueFormatted = payload.revenue >= 1000
+    ? `$${(payload.revenue / 1000).toFixed(1).replace(/\.0$/, '')}k`
     : `$${payload.revenue?.toLocaleString() || '0'}`;
 
   return (
@@ -376,7 +377,9 @@ const Dashboard = () => {
     navigate(`/admin/orders/${item._id}`);
   }, [navigate]);
 
-
+  if (loading) {
+    return <AdminLoader message="Loading Dashboard..." icon={FiShoppingCart} />;
+  }
 
   return (
     <div className="py-8 w-full min-h-screen text-slate-800">
@@ -499,7 +502,7 @@ const Dashboard = () => {
                 dataLabels: {
                   enabled: false
                 },
-                colors: [primaryColor, '#726bff'], 
+                colors: [primaryColor, '#726bff'],
                 xaxis: {
                   categories: analyticsData[activePaymentTimeframe]?.categories || [],
                   axisBorder: { show: false },

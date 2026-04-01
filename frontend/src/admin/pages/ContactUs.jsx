@@ -3,7 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getAllContacts, deleteContact } from '../../redux/slice/contact.slice';
 import Table from '../component/DataTable';
 import Breadcrumb from '../component/Breadcrumb';
-import { FiMail, FiX, FiUser, FiPhone, FiMessageSquare, FiCalendar } from 'react-icons/fi';
+import { FiMail, FiX, FiUser, FiPhone, FiMessageSquare, FiCalendar, FiShoppingCart } from 'react-icons/fi';
+import AdminLoader from '../component/AdminLoader';
 
 const ContactUs = () => {
     const dispatch = useDispatch();
@@ -65,6 +66,10 @@ const ContactUs = () => {
             )
         },
     ];
+
+    if (loading) {
+        return <AdminLoader message="Loading transactions..." icon={FiShoppingCart} />;
+    }
 
     return (
         <>

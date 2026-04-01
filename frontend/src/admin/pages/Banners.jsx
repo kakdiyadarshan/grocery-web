@@ -2,8 +2,9 @@ import React, { useEffect, useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import DataTable from '../component/DataTable';
-import { FiPlus } from 'react-icons/fi';
+import { FiPlus, FiImage, FiShoppingCart } from 'react-icons/fi';
 import { fetchBanners, deleteBanner } from '../../redux/slice/banner.slice';
+import AdminLoader from '../component/AdminLoader';
 import Breadcrumb from '../component/Breadcrumb';
 
 const Banners = () => {
@@ -87,11 +88,7 @@ const Banners = () => {
     ], []);
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
-            </div>
-        );
+        return <AdminLoader message="Loading banners..." icon={FiShoppingCart} />;
     }
 
     return (

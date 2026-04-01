@@ -16,6 +16,8 @@ import { TiArrowSortedDown } from "react-icons/ti";
 import { IoIosLink, IoMdClose, IoMdLink } from "react-icons/io";
 import { Loader2 } from 'lucide-react';
 import { LuTrash2 } from 'react-icons/lu';
+import AdminLoader from '../component/AdminLoader';
+import { FiShoppingCart } from 'react-icons/fi';
 
 
 const Quill = ReactQuill.Quill;
@@ -617,11 +619,7 @@ const ShippingPolicy = () => {
     }, []);
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
-            </div>
-        );
+        return <AdminLoader message="Loading Shipping Policy..." icon={FiShoppingCart} />;
     }
 
     return (

@@ -502,7 +502,7 @@ const UserProfile = () => {
                                         onSubmit={handlePasswordChange}
                                     >
                                         {({ isSubmitting, errors, touched }) => (
-                                            <Form className="space-y-6 max-w-2xl">
+                                            <Form className="space-y-6">
                                                 <div className="space-y-2">
                                                     <label className="text-sm font-medium text-textPrimary block ml-1">Current Password</label>
                                                     <div className="relative group">
