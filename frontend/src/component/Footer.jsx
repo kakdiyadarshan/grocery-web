@@ -37,10 +37,10 @@ const Footer = () => {
                 </button> */}
 
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr] gap-10 lg:gap-8 pb-12">
+                <div className="grid grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr] gap-8 md:gap-x-4 lg:gap-8 pb-12">
 
                     {/* Column 1: Contact Us */}
-                    <div className="lg:border-r border-gray-100 lg:pr-8">
+                    <div className="col-span-2 md:col-span-1 order-1 lg:border-r border-gray-100 lg:pr-8">
                         <h3 className="text-[16px] sm:text-[17px] font-bold text-[var(--text-gray)] mb-6 tracking-wide">Contact Us</h3>
                         <div className="text-[14.5px] text-gray-500 leading-relaxed mb-5">
                             <p>Gromend - Grocery Store</p>
@@ -61,8 +61,8 @@ const Footer = () => {
                         </div>
                     </div>
 
-                    {/* Column 2: Quick Links */}
-                    <div className="lg:pl-6">
+                    {/* Column 2: Category */}
+                    <div className="col-span-1 md:col-span-1 order-2 md:order-3 lg:order-2 lg:pl-6">
                         <h3 className="text-[16px] sm:text-[17px] font-bold text-[var(--text-gray)] mb-6 tracking-wide">Category</h3>
                         <ul className="flex flex-col gap-3">
                             {categories?.slice(0, 6).map((category) => (
@@ -76,7 +76,7 @@ const Footer = () => {
                     </div>
 
                     {/* Column 3: Information */}
-                    <div>
+                    <div className="col-span-1 md:col-span-1 order-3 md:order-2 lg:order-3">
                         <h3 className="text-[16px] sm:text-[17px] font-bold text-[var(--text-gray)] mb-6 tracking-wide">Quick Links</h3>
                         <ul className="flex flex-col gap-3">
                             <li><Link to="/" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">Home</Link></li>
@@ -88,7 +88,7 @@ const Footer = () => {
                     </div>
 
                     {/* Column 4: Need Help ? */}
-                    <div>
+                    <div className="col-span-2 md:col-span-1 order-4 md:order-4 lg:order-4">
                         <h3 className="text-[16px] sm:text-[17px] font-bold text-[var(--text-gray)] mb-6 tracking-wide">Need Help ?</h3>
                         <ul className="flex flex-col gap-3">
                             <li><Link to="/faqs" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">FAQs</Link></li>
