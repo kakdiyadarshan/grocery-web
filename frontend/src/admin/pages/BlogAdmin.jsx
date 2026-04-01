@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Table from '../component/DataTable';
-import { FiPlus, FiTrash2, FiImage, FiArrowLeft, FiRefreshCw, FiX } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiImage, FiArrowLeft, FiRefreshCw, FiX, FiShoppingCart } from 'react-icons/fi';
 import Breadcrumb from '../component/Breadcrumb';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -14,6 +14,7 @@ import { getAllBlogCategory } from '../../redux/slice/blogCategory.slice';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import CustomSelect from '../component/CustomSelect';
+import AdminLoader from '../component/AdminLoader';
 
 const BlogAdmin = () => {
     const dispatch = useDispatch();
@@ -263,6 +264,10 @@ const BlogAdmin = () => {
 
     // ─── RENDER ───────────────────────────────────────────────────────────────────
 
+    // if (loading) {
+    //     return <AdminLoader message="Loading blogs..." icon={FiShoppingCart} />;
+    // }
+
     return (
         <div className="font-jost">
             {/* Header */}
@@ -299,12 +304,7 @@ const BlogAdmin = () => {
             {view === 'list' && (
                 <>
                     {loading ? (
-                        <div className="flex items-center justify-center py-20">
-                            <svg className="animate-spin h-8 w-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                            </svg>
-                        </div>
+                        <AdminLoader message="Loading blogs..." icon={FiShoppingCart} />
                     ) : (
                         <Table
                             columns={columns}
@@ -320,56 +320,60 @@ const BlogAdmin = () => {
             )}
 
             {/* ──── VIEW BLOG DETAIL ──── */}
-            {view === 'view' && viewBlog && (
-                <div className="bg-white rounded-[4px] shadow-sm border border-gray-100 overflow-hidden">
-                    {viewBlog.heroImage && (
-                        <img src={viewBlog.heroImage} alt={viewBlog.blogTitle} className="w-full h-64 object-cover" />
-                    )}
-                    <div className="p-6">
-                        <div className="flex items-center gap-3 mb-4">
-                            <span className="px-3 py-1 text-xs font-semibold bg-primary/10 text-primary rounded-full">
-                                {viewBlog.blogCategoryId?.blogCategoryName || 'Uncategorized'}
-                            </span>
-                            <span className="text-xs text-gray-400">{new Date(viewBlog.createdAt).toDateString()}</span>
-                        </div>
-                        <h2 className="text-2xl font-bold text-gray-800 mb-3">{viewBlog.blogTitle}</h2>
-                        <p className="text-gray-600 leading-relaxed mb-6">{viewBlog.blogDesc}</p>
-
-                        {viewBlog.section?.map((sec, i) => (
-                            <div key={i} className="mb-6 pb-6 border-b border-gray-100 last:border-0">
-                                {sec.sectionTitle && <h3 className="text-lg font-bold text-gray-800 mb-2">{sec.sectionTitle}</h3>}
-                                {sec.sectionDesc?.map((d, j) => <p key={j} className="text-gray-600 mb-2">{d}</p>)}
-                                {sec.sectionPoints?.length > 0 && (
-                                    <ul className="list-disc list-inside space-y-1 text-gray-600">
-                                        {sec.sectionPoints.map((pt, j) => <li key={j}>{pt}</li>)}
-                                    </ul>
-                                )}
-                                {sec.sectionImg?.length > 0 && (
-                                    <div className="flex gap-3 mt-3 flex-wrap">
-                                        {sec.sectionImg.map((img, j) => (
-                                            <img key={j} src={img} alt="" className="h-32 w-auto rounded-[4px] object-cover border border-gray-100" />
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-
-                        {viewBlog.conclusion && (
-                            <div className="mt-4 p-4 bg-gray-50 rounded-[4px] border-l-4 border-primary">
-                                <p className="text-gray-700 italic">{viewBlog.conclusion}</p>
-                            </div>
+            {view === 'view' && (
+                loading || !viewBlog ? (
+                    <AdminLoader message="Loading blog details..." icon={FiShoppingCart} />
+                ) : (
+                    <div className="bg-white rounded-[4px] shadow-sm border border-gray-100 overflow-hidden">
+                        {viewBlog.heroImage && (
+                            <img src={viewBlog.heroImage} alt={viewBlog.blogTitle} className="w-full h-64 object-cover" />
                         )}
+                        <div className="p-6">
+                            <div className="flex items-center gap-3 mb-4">
+                                <span className="px-3 py-1 text-xs font-semibold bg-primary/10 text-primary rounded-full">
+                                    {viewBlog.blogCategoryId?.blogCategoryName || 'Uncategorized'}
+                                </span>
+                                <span className="text-xs text-gray-400">{new Date(viewBlog.createdAt).toDateString()}</span>
+                            </div>
+                            <h2 className="text-2xl font-bold text-gray-800 mb-3">{viewBlog.blogTitle}</h2>
+                            <p className="text-gray-600 leading-relaxed mb-6">{viewBlog.blogDesc}</p>
 
-                        <div className="mt-6 flex gap-3">
-                            <button
-                                onClick={() => handleEdit(viewBlog)}
-                                className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-[4px] hover:bg-primaryHover"
-                            >
-                                Edit This Blog
-                            </button>
+                            {viewBlog.section?.map((sec, i) => (
+                                <div key={i} className="mb-6 pb-6 border-b border-gray-100 last:border-0">
+                                    {sec.sectionTitle && <h3 className="text-lg font-bold text-gray-800 mb-2">{sec.sectionTitle}</h3>}
+                                    {sec.sectionDesc?.map((d, j) => <p key={j} className="text-gray-600 mb-2">{d}</p>)}
+                                    {sec.sectionPoints?.length > 0 && (
+                                        <ul className="list-disc list-inside space-y-1 text-gray-600">
+                                            {sec.sectionPoints.map((pt, j) => <li key={j}>{pt}</li>)}
+                                        </ul>
+                                    )}
+                                    {sec.sectionImg?.length > 0 && (
+                                        <div className="flex gap-3 mt-3 flex-wrap">
+                                            {sec.sectionImg.map((img, j) => (
+                                                <img key={j} src={img} alt="" className="h-32 w-auto rounded-[4px] object-cover border border-gray-100" />
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+
+                            {viewBlog.conclusion && (
+                                <div className="mt-4 p-4 bg-gray-50 rounded-[4px] border-l-4 border-primary">
+                                    <p className="text-gray-700 italic">{viewBlog.conclusion}</p>
+                                </div>
+                            )}
+
+                            <div className="mt-6 flex gap-3">
+                                <button
+                                    onClick={() => handleEdit(viewBlog)}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-[4px] hover:bg-primaryHover"
+                                >
+                                    Edit This Blog
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
+                )
             )}
 
             {/* ──── FORM VIEW (Create / Edit) ──── */}
@@ -465,7 +469,7 @@ const BlogAdmin = () => {
                                     >
                                         <FiX size={14} />
                                     </button>
-                                   
+
                                 </div>
                             )}
                             <div className={`flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-[4px] hover:border-primary transition-colors cursor-pointer relative bg-gray-50 ${errors.heroImage ? 'border-red-500 bg-red-50/10' : 'border-gray-300'}`}>

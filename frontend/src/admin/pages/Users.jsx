@@ -3,7 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchAllUsers } from '../../redux/slice/auth.slice';
 import DataTable from '../component/DataTable';
 import Breadcrumb from '../component/Breadcrumb';
-import { FiCheckCircle, FiX } from 'react-icons/fi';
+import { FiCheckCircle, FiShoppingCart, FiX } from 'react-icons/fi';
+import AdminLoader from '../component/AdminLoader';
 
 const Users = () => {
     const dispatch = useDispatch();
@@ -98,6 +99,10 @@ const Users = () => {
             ),
         }
     ];
+
+    if (loading) {
+        return <AdminLoader message="Loading users..." icon={FiShoppingCart} />;
+    }
 
     return (
         <>

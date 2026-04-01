@@ -3,8 +3,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { fetchOfferBanners, deleteOfferBanner } from '../../redux/slice/offerbanner.slice';
 import DataTable from '../component/DataTable';
-import { FiPlus } from 'react-icons/fi';
+import { FiPlus, FiShoppingCart } from 'react-icons/fi';
 import Breadcrumb from '../component/Breadcrumb';
+import AdminLoader from '../component/AdminLoader';
 
 const OfferBanners = () => {
     const dispatch = useDispatch();
@@ -83,11 +84,7 @@ const OfferBanners = () => {
     ], []);
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="animate-spin rounded-full h-12 w-12 border-4 border-pink-color border-t-transparent"></div>
-            </div>
-        );
+        return <AdminLoader message="Loading offer banners..." icon={FiShoppingCart} />;
     }
 
     return (

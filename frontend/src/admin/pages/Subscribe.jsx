@@ -3,7 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getAllSubscribers, deleteSubscriber, sendOfferEmail } from '../../redux/slice/subscribe.slice';
 import Table from '../component/DataTable';
 import Breadcrumb from '../component/Breadcrumb';
-import { FiMail, FiX, FiSend } from 'react-icons/fi';
+import { FiMail, FiX, FiSend, FiShoppingCart } from 'react-icons/fi';
+import AdminLoader from '../component/AdminLoader';
 
 const Subscribe = () => {
     const dispatch = useDispatch();
@@ -91,6 +92,10 @@ const Subscribe = () => {
 
     const activeCount = data?.filter(s => s.status === 'Active').length || 0;
     const thisMonthCount = data?.filter(s => new Date(s.createdAt).getMonth() === new Date().getMonth()).length || 0;
+
+    if (loading) {
+        return <AdminLoader message="Loading subscribers..." icon={FiShoppingCart} />;
+    }
 
     return (
         <div className="py-8">

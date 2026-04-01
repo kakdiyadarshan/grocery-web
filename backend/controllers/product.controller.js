@@ -500,7 +500,22 @@ exports.updateProduct = async (req, res) => {
         product.sku = sku || product.sku;
         if (weighstWise) {
             try {
-                product.weighstWise = typeof weighstWise === 'string' ? JSON.parse(weighstWise) : weighstWise;
+                const incomingWeights = typeof weighstWise === 'string' ? JSON.parse(weighstWise) : weighstWise;
+
+                // Preserve IDs for existing variations by matching them with the stored ones
+                const updatedWeights = incomingWeights.map(item => {
+                    // If the frontend already sent an _id, keep it
+                    if (item._id) return item;
+
+                    // Fallback matching: Find existing variation by weight and unit in current product to reuse its _id
+                    const existing = product.weighstWise.find(w =>
+                        String(w.weight) === String(item.weight) && w.unit === item.unit
+                    );
+
+                    return existing ? { ...item, _id: existing._id } : item;
+                });
+
+                product.weighstWise = updatedWeights;
             } catch (e) { }
         }
         product.images = productsImages;

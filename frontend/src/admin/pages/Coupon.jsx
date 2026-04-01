@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import DataTable from "../component/DataTable";
 import Breadcrumb from "../component/Breadcrumb";
-import { FiPlus, FiX } from "react-icons/fi";
+import { FiPlus, FiShoppingCart, FiX } from "react-icons/fi";
 import { getAllCoupons, createCoupon, updateCoupon, deleteCoupon } from "../../redux/slice/couponSLice";
 import { useDispatch, useSelector } from "react-redux";
+import AdminLoader from "../component/AdminLoader";
 
 const Coupon = () => {
 
@@ -93,6 +94,10 @@ const Coupon = () => {
     const handleDelete = async (coupon) => {
         await dispatch(deleteCoupon(coupon._id));
     };
+
+    if (loading) {
+        return <AdminLoader message="Loading coupons..." icon={FiShoppingCart} />;
+    }
 
     return (
         <>
