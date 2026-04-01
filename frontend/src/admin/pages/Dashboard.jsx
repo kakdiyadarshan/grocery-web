@@ -1,19 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  ShoppingCart,
-  XCircle,
-  CheckCircle2,
-  Clock,
-  MoreVertical,
-  Search,
-  Calendar,
-  ChevronDown,
-  ArrowUpRight,
-  ArrowDownRight,
-  ArrowUpDown,
-  Trash2,
-  Mail
-} from 'lucide-react';
+import { ShoppingCart, XCircle, CheckCircle2, Clock, Calendar, ChevronDown, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import DataTable from '../component/DataTable';
 import {
   PieChart, Pie, Sector, ResponsiveContainer, Cell, Tooltip,
@@ -215,8 +201,7 @@ const Dashboard = () => {
     const sorted = categories
       .map(c => ({ name: c.categoryName, count: countsMap[c._id] || 0 }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 8)
-      .reverse();
+      .slice(0, 8);
 
     return {
       names: sorted.map(c => c.name),
@@ -252,7 +237,7 @@ const Dashboard = () => {
 
     return Object.values(productCounts)
       .sort((a, b) => b.quantity - a.quantity)
-      .slice(0, 6);
+      .slice(0, 7);
   }, [allorders]);
 
   const [activeTimeframe, setActiveTimeframe] = useState('Weekly');
@@ -334,7 +319,7 @@ const Dashboard = () => {
             ))}
 
             {data.items?.length > 2 && (
-              <div className="relative inline-block h-9 w-9 border border-primary rounded-full ring-2 ring-white  bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-500">
+              <div className="relative  h-9 w-9 border border-primary rounded-full ring-2 ring-white  bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-500">
                 +{data.items.length - 2}
               </div>
             )}
@@ -354,19 +339,6 @@ const Dashboard = () => {
         </div>
       )
     },
-    // {
-    //     header: 'Payment',
-    //     accessor: 'paymentMethod',
-    //     render: (data) => (
-    //         <div className="text-sm font-medium text-textPrimary">
-    //             {data.paymentMethod}
-    //         </div>
-    //     )
-    // },
-    // {
-    //     header: 'Payment Status',
-    //     accessor: 'paymentStatus'
-    // },
     {
       header: 'Order Status',
       accessor: 'status',
@@ -380,22 +352,7 @@ const Dashboard = () => {
           {data.status}
         </span>
       )
-    },
-    // {
-    //     header: 'Shipping',
-    //     searchKey: (data) => `${data.shippingAddress?.firstName} ${data.shippingAddress?.lastName} ${data.shippingAddress?.city} ${data.shippingAddress?.postcode}`,
-    //     accessor: 'shippingAddress',
-    //     render: (data) => (
-    //         <div className='max-w-[150px] text-xs text-textSecondary truncate'>
-    //             <div className='font-medium text-textPrimary'>
-    //                 {data.shippingAddress?.firstName} {data.shippingAddress?.lastName}
-    //             </div>
-    //             <div title={`${data.shippingAddress?.street}, ${data.shippingAddress?.city}`}>
-    //                 {data.shippingAddress?.city}, {data.shippingAddress?.postcode}
-    //             </div>
-    //         </div>
-    //     )
-    // }
+    }
   ], []);
 
   const handleView = useCallback((item) => {
@@ -408,44 +365,47 @@ const Dashboard = () => {
     <div className="py-8 w-full min-h-screen text-slate-800">
       {/* Top Cards Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-        <MetricCard
-          title="Total Orders"
-          value={allorders.length}
-          icon={<ShoppingCart className="text-[var(--primary)]" />}
-          sparklineData={allorders.map(order => order.totalAmount)}
-          bgColor="bg-emerald-50"
-          borderColor="border-[var(--primary)]"
-        />
-        <MetricCard
-          title="Order Cancelled"
-          value={allorders.filter(order => order.status === 'cancelled').length}
-          icon={<XCircle className="text-[var(--primary)]" />}
-          sparklineData={allorders.filter(order => order.status === 'cancelled').map(order => order.totalAmount)}
-          bgColor="bg-emerald-50"
-          borderColor="border-[var(--primary)]"
-        />
-        <MetricCard
-          title="Order Completed"
-          value={allorders.filter(order => order.status === 'delivered' || order.status === 'completed').length}
-          icon={<CheckCircle2 className="text-[var(--primary)]" />}
-          sparklineData={allorders.filter(order => order.status === 'delivered' || order.status === 'completed').map(order => order.totalAmount)}
-          bgColor="bg-emerald-50"
-          borderColor="border-[var(--primary)]"
-        />
-        <MetricCard
-          title="Order Pending"
-          value={allorders.filter(order => order.status === 'pending' || order.status === 'processing' || order.status === 'shipped' || order.status === 'out for delivery').length}
-          icon={<Clock className="text-[var(--primary)]" />}
-          sparklineData={allorders.filter(order => order.status === 'pending' || order.status === 'processing' || order.status === 'shipped' || order.status === 'out for delivery').map(order => order.totalAmount)}
-          bgColor="bg-emerald-50"
-          borderColor="border-[var(--primary)]"
-        />
+        {(() => {
+          const total = allorders.length || 1;
+          const cancelled = allorders.filter(order => order.status === 'cancelled').length;
+          const completed = allorders.filter(order => order.status === 'delivered' || order.status === 'completed').length;
+          const pending = allorders.filter(order => order.status === 'pending' || order.status === 'processing' || order.status === 'shipped' || order.status === 'out for delivery').length;
+
+          return (
+            <>
+              <MetricCard
+                title="Total Orders"
+                value={allorders.length}
+                percentage={100}
+                color={primaryColor}
+              />
+              <MetricCard
+                title="Order Cancelled"
+                value={cancelled}
+                percentage={(cancelled / total) * 100}
+                color={primaryColor}
+              />
+              <MetricCard
+                title="Order Completed"
+                value={completed}
+                percentage={(completed / total) * 100}
+                color={primaryColor}
+              />
+              <MetricCard
+                title="Order Pending"
+                value={pending}
+                percentage={(pending / total) * 100}
+                color={primaryColor}
+              />
+            </>
+          );
+        })()}
       </div>
 
 
       {/* ____________________________________________________________________________________________ */}
 
-      {/* Analytics and Activity Grid */}
+      {/* top chart 1 */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
         {/* Orders Analytics */}
         <div className="lg:col-span-2 rounded-md bg-white p-4 border border-slate-100">
@@ -494,7 +454,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Employees Activity */}
+        {/* top chart 2 */}
         <div className="bg-white rounded-md p-6 border border-slate-100">
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-xl font-bold">Payment Methods</h3>
@@ -539,7 +499,7 @@ const Dashboard = () => {
 
       {/* ____________________________________________________________________________________________ */}
 
-      {/* Product Chart*/}
+      {/* bottom chart */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
 
 
@@ -563,20 +523,13 @@ const Dashboard = () => {
                 plotOptions: {
                   bar: {
                     borderRadius: 4,
-                    horizontal: true,
+                    horizontal: false,
                     distributed: true,
                     barHeight: '60%',
                     isFunnel: false,
                   },
                 },
                 colors: [
-                  primaryColor + '65',
-                  primaryColor + '70',
-                  primaryColor + '75',
-                  primaryColor + '80',
-                  primaryColor + '85',
-                  primaryColor + '90',
-                  primaryColor + '95',
                   primaryColor,
                 ],
                 dataLabels: {
@@ -823,46 +776,61 @@ const Dashboard = () => {
 };
 
 // UI Components
-const MetricCard = ({ title, value, percentage, isPositive, icon, bgColor, borderColor, sparklineData }) => (
-  <div
-    className={`p-6 bg-white  border ${borderColor}  
-      relative overflow-hidden group 
-      rounded-md 
-      transition-all duration-300 ease-out `}
-  >
-    {/* Soft gradient glow on hover */}
-    <div
-      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-300 pointer-events-none"
-      style={{
-        background:
-          "radial-gradient(circle at top right, rgba(0,0,0,0.04), transparent 60%)",
-      }}
-    />
+const MetricCard = ({ title, value, percentage = 0, color }) => {
+  const radius = 36;
+  const strokeWidth = 9;
+  const normalizedRadius = radius - strokeWidth / 2;
+  const circumference = normalizedRadius * 2 * Math.PI;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
-    {/* Top */}
-    <div className="flex justify-between items-start relative z-10">
-      <div>
-        <p className="text-sm text-slate-400 mb-1">{title}</p>
-        <h2 className="text-2xl font-bold text-slate-800">{value}</h2>
+  const displayValue = value >= 1000000 ? (value / 1000000).toFixed(1).replace(/\.0$/, '') + 'M' : value >= 10000 ? (value / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : value;
+
+  return (
+    <div className="p-4 xl:p-4 lg:p-4 md:p-4 sm:p-4 bg-white rounded-2xl shadow-[0_2px_15px_rgba(0,0,0,0.04)] border border-slate-50 flex items-center justify-between transition-all duration-300 hover:shadow-[0_8px_25px_rgba(0,0,0,0.08)]">
+      <div className="flex flex-col gap-1">
+        <p className="text-[13px] font-semibold text-slate-400 font-sans tracking-wide capitalize">{title}</p>
+        <div className="relative group inline-block">
+          <h2 className="text-3xl font-bold text-slate-800 tracking-tight cursor-default">
+            {displayValue}
+          </h2>
+
+          {/* Custom Tooltip */}
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200">
+            <div className="bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap">
+              Total: {value}
+            </div>
+
+            {/* Arrow */}
+            <div className="w-2 h-2 bg-slate-900 rotate-45 absolute left-1/2 -translate-x-1/2 top-full -mt-1"></div>
+          </div>
+        </div>
       </div>
-
-      {/* Icon */}
-      <div
-        className={`p-3 rounded-2xl ${bgColor} 
-          group-hover:scale-105 transition duration-300`}
-      >
-        {icon}
+      <div className="relative flex items-center justify-center">
+        <svg height={radius * 2} width={radius * 2} className="transform -rotate-90">
+          <circle
+            stroke={color + '20'}
+            fill="transparent"
+            strokeWidth={strokeWidth}
+            r={normalizedRadius}
+            cx={radius}
+            cy={radius}
+          />
+          <circle
+            stroke={color}
+            fill="transparent"
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            strokeDasharray={circumference + ' ' + circumference}
+            style={{ strokeDashoffset, transition: 'stroke-dashoffset 0.8s ease-in-out' }}
+            r={normalizedRadius}
+            cx={radius}
+            cy={radius}
+          />
+        </svg>
       </div>
     </div>
-
-    {/* Bottom */}
-    <div className="flex items-center gap-2 relative z-10">
-      <Sparklines data={sparklineData}>
-        <SparklinesLine color="green" />
-      </Sparklines>
-    </div>
-  </div>
-);
+  );
+};
 
 const ActivityLegend = ({ dotColor, label }) => (
   <div className="flex items-center gap-2">

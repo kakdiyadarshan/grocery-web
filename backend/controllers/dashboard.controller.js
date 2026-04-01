@@ -1,4 +1,5 @@
 const Order = require('../models/order.model');
+const Payment = require('../models/payment.model');
 
 exports.getOrderMonthlyAnalytics = async (req, res) => {
     try {
@@ -82,13 +83,13 @@ exports.getRevenueAnalytics = async (req, res) => {
         const endOfPrev5Years = new Date(currentYear - 5, 11, 31, 23, 59, 59, 999);
 
         // Aggregation for Weekly
-        const weeklyData = await Order.aggregate([
-            { $match: { createdAt: { $gte: startOfWeek, $lte: endOfWeek }, status: { $in: ['completed', 'delivered'] } } },
-            { $group: { _id: { $dayOfWeek: "$createdAt" }, revenue: { $sum: "$totalAmount" } } }
+        const weeklyData = await Payment.aggregate([
+            { $match: { createdAt: { $gte: startOfWeek, $lte: endOfWeek }, status: 'completed' } },
+            { $group: { _id: { $dayOfWeek: "$createdAt" }, revenue: { $sum: "$amount" } } }
         ]);
-        const prevWeeklyData = await Order.aggregate([
-            { $match: { createdAt: { $gte: startOfPrevWeek, $lte: endOfPrevWeek }, status: { $in: ['completed', 'delivered'] } } },
-            { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+        const prevWeeklyData = await Payment.aggregate([
+            { $match: { createdAt: { $gte: startOfPrevWeek, $lte: endOfPrevWeek }, status: 'completed' } },
+            { $group: { _id: null, total: { $sum: "$amount" } } }
         ]);
 
         const weeklyValues = Array(7).fill(0);
@@ -104,13 +105,13 @@ exports.getRevenueAnalytics = async (req, res) => {
         const weeklyGrowth = prevWeeklyRevenue ? ((totalWeeklyRevenue - prevWeeklyRevenue) / prevWeeklyRevenue) * 100 : 100;
 
         // Aggregation for Monthly
-        const monthlyData = await Order.aggregate([
-            { $match: { createdAt: { $gte: startOfYear, $lte: endOfYear }, status: { $in: ['completed', 'delivered'] } } },
-            { $group: { _id: { $month: "$createdAt" }, revenue: { $sum: "$totalAmount" } } }
+        const monthlyData = await Payment.aggregate([
+            { $match: { createdAt: { $gte: startOfYear, $lte: endOfYear }, status: 'completed' } },
+            { $group: { _id: { $month: "$createdAt" }, revenue: { $sum: "$amount" } } }
         ]);
-        const prevMonthlyData = await Order.aggregate([
-            { $match: { createdAt: { $gte: startOfPrevYear, $lte: endOfPrevYear }, status: { $in: ['completed', 'delivered'] } } },
-            { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+        const prevMonthlyData = await Payment.aggregate([
+            { $match: { createdAt: { $gte: startOfPrevYear, $lte: endOfPrevYear }, status: 'completed' } },
+            { $group: { _id: null, total: { $sum: "$amount" } } }
         ]);
 
         const monthlyValues = Array(12).fill(0);
@@ -125,13 +126,13 @@ exports.getRevenueAnalytics = async (req, res) => {
         const monthlyGrowth = prevMonthlyRevenue ? ((totalMonthlyRevenue - prevMonthlyRevenue) / prevMonthlyRevenue) * 100 : 100;
 
         // Aggregation for Yearly
-        const yearlyData = await Order.aggregate([
-            { $match: { createdAt: { $gte: startOf5Years, $lte: endOfYear }, status: { $in: ['completed', 'delivered'] } } },
-            { $group: { _id: { $year: "$createdAt" }, revenue: { $sum: "$totalAmount" } } }
+        const yearlyData = await Payment.aggregate([
+            { $match: { createdAt: { $gte: startOf5Years, $lte: endOfYear }, status: 'completed' } },
+            { $group: { _id: { $year: "$createdAt" }, revenue: { $sum: "$amount" } } }
         ]);
-        const prevYearlyData = await Order.aggregate([
-            { $match: { createdAt: { $gte: startOfPrev5Years, $lte: endOfPrev5Years }, status: { $in: ['completed', 'delivered'] } } },
-            { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+        const prevYearlyData = await Payment.aggregate([
+            { $match: { createdAt: { $gte: startOfPrev5Years, $lte: endOfPrev5Years }, status: 'completed' } },
+            { $group: { _id: null, total: { $sum: "$amount" } } }
         ]);
 
         const yearlyCategories = [currentYear - 4, currentYear - 3, currentYear - 2, currentYear - 1, currentYear];
