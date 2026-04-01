@@ -94,4 +94,57 @@ exports.updateCoupon = async(req,res) => {
     } catch (error) {
         res.status(500).json({ success: false, message: 'Error updating coupon', error: error.message });
     }
-}
+};
+
+exports.applyCoupon = async (req, res) => {
+    try {
+        const userId = req.user?._id || req.body.userId;
+        const { code } = req.body;
+
+        if (!code) {
+            return res.status(400).json({
+                success: false,
+                message: 'Coupon code is required'
+            });
+        }
+
+        const coupon = await Coupon.findOne({
+            code: code.trim().toUpperCase()
+        });
+
+        if (!coupon) {
+            return res.status(404).json({
+                success: false,
+                message: 'Coupon not found'
+            });
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (!coupon.isActive || new Date(coupon.expiryDate) <= today) {
+            return res.status(400).json({
+                success: false,
+                message: 'Coupon is expired or inactive'
+            });
+        }
+
+        // No per-user usage restriction - allow repeated use even for same user.
+
+        res.status(200).json({
+            success: true,
+            data: {
+                couponId: coupon._id,
+                code: coupon.code,
+                discount: coupon.discount,
+            }
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error applying coupon',
+            error: error.message
+        });
+    }
+};

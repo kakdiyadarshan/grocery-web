@@ -186,7 +186,7 @@ const getOrderWithOffers = async (orderId) => {
                 as: 'payment'
             }
         },
-        { $unwind: { path: '$payment', preserveNullAndEmptyArrays: true } },
+        { $unwind: { path: '$coupon', preserveNullAndEmptyArrays: true } },
         {
             $group: {
                 _id: '$_id',

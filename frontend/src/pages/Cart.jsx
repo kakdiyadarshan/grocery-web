@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Trash2, ShoppingBag, ArrowRight, Minus, Plus, Home, ChevronRight, ShieldCheck, Truck, ArrowLeft, Tag, X, CheckCircle2, Ticket } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { getCart, removeFromCart, updateCartQuantity, applyCoupon, removeCoupon } from '../redux/slice/cart.slice';
+import { getCart, removeFromCart, updateCartQuantity, applyCoupon, removeCoupon, applyCouponFromServer } from '../redux/slice/cart.slice';
 import { getAllCoupons } from '../redux/slice/couponSLice';
 
 const Cart = () => {
@@ -10,6 +10,7 @@ const Cart = () => {
     const navigate = useNavigate();
     const { cart, loading, appliedCoupon } = useSelector((state) => state.cart);
     const { coupons } = useSelector((state) => state.coupon);
+    const { user } = useSelector((state) => state.auth);
 
 
     useEffect(() => {
@@ -48,7 +49,12 @@ const Cart = () => {
     const [couponLoading, setCouponLoading] = useState(false);
 
     // Dynamic coupons from API
-    const activeCoupons = (coupons || []).filter(coupon => coupon.isActive);
+    const currentUserId = user?._id || localStorage.getItem('userId');
+    const activeCoupons = (coupons || []).filter(coupon => {
+        if (!coupon.isActive) return false;
+        if (!currentUserId || !coupon.usedBy || coupon.usedBy.length === 0) return true;
+        return !coupon.usedBy.some(u => (u?._id || u)?.toString() === currentUserId.toString());
+    });
 
     const handleApplyCoupon = () => {
         const code = couponCode.trim().toUpperCase();
@@ -57,35 +63,26 @@ const Cart = () => {
         setCouponLoading(true);
         setCouponError('');
 
-        setTimeout(() => {
-            const validCoupon = activeCoupons.find(coupon => coupon.code.toUpperCase() === code);
+        setCouponLoading(true);
+        setCouponError('');
 
-            if (validCoupon) {
-                // Check if coupon has expired
-                const expiryDate = new Date(validCoupon.expiryDate);
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-
-                if (expiryDate < today) {
-                    setCouponError('This coupon has expired.');
-                    setCouponLoading(false);
-                    return;
-                }
-                
-                const couponData = {
-                    code: validCoupon.code,
-                    discount: validCoupon.discount,
-                    _id: validCoupon._id
-                };
-
-                dispatch(applyCoupon(couponData));
-                localStorage.setItem('appliedCoupon', JSON.stringify(couponData));
-                setCouponError('');
-            } else {
-                setCouponError('Invalid or inactive coupon code.');
-            }
+        dispatch(applyCouponFromServer({ code }))
+          .unwrap()
+          .then((couponData) => {
+            dispatch(applyCoupon({ code: couponData.code, discount: couponData.discount, _id: couponData.couponId }));
+            localStorage.setItem('appliedCoupon', JSON.stringify({ code: couponData.code, discount: couponData.discount, _id: couponData.couponId }));
+            setCouponError('');
+          })
+          .catch((error) => {
+            const message =
+              typeof error === 'string'
+                ? error
+                : error?.message || error?.data?.message || 'Invalid or inactive coupon code.';
+            setCouponError(message);
+          })
+          .finally(() => {
             setCouponLoading(false);
-        }, 700);
+          });
     };
 
     const handleRemoveCoupon = () => {
