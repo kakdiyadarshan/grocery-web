@@ -410,7 +410,7 @@ const Header = () => {
 
                 {/* Dropdown Menu */}
                 {isUserMenuOpen && (
-                  <div className="absolute -right-2 top-full mt-4 w-56 bg-white border border-gray-100 shadow-xl z-50 py-2 rounded-lg overflow-hidden animate-fadeIn">
+                  <div className="absolute -right-2 top-full  mt-4 w-56 bg-white border border-gray-100 shadow-xl z-[999] py-2 rounded-lg overflow-hidden animate-fadeIn">
                     <ul className="flex flex-col">
                       {isAuthenticated ? (
                         <>
