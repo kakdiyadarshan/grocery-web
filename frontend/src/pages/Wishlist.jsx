@@ -44,7 +44,7 @@ const Wishlist = () => {
 
     return (
         <div className="container">
-            <div className="bg-white py-8 px-4 mb-4">
+            <div className="bg-white pt-8 px-4">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
                     <h1 className="text-[26px] sm:text-[28px] font-bold text-left leading-tight">My Wishlist</h1>
                     {wishlistItems.length > 0 && (
@@ -89,7 +89,7 @@ const Wishlist = () => {
                                     const currentQty = quantities[item._id] || 1;
 
                                     return (
-                                        <tr key={wish._id} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors group">
+                                        <tr key={wish._id} className="border-b border-gray-100 hover:bg-gray-100/50 transition-colors group">
                                             <td className="py-6 px-4 align-middle">
                                                 <div className="flex items-center gap-5">
                                                     <div className="w-[84px] h-[84px] bg-white rounded-md flex items-center justify-center p-2 flex-shrink-0 border border-gray-100 group-hover:border-gray-200 transition-colors">
