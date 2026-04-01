@@ -277,13 +277,46 @@ const transformAndAutoUpdate = async (order) => {
 
 exports.createOrder = async (req, res) => {
     try {
-        let { userId, items, totalAmount, couponId, paymentMethod, addressId } = req.body;
+        let { userId, items, totalAmount, couponId, paymentMethod, addressId, addressDetails } = req.body;
 
         if (!userId || !items || !totalAmount || !paymentMethod) {
             return res.status(400).json({ success: false, message: 'Required fields missing' });
         }
 
         totalAmount = parseFloat(Number(totalAmount).toFixed(2));
+
+        // IF STRIPE: Don't create order yet, just create payment and redirect
+        if (paymentMethod.toLowerCase() === 'stripe') {
+            const payment = await Payment.create({
+                userId,
+                paymentMethod,
+                amount: totalAmount,
+                status: 'pending',
+                pendingOrderData: { 
+                    userId, items, totalAmount, couponId, paymentMethod, addressId, addressDetails 
+                }
+            });
+
+            const session = await stripe.checkout.sessions.create({
+                payment_method_types: ['card'],
+                line_items: [{
+                    price_data: {
+                        currency: 'usd',
+                        product_data: { name: `Order Payment (${userId})` },
+                        unit_amount: Math.round(totalAmount * 100),
+                    },
+                    quantity: 1,
+                }],
+                mode: 'payment',
+                success_url: `${process.env.CLIENT_URL}/order-completed?session_id={CHECKOUT_SESSION_ID}`,
+                cancel_url: `${process.env.CLIENT_URL}/checkout`,
+                metadata: { paymentId: payment._id.toString() }
+            });
+
+            return res.status(200).json({ success: true, data: { paymentUrl: session.url } });
+        }
+
+        // IF COD: Create order immediately
         const order = await Order.create({
             userId, items, totalAmount, couponId, paymentMethod, addressId,
             trackingHistory: [{ status: 'pending', description: 'Order successfully placed' }]
@@ -293,37 +326,17 @@ exports.createOrder = async (req, res) => {
             await Coupon.findByIdAndUpdate(couponId, { $addToSet: { usedBy: userId } });
         }
 
-        if (paymentMethod === 'Stripe') {
-            const session = await stripe.checkout.sessions.create({
-                payment_method_types: ['card'],
-                line_items: [{
-                    price_data: {
-                        currency: 'usd', // changed to USD
-                        product_data: { name: `Order ${order._id}` },
-                        unit_amount: Math.round(totalAmount * 100),
-                    },
-                    quantity: 1,
-                }],
-                mode: 'payment',
-                success_url: `${process.env.CLIENT_URL}/order-completed?session_id={CHECKOUT_SESSION_ID}&order_id=${order._id}`,
-                cancel_url: `${process.env.CLIENT_URL}/checkout`,
-                metadata: { orderId: order._id.toString() }
-            });
-
-            await Payment.create({ userId, orderId: order._id, paymentMethod, amount: totalAmount, status: 'pending' });
-            return res.status(200).json({ success: true, data: { orderId: order._id, paymentUrl: session.url } });
-        }
-
-        await Payment.create({ userId, orderId: order._id, paymentMethod, amount: totalAmount, status: 'pending' });
+        await Payment.create({ userId, orderId: order._id, paymentMethod, amount: totalAmount, status: 'paid' });
 
         // stock minus variant wise
         for (const item of items) {
             await adjustProductStock(item, -item.quantity);
         }
 
+        // Clear cart
         await Cart.findOneAndUpdate({ userId }, { items: [] });
 
-        // Notify Admins about new order
+        // Notify Admins
         await emitRoleNotification({
             designations: ['admin'],
             event: 'notify',
@@ -840,20 +853,40 @@ exports.handleStripeWebhook = async (req, res) => {
 
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object;
-        const { orderId } = session.metadata;
-        const order = await Order.findByIdAndUpdate(orderId, { status: 'completed' }, { new: true });
-        if (order) {
-            await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] });
-            await Payment.findOneAndUpdate({ orderId: order._id }, { status: 'paid' });
+        const { paymentId } = session.metadata;
 
-            // Notify user and admin
+        const payment = await Payment.findById(paymentId);
+        if (payment && !payment.orderId && payment.pendingOrderData) {
+            const orderData = payment.pendingOrderData;
+            
+            // Create the order finally
+            const order = await Order.create({
+                ...orderData,
+                trackingHistory: [{ status: 'pending', description: 'Order successfully placed via Stripe' }]
+            });
+
+            payment.orderId = order._id;
+            payment.status = 'paid';
+            payment.pendingOrderData = null;
+            await payment.save();
+
+            // Stocks and Cart
+            for (const item of order.items) {
+                await adjustProductStock(item, -item.quantity);
+            }
+            await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] });
+            if (order.couponId) {
+                await Coupon.findByIdAndUpdate(order.couponId, { $addToSet: { usedBy: order.userId } });
+            }
+
+            // Notifications
             await emitUserNotification({
                 userId: order.userId,
                 event: 'notify',
                 data: {
                     type: 'order_status',
                     message: `Payment successful! Order #${order._id.toString().slice(-6).toUpperCase()} is now being processed.`,
-                    payload: { orderId: order._id, status: 'completed' }
+                    payload: { orderId: order._id, status: 'pending' }
                 }
             });
 
@@ -862,7 +895,7 @@ exports.handleStripeWebhook = async (req, res) => {
                 event: 'notify',
                 data: {
                     type: 'new_order',
-                    message: `Payment received for Order #${order._id.toString().slice(-6).toUpperCase()}. (Stripe)`,
+                    message: `Payment received for Order #${order._id.toString().slice(-6).toUpperCase()}. (Stripe Webhook)`,
                     payload: { orderId: order._id }
                 }
             });
@@ -879,22 +912,62 @@ exports.verifyStripeSession = async (req, res) => {
         const session = await stripe.checkout.sessions.retrieve(sessionId);
 
         if (session.payment_status === 'paid') {
-            const orderId = session.metadata.orderId;
-            const order = await Order.findById(orderId);
+            const { paymentId } = session.metadata;
+            let payment = await Payment.findById(paymentId);
 
-            if (order && order.status !== 'completed') {
-                order.status = 'completed';
-                await order.save();
+            if (!payment) return res.status(404).json({ success: false, message: 'Payment record not found' });
 
-                await Payment.findOneAndUpdate({ orderId: order._id }, { status: 'paid' });
+            let order;
+            if (payment.orderId) {
+                // Order already created by webhook or previous verify call
+                order = await Order.findById(payment.orderId);
+            } else if (payment.pendingOrderData) {
+                // Create the order now
+                const orderData = payment.pendingOrderData;
+                order = await Order.create({
+                    ...orderData,
+                    trackingHistory: [{ status: 'pending', description: 'Order successfully placed via Stripe' }]
+                });
+
+                payment.orderId = order._id;
+                payment.status = 'paid';
+                payment.pendingOrderData = null;
+                await payment.save();
+
+                // Stock update
+                for (const item of order.items) {
+                    await adjustProductStock(item, -item.quantity);
+                }
+
+                // Clear cart
                 await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] });
+                if (order.couponId) {
+                    await Coupon.findByIdAndUpdate(order.couponId, { $addToSet: { usedBy: order.userId } });
+                }
+
+                // Notify admin
+                await emitRoleNotification({
+                    designations: ['admin'],
+                    event: 'notify',
+                    data: {
+                        type: 'new_order',
+                        message: `Stripe Payment Verified: Order #${order._id.toString().slice(-6).toUpperCase()}`,
+                        payload: { orderId: order._id }
+                    }
+                });
             }
-            return res.status(200).json({ success: true, message: 'Payment verified', data: order });
+
+            return res.status(200).json({ 
+                success: true, 
+                message: 'Payment verified and Order created', 
+                data: order 
+            });
         }
 
-        return res.status(400).json({ success: false, message: 'Payment not completed or session invalid' });
+        return res.status(400).json({ success: false, message: 'Payment not completed' });
     } catch (error) {
         console.error("verifyStripeSession error:", error);
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
