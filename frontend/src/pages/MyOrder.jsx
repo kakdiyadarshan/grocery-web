@@ -246,7 +246,7 @@ const MyOrder = ({ isEmbedded = false }) => {
                                             {order.status}
                                         </span>
                                         {order.status.toLowerCase() === 'in progress' && (
-                                            <span className="bg-[var(--primary)] text-white px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tight shadow-sm">
+                                            <span className="bg-[var(--primary)] text-white px-2 py-0.5 rounded text-[10px] font-[600] uppercase tracking-tight shadow-sm">
                                                 Express
                                             </span>
                                         )}
@@ -268,7 +268,7 @@ const MyOrder = ({ isEmbedded = false }) => {
 
                                     <div className="flex-1 min-w-0 flex flex-col justify-between">
                                         <div>
-                                            <h4 className="text-[var(--primary)] font-black text-xs sm:text-sm mb-1 uppercase tracking-wider">
+                                            <h4 className="text-[var(--primary)] font-bold text-xs sm:text-sm mb-1 uppercase tracking-wider">
                                                 Order ID: {order.displayId}
                                             </h4>
                                             <p className="text-gray-900 font-bold text-sm sm:text-base line-clamp-1 mb-1">
@@ -287,7 +287,7 @@ const MyOrder = ({ isEmbedded = false }) => {
                                         </div>
                                         
                                         <div className="flex items-center gap-3">
-                                            <p className="font-black text-[var(--primary)] text-lg sm:text-xl">${order.price}</p>
+                                            <p className="font-bold text-[var(--primary)] text-lg sm:text-xl">${order.price}</p>
                                             {order.hasActiveOffer && parseFloat(order.originalPrice) > parseFloat(order.price) && (
                                                 <span className="text-gray-400 text-xs line-through font-medium leading-none">${order.originalPrice}</span>
                                             )}
