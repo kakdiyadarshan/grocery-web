@@ -45,16 +45,23 @@ const renderActiveShape = (props) => {
     fill, payload, percent, value
   } = props;
 
+  const revenueFormatted = payload.revenue >= 1000 
+    ? `$${(payload.revenue / 1000).toFixed(1).replace(/\.0$/, '')}k` 
+    : `$${payload.revenue?.toLocaleString() || '0'}`;
+
   return (
     <g>
-      <text x={cx} y={cy} dy={-10} textAnchor="middle" fill={fill} className="text-[14px] font-bold uppercase tracking-wider">
+      <text x={cx} y={cy} dy={-24} textAnchor="middle" fill={fill} className="text-[13px] font-extrabold uppercase tracking-widest">
         {payload.name}
       </text>
-      <text x={cx} y={cy} dy={12} textAnchor="middle" fill="#1e293b" className="text-[18px] font-extrabold">
-        {`${value}`}
+      <text x={cx} y={cy} dy={4} textAnchor="middle" fill="#0f172a" className="text-[26px] font-black tracking-tight">
+        {value}
       </text>
-      <text x={cx} y={cy} dy={28} textAnchor="middle" fill="#64748b" className="text-[11px] font-semibold">
-        {`(${(percent * 100).toFixed(1)}%)`}
+      <text x={cx} y={cy} dy={24} textAnchor="middle" fill="#10b981" className="text-[14px] font-bold">
+        {revenueFormatted}
+      </text>
+      <text x={cx} y={cy} dy={42} textAnchor="middle" fill="#94a3b8" className="text-[11px] font-bold">
+        (${(percent * 100).toFixed(1)}%)
       </text>
       <Sector
         cx={cx}
@@ -147,35 +154,38 @@ const Dashboard = () => {
 
   const pieData = useMemo(() => {
     if (!allorders || allorders.length === 0) return [
-      { name: 'COD', value: 0 },
-      { name: 'Stripe', value: 0 },
-      { name: 'Bank / UPI', value: 0 }
+      { name: 'COD', value: 0, revenue: 0 },
+      { name: 'Stripe', value: 0, revenue: 0 }
     ];
 
     let cod = 0;
+    let codRev = 0;
     let stripe = 0;
-    let bankUpi = 0;
+    let stripeRev = 0;
 
     allorders.forEach(o => {
       if (o.status === 'cancelled') return;
-      if (o.paymentMethod === 'COD') cod++;
-      else if (o.paymentMethod === 'Stripe') stripe++;
-      else bankUpi++;
+      if (o.paymentMethod === 'COD') {
+        cod++;
+        codRev += o.totalAmount || 0;
+      }
+      else if (o.paymentMethod === 'Stripe') {
+        stripe++;
+        stripeRev += o.totalAmount || 0;
+      }
     });
 
-    const hasData = cod > 0 || stripe > 0 || bankUpi > 0;
+    const hasData = cod > 0 || stripe > 0;
 
     // If absolutely no payment methods have been processed, show fallback so chart isn't empty visually
     if (!hasData) return [
-      { name: 'COD', value: 1 },
-      { name: 'Stripe', value: 0 },
-      { name: 'Bank / UPI', value: 0 }
+      { name: 'COD', value: 1, revenue: 0 },
+      { name: 'Stripe', value: 0, revenue: 0 }
     ];
 
     return [
-      { name: 'COD', value: cod },
-      { name: 'Stripe', value: stripe },
-      { name: 'Bank / UPI', value: bankUpi }
+      { name: 'COD', value: cod, revenue: codRev },
+      { name: 'Stripe', value: stripe, revenue: stripeRev }
     ];
   }, [allorders]);
 
@@ -241,23 +251,30 @@ const Dashboard = () => {
   }, [allorders]);
 
   const [activeTimeframe, setActiveTimeframe] = useState('Weekly');
+  const [activePaymentTimeframe, setActivePaymentTimeframe] = useState('Weekly');
 
   const analyticsData = revenueAnalytics || {
     Weekly: {
       categories: ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'],
       series: [0, 0, 0, 0, 0, 0, 0],
+      codSeries: [0, 0, 0, 0, 0, 0, 0],
+      stripeSeries: [0, 0, 0, 0, 0, 0, 0],
       total: 0,
       growth: 0
     },
     Monthly: {
       categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
       series: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      codSeries: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      stripeSeries: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       total: 0,
       growth: 0
     },
     Yearly: {
       categories: ['2021', '2022', '2023', '2024', '2025'],
       series: [0, 0, 0, 0, 0],
+      codSeries: [0, 0, 0, 0, 0],
+      stripeSeries: [0, 0, 0, 0, 0],
       total: 0,
       growth: 0
     }
@@ -454,44 +471,66 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* top chart 2 */}
-        <div className="bg-white rounded-md p-6 border border-slate-100">
-          <div className="flex items-center justify-between mb-8">
-            <h3 className="text-xl font-bold">Payment Methods</h3>
-            {/* <button className="p-1 hover:bg-slate-50 rounded-lg">
-              <MoreVertical className="w-5 h-5 text-slate-400" />
-            </button> */}
+        {/* Payment Revenue Trend (Line Chart) */}
+        <div className="bg-white rounded-md p-4 border border-slate-100 flex flex-col">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+            <h3 className="text-xl font-bold">Payment Methods Trend</h3>
+            <CustomSelect
+              options={['Weekly', 'Monthly', 'Yearly']}
+              defaultValue={activePaymentTimeframe}
+              onChange={(v) => setActivePaymentTimeframe(v)}
+            />
           </div>
-          <div className="flex flex-col items-center">
-            <div className="relative w-full h-80 mb-4 flex justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
-                  <Pie
-                    activeIndex={activeIndex}
-                    activeShape={(props) => renderActiveShape({ ...props, isMobile: isMobileSize })}
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={65}
-                    outerRadius={95}
-                    fill="#8884d8"
-                    paddingAngle={2}
-                    dataKey="value"
-                    onMouseEnter={onPieEnter}
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={() => null} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="grid grid-cols-3 gap-2 w-full place-items-center">
-              <ActivityLegend dotColor="bg-[var(--primary)]" label="COD" />
-              <ActivityLegend dotColor="bg-yellow-500" label="Stripe" />
-              <ActivityLegend dotColor="bg-red-500" label="Bank / UPI" />
-            </div>
+          <div className="flex-1 w-full min-h-[300px]">
+            <ReactApexChart
+              options={{
+                chart: {
+                  type: 'bar',
+                  toolbar: { show: false },
+                  zoom: { enabled: false }
+                },
+                plotOptions: {
+                  bar: {
+                    horizontal: false,
+                    columnWidth: '55%',
+                    borderRadius: 2
+                  }
+                },
+                dataLabels: {
+                  enabled: false
+                },
+                colors: [primaryColor, '#726bff'], 
+                xaxis: {
+                  categories: analyticsData[activePaymentTimeframe]?.categories || [],
+                  axisBorder: { show: false },
+                  axisTicks: { show: false },
+                },
+                yaxis: {
+                  labels: {
+                    formatter: (val) => val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val
+                  }
+                },
+                grid: {
+                  borderColor: '#f1f5f9',
+                  strokeDashArray: 4,
+                  yaxis: { lines: { show: true } },
+                  xaxis: { lines: { show: false } }
+                },
+                legend: {
+                  position: 'bottom',
+                  horizontalAlign: 'center',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  markers: { radius: 4 }
+                }
+              }}
+              series={[
+                { name: 'COD Revenue', data: analyticsData[activePaymentTimeframe]?.codSeries || [] },
+                { name: 'Stripe Revenue', data: analyticsData[activePaymentTimeframe]?.stripeSeries || [] }
+              ]}
+              type="bar"
+              height={300}
+            />
           </div>
         </div>
       </div>

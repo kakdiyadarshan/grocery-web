@@ -85,7 +85,7 @@ exports.getRevenueAnalytics = async (req, res) => {
         // Aggregation for Weekly
         const weeklyData = await Payment.aggregate([
             { $match: { createdAt: { $gte: startOfWeek, $lte: endOfWeek }, status: 'completed' } },
-            { $group: { _id: { $dayOfWeek: "$createdAt" }, revenue: { $sum: "$amount" } } }
+            { $group: { _id: { day: { $dayOfWeek: "$createdAt" }, method: "$paymentMethod" }, revenue: { $sum: "$amount" } } }
         ]);
         const prevWeeklyData = await Payment.aggregate([
             { $match: { createdAt: { $gte: startOfPrevWeek, $lte: endOfPrevWeek }, status: 'completed' } },
@@ -93,11 +93,16 @@ exports.getRevenueAnalytics = async (req, res) => {
         ]);
 
         const weeklyValues = Array(7).fill(0);
+        const weeklyCodValues = Array(7).fill(0);
+        const weeklyStripeValues = Array(7).fill(0);
         let totalWeeklyRevenue = 0;
+
         weeklyData.forEach(item => {
-            const dayIndex = item._id === 1 ? 6 : item._id - 2; 
+            const dayIndex = item._id.day === 1 ? 6 : item._id.day - 2; 
             if(dayIndex >= 0 && dayIndex < 7) {
-                weeklyValues[dayIndex] = item.revenue;
+                weeklyValues[dayIndex] += item.revenue;
+                if (item._id.method === 'COD') weeklyCodValues[dayIndex] = item.revenue;
+                else if (item._id.method === 'Stripe') weeklyStripeValues[dayIndex] = item.revenue;
             }
             totalWeeklyRevenue += item.revenue;
         });
@@ -107,7 +112,7 @@ exports.getRevenueAnalytics = async (req, res) => {
         // Aggregation for Monthly
         const monthlyData = await Payment.aggregate([
             { $match: { createdAt: { $gte: startOfYear, $lte: endOfYear }, status: 'completed' } },
-            { $group: { _id: { $month: "$createdAt" }, revenue: { $sum: "$amount" } } }
+            { $group: { _id: { month: { $month: "$createdAt" }, method: "$paymentMethod" }, revenue: { $sum: "$amount" } } }
         ]);
         const prevMonthlyData = await Payment.aggregate([
             { $match: { createdAt: { $gte: startOfPrevYear, $lte: endOfPrevYear }, status: 'completed' } },
@@ -115,10 +120,14 @@ exports.getRevenueAnalytics = async (req, res) => {
         ]);
 
         const monthlyValues = Array(12).fill(0);
+        const monthlyCodValues = Array(12).fill(0);
+        const monthlyStripeValues = Array(12).fill(0);
         let totalMonthlyRevenue = 0;
         monthlyData.forEach(item => {
-            if(item._id >= 1 && item._id <= 12) {
-                monthlyValues[item._id - 1] = item.revenue;
+            if(item._id.month >= 1 && item._id.month <= 12) {
+                monthlyValues[item._id.month - 1] += item.revenue;
+                if (item._id.method === 'COD') monthlyCodValues[item._id.month - 1] = item.revenue;
+                else if (item._id.method === 'Stripe') monthlyStripeValues[item._id.month - 1] = item.revenue;
             }
             totalMonthlyRevenue += item.revenue;
         });
@@ -128,7 +137,7 @@ exports.getRevenueAnalytics = async (req, res) => {
         // Aggregation for Yearly
         const yearlyData = await Payment.aggregate([
             { $match: { createdAt: { $gte: startOf5Years, $lte: endOfYear }, status: 'completed' } },
-            { $group: { _id: { $year: "$createdAt" }, revenue: { $sum: "$amount" } } }
+            { $group: { _id: { year: { $year: "$createdAt" }, method: "$paymentMethod" }, revenue: { $sum: "$amount" } } }
         ]);
         const prevYearlyData = await Payment.aggregate([
             { $match: { createdAt: { $gte: startOfPrev5Years, $lte: endOfPrev5Years }, status: 'completed' } },
@@ -137,11 +146,15 @@ exports.getRevenueAnalytics = async (req, res) => {
 
         const yearlyCategories = [currentYear - 4, currentYear - 3, currentYear - 2, currentYear - 1, currentYear];
         const yearlyValues = Array(5).fill(0);
+        const yearlyCodValues = Array(5).fill(0);
+        const yearlyStripeValues = Array(5).fill(0);
         let totalYearlyRevenue = 0;
         yearlyData.forEach(item => {
-            const index = yearlyCategories.indexOf(item._id);
+            const index = yearlyCategories.indexOf(item._id.year);
             if (index !== -1) {
-                yearlyValues[index] = item.revenue;
+                yearlyValues[index] += item.revenue;
+                if (item._id.method === 'COD') yearlyCodValues[index] = item.revenue;
+                else if (item._id.method === 'Stripe') yearlyStripeValues[index] = item.revenue;
             }
             totalYearlyRevenue += item.revenue;
         });
@@ -152,18 +165,24 @@ exports.getRevenueAnalytics = async (req, res) => {
             Weekly: {
                 categories: ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'],
                 series: weeklyValues,
+                codSeries: weeklyCodValues,
+                stripeSeries: weeklyStripeValues,
                 total: totalWeeklyRevenue,
                 growth: weeklyGrowth
             },
             Monthly: {
                 categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
                 series: monthlyValues,
+                codSeries: monthlyCodValues,
+                stripeSeries: monthlyStripeValues,
                 total: totalMonthlyRevenue,
                 growth: monthlyGrowth
             },
             Yearly: {
                 categories: yearlyCategories.map(String),
                 series: yearlyValues,
+                codSeries: yearlyCodValues,
+                stripeSeries: yearlyStripeValues,
                 total: totalYearlyRevenue,
                 growth: yearlyGrowth
             }
