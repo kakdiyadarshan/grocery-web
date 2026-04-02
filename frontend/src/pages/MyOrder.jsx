@@ -58,36 +58,12 @@ const MyOrder = ({ isEmbedded = false }) => {
     };
 
 
-    const handleCancelOrder = async (orderId, e) => {
-        e.preventDefault();
-
-        const confirmCancel = window.confirm("Are you sure you want to cancel this order?");
-        if (!confirmCancel) return;
-
-        try {
-            setCancellingOrderId(orderId);
-            const resultAction = await dispatch(cancelOrder(orderId));
-
-            if (cancelOrder.fulfilled.match(resultAction)) {
-                toast.success("Order cancelled successfully");
-                dispatch(getUserOrders()); // Refresh order list
-            } else {
-                toast.error(resultAction.payload?.message || "Failed to cancel order");
-            }
-        } catch (error) {
-            console.error("Cancel error:", error);
-            toast.error("Error cancelling order");
-        } finally {
-            setCancellingOrderId(null);
-        }
-    };
-
     const tabs = ['All', 'In Progress', 'Delivered', 'Cancelled'];
 
     const handleReviewClick = (order, e) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
         if (!order.items || order.items.length === 0) {
             toast.error("No products found in this order");
             return;
@@ -191,7 +167,7 @@ const MyOrder = ({ isEmbedded = false }) => {
                             <div className="flex items-center gap-1 text-[14px] text-gray-500 font-medium">
                                 <Link to="/" className="hover:text-[var(--primary)] transition-colors">Home</Link>
                                 <ChevronRight className="w-4 h-4 text-gray-400" />
-                                <Link to="/" className="hover:text-[var(--primary)] transition-colors">My Account</Link>
+                                <Link to="/profile?tab=My Orders" className="hover:text-[var(--primary)] transition-colors">My Account</Link>
                                 <ChevronRight className="w-4 h-4 text-gray-400" />
                                 <span className="text-[var(--primary)] font-bold">My Orders</span>
                             </div>
@@ -231,29 +207,39 @@ const MyOrder = ({ isEmbedded = false }) => {
                                 className="border border-gray-200 rounded-2xl bg-white hover:shadow-md transition-shadow cursor-pointer w-full flex flex-col group overflow-hidden"
                             >
                                 {/* Card Header - Status & Date */}
-                                <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/30">
-                                    <div className="flex items-center gap-2">
-                                        <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full font-bold text-[10px] uppercase tracking-wider ${
-                                            order.status.toLowerCase() !== 'delivered' && order.status.toLowerCase() !== 'cancelled' ? 'bg-orange-100 text-orange-600' :
+                                <div className="px-4 py-3 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3 bg-gray-50/30">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-bold text-[10px] uppercase tracking-wider ${order.status.toLowerCase() !== 'delivered' && order.status.toLowerCase() !== 'cancelled' ? 'bg-orange-100 text-orange-600' :
                                             order.status.toLowerCase() === 'delivered' ? 'bg-green-100 text-green-600' :
-                                            'bg-red-100 text-red-600'
-                                        }`}>
-                                            <span className={`w-1.5 h-1.5 rounded-full ${
-                                                order.status.toLowerCase() === 'in progress' ? 'bg-orange-500 animate-pulse' :
+                                                'bg-red-100 text-red-600'
+                                            }`}>
+                                            <span className={`w-1.5 h-1.5 rounded-full ${order.status.toLowerCase() === 'in progress' ? 'bg-orange-500 animate-pulse' :
                                                 order.status.toLowerCase() === 'delivered' ? 'bg-green-600' :
-                                                'bg-red-500'
-                                            }`}></span>
+                                                    'bg-red-500'
+                                                }`}></span>
                                             {order.status}
                                         </span>
                                         {order.status.toLowerCase() === 'in progress' && (
-                                            <span className="bg-[var(--primary)] text-white px-2 py-0.5 rounded text-[10px] font-[600] uppercase tracking-tight shadow-sm">
+                                            <span className="bg-emerald-600 text-white px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-tight shadow-sm">
                                                 Express
                                             </span>
                                         )}
+                                        {order.rawOrder.payment && (order.rawOrder.payment[0] || order.rawOrder.payment.status) && (
+                                            <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-tight shadow-sm transition-all ${(order.rawOrder.payment[0]?.status || order.rawOrder.payment.status)?.toLowerCase() === 'paid'
+                                                ? 'bg-emerald-500 text-white'
+                                                : (order.rawOrder.payment[0]?.status || order.rawOrder.payment.status)?.toLowerCase() === 'failed'
+                                                    ? 'bg-rose-500 text-white'
+                                                    : (order.rawOrder.payment[0]?.status || order.rawOrder.payment.status)?.toLowerCase() === 'refunded'
+                                                        ? 'bg-purple-500 text-white'
+                                                        : 'bg-amber-400 text-amber-900' // pending
+                                                }`}>
+                                                { (order.rawOrder.payment[0]?.status || order.rawOrder.payment.status) }
+                                            </span>
+                                        )}
                                     </div>
-                                    <span className="text-gray-400 text-[11px] font-bold flex items-center gap-1">
+                                    <div className="flex items-center gap-1 text-gray-400 text-[10px] sm:text-[11px] font-bold whitespace-nowrap bg-white/50 px-2 py-1 rounded-md border border-gray-100 ml-auto">
                                         <Calendar className="w-3 h-3" /> {order.date}
-                                    </span>
+                                    </div>
                                 </div>
 
                                 {/* Card Body - Content */}
@@ -285,7 +271,7 @@ const MyOrder = ({ isEmbedded = false }) => {
                                                 </p>
                                             </div>
                                         </div>
-                                        
+
                                         <div className="flex items-center gap-3">
                                             <p className="font-bold text-[var(--primary)] text-lg sm:text-xl">${order.price}</p>
                                             {order.hasActiveOffer && parseFloat(order.originalPrice) > parseFloat(order.price) && (
@@ -293,7 +279,7 @@ const MyOrder = ({ isEmbedded = false }) => {
                                             )}
                                         </div>
                                     </div>
-                                    
+
                                     <div className="hidden sm:flex items-center">
                                         <ChevronRight className="text-gray-300 group-hover:text-[var(--primary)] w-6 h-6 transition-colors" />
                                     </div>
@@ -304,32 +290,31 @@ const MyOrder = ({ isEmbedded = false }) => {
                                     <div className="sm:hidden flex items-center text-gray-400 gap-1 text-[11px] font-bold uppercase tracking-wider">
                                         Details <ChevronRight className="w-3 h-3" />
                                     </div>
-                                    
-                                    <div className="flex items-center gap-2">
-                                        {['pending', 'processing'].includes(order.rawOrder.displayStatus || order.rawOrder.status) && (
-                                            <button
-                                                onClick={(e) => handleCancelClick(order.id, e)}
-                                                disabled={cancellingOrderId === order.id}
-                                                className="flex items-center gap-1.5 px-4 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg font-bold text-xs transition-all border border-red-100 disabled:opacity-50"
-                                            >
-                                                {cancellingOrderId === order.id ? (
-                                                    <div className="w-3.5 h-3.5 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
-                                                ) : (
-                                                    <X className="w-3.5 h-3.5" />
-                                                )}
-                                                Cancel Order
-                                            </button>
-                                        )}
-                                        {order.status.toLowerCase() === 'delivered' && (
-                                            <button
-                                                onClick={(e) => handleReviewClick(order.rawOrder, e)}
-                                                className="flex items-center gap-1.5 px-4 py-1.5 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 rounded-lg font-bold text-xs transition-all border border-yellow-100 shadow-sm"
-                                            >
-                                                <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
-                                                Rate Product
-                                            </button>
-                                        )}
-                                    </div>
+                                        <div className="flex items-center gap-2">
+                                            {['pending', 'processing'].includes(order.rawOrder.displayStatus || order.rawOrder.status) && (
+                                                <button
+                                                    onClick={(e) => handleCancelClick(order.id, e)}
+                                                    disabled={cancellingOrderId === order.id}
+                                                    className="flex items-center gap-1.5 px-4 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg font-bold text-xs transition-all border border-red-100 disabled:opacity-50"
+                                                >
+                                                    {cancellingOrderId === order.id ? (
+                                                        <div className="w-3.5 h-3.5 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                                                    ) : (
+                                                        <X className="w-3.5 h-3.5" />
+                                                    )}
+                                                    Cancel Order
+                                                </button>
+                                            )}
+                                            {order.status.toLowerCase() === 'delivered' && (
+                                                <button
+                                                    onClick={(e) => handleReviewClick(order.rawOrder, e)}
+                                                    className="flex items-center gap-1.5 px-4 py-1.5 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 rounded-lg font-bold text-xs transition-all border border-yellow-100 shadow-sm"
+                                                >
+                                                    <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
+                                                    Rate Product
+                                                </button>
+                                            )}
+                                        </div>
                                 </div>
                             </Link>
                         ))

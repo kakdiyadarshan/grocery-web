@@ -292,8 +292,8 @@ exports.createOrder = async (req, res) => {
                 paymentMethod,
                 amount: totalAmount,
                 status: 'pending',
-                pendingOrderData: { 
-                    userId, items, totalAmount, couponId, paymentMethod, addressId, addressDetails 
+                pendingOrderData: {
+                    userId, items, totalAmount, couponId, paymentMethod, addressId, addressDetails
                 }
             });
 
@@ -326,7 +326,7 @@ exports.createOrder = async (req, res) => {
             await Coupon.findByIdAndUpdate(couponId, { $addToSet: { usedBy: userId } });
         }
 
-        await Payment.create({ userId, orderId: order._id, paymentMethod, amount: totalAmount, status: 'paid' });
+        await Payment.create({ userId, orderId: order._id, paymentMethod, amount: totalAmount, status: 'pending' });
 
         // stock minus variant wise
         for (const item of items) {
@@ -730,10 +730,23 @@ exports.getOrderById = async (req, res) => {
 exports.updateOrderStatus = async (req, res) => {
     try {
         const { status } = req.body;
-        await Order.findByIdAndUpdate(req.params.id, {
+        const updatedOrder = await Order.findByIdAndUpdate(req.params.id, {
             status,
             $push: { trackingHistory: { status, timestamp: new Date(), description: `Order status updated to ${status}` } }
-        });
+        }, { new: true });
+
+        if (!updatedOrder) {
+            return res.status(404).json({ success: false, message: 'Order not found' });
+        }
+
+        // Logic for COD: Update payment status to 'paid' when delivered or completed
+        if (updatedOrder.paymentMethod === 'COD' && (status === 'delivered' || status === 'completed')) {
+            await Payment.findOneAndUpdate(
+                { orderId: updatedOrder._id },
+                { status: 'paid' }
+            );
+        }
+
         const order = await getOrderWithOffers(req.params.id);
 
         // Notify User about status update
@@ -790,7 +803,7 @@ exports.trackOrder = async (req, res) => {
         }
 
         const createdAt = new Date(order.createdAt);
-        
+
         const getStepTime = (statusId, fallbackMinutes) => {
             if (trackingMap[statusId]) return new Date(trackingMap[statusId]);
             return new Date(createdAt.getTime() + fallbackMinutes * 60 * 1000);
@@ -799,30 +812,30 @@ exports.trackOrder = async (req, res) => {
         const displayStatus = (order.displayStatus || order.status)?.toLowerCase();
 
         const steps = [
-            { 
-                status: "Order Placed", 
-                date: getStepTime('pending', 0), 
-                isCompleted: true 
+            {
+                status: "Order Placed",
+                date: getStepTime('pending', 0),
+                isCompleted: true
             },
-            { 
-                status: "Processing", 
-                date: getStepTime('processing', 15), 
-                isCompleted: ['processing', 'shipped', 'out for delivery', 'delivered', 'completed'].includes(displayStatus) 
+            {
+                status: "Processing",
+                date: getStepTime('processing', 15),
+                isCompleted: ['processing', 'shipped', 'out for delivery', 'delivered', 'completed'].includes(displayStatus)
             },
-            { 
-                status: "Shipped", 
-                date: getStepTime('shipped', 45), 
-                isCompleted: ['shipped', 'out for delivery', 'delivered', 'completed'].includes(displayStatus) 
+            {
+                status: "Shipped",
+                date: getStepTime('shipped', 45),
+                isCompleted: ['shipped', 'out for delivery', 'delivered', 'completed'].includes(displayStatus)
             },
-            { 
-                status: "Out for Delivery", 
-                date: getStepTime('out for delivery', 60), 
-                isCompleted: ['out for delivery', 'delivered', 'completed'].includes(displayStatus) 
+            {
+                status: "Out for Delivery",
+                date: getStepTime('out for delivery', 60),
+                isCompleted: ['out for delivery', 'delivered', 'completed'].includes(displayStatus)
             },
-            { 
-                status: "Delivered", 
-                date: getStepTime('delivered', 120), 
-                isCompleted: ['delivered', 'completed'].includes(displayStatus) 
+            {
+                status: "Delivered",
+                date: getStepTime('delivered', 120),
+                isCompleted: ['delivered', 'completed'].includes(displayStatus)
             }
         ];
 
@@ -893,7 +906,7 @@ exports.handleStripeWebhook = async (req, res) => {
         const payment = await Payment.findById(paymentId);
         if (payment && !payment.orderId && payment.pendingOrderData) {
             const orderData = payment.pendingOrderData;
-            
+
             // Create the order finally
             const order = await Order.create({
                 ...orderData,
@@ -992,10 +1005,10 @@ exports.verifyStripeSession = async (req, res) => {
                 });
             }
 
-            return res.status(200).json({ 
-                success: true, 
-                message: 'Payment verified and Order created', 
-                data: order 
+            return res.status(200).json({
+                success: true,
+                message: 'Payment verified and Order created',
+                data: order
             });
         }
 
