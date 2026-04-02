@@ -9,13 +9,20 @@ import AdminLoader from '../component/AdminLoader';
 
 const TrackingNode = memo(({ title, time, time1, desc, isCompleted, isActive, isLast }) => {
     return (
-        <div className="flex-1 relative flex flex-col items-center group">
+        <div className="lg:flex-1 w-full lg:w-auto relative flex flex-row lg:flex-col items-start lg:items-center group pb-8 lg:pb-0">
             {!isLast && (
-                <div className={`absolute left-[calc(50%+12px)] right-[-50%] top-[11px] h-[2px] transition-all duration-500 z-0 ${isCompleted ? 'bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.3)]' : 'bg-borderColor'
-                    }`}></div>
+                <>
+                    {/* Horizontal Line for Desktop */}
+                    <div className={`hidden lg:block absolute left-[calc(50%+12px)] right-[-50%] top-[11px] h-[2px] transition-all duration-500 z-0 ${isCompleted ? 'bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.3)]' : 'bg-borderColor'
+                        }`}></div>
+                    
+                    {/* Vertical Line for Mobile/Tablet */}
+                    <div className={`lg:hidden absolute left-[11px] top-[24px] bottom-[-8px] w-[2px] transition-all duration-500 z-0 ${isCompleted ? 'bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.3)]' : 'bg-borderColor'
+                        }`}></div>
+                </>
             )}
 
-            <div className={`w-6 h-6 rounded-full border-4 transition-all duration-500 z-10 flex items-center justify-center mb-4 mt-[1px] ${isCompleted
+            <div className={`w-6 h-6 rounded-full border-4 transition-all duration-500 z-10 flex-shrink-0 flex items-center justify-center lg:mb-4 mt-[2px] lg:mt-[1px] ${isCompleted
                 ? 'bg-primary border-primary/20 scale-110 shadow-[0_0_20px_rgba(var(--primary-rgb),0.4)]'
                 : isActive
                     ? 'bg-card border-primary ring-4 ring-primary/10'
@@ -28,7 +35,7 @@ const TrackingNode = memo(({ title, time, time1, desc, isCompleted, isActive, is
                 ) : null}
             </div>
 
-            <div className="text-center px-2">
+            <div className="text-left lg:text-center px-4 lg:px-2 flex-1">
                 <h5 className={`text-[13px] font-bold tracking-tight mb-1 transition-colors duration-300 ${isCompleted || isActive
                     ? 'text-textPrimary'
                     : 'text-textSecondary opacity-50'
@@ -36,22 +43,22 @@ const TrackingNode = memo(({ title, time, time1, desc, isCompleted, isActive, is
                     {title}
                 </h5>
                 {time && (
-                    <>
+                    <div className="flex flex-row lg:flex-col items-center gap-1.5 lg:gap-0">
                         <p className={`text-[9px] font-[600] uppercase tracking-widest mb-1 transition-colors duration-300 ${isCompleted || isActive
                             ? 'text-primary'
                             : 'text-textSecondary opacity-50'
                             }`}>
                             {time}
                         </p>
-                        <p className={`text-[9px] font-[600] uppercase tracking-widest mb-1 transition-colors duration-300 ${isCompleted || isActive
+                        <p className={`text-[9px] font-[600] uppercase tracking-widest mb-1 transition-colors duration-300 flex items-center before:content-['•'] lg:before:content-none before:mr-1.5 before:text-textSecondary/50 lg:before:mr-0 ${isCompleted || isActive
                             ? 'text-primary'
                             : 'text-textSecondary opacity-50'
                             }`}>
                             {time1}
                         </p>
-                    </>
+                    </div>
                 )}
-                <p className={`text-[11px] leading-tight transition-colors duration-300 line-clamp-2 max-w-[140px] ${isCompleted || isActive
+                <p className={`text-[11px] leading-tight transition-colors duration-300 line-clamp-2 mt-1 lg:mt-0 max-w-full lg:max-w-[140px] lg:mx-auto ${isCompleted || isActive
                     ? 'text-textSecondary'
                     : 'text-textSecondary opacity-30'
                     }`}>
@@ -272,9 +279,9 @@ const OrderDetails = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
                 {/* Left Column - Order Items */}
-                <div className="lg:col-span-2 space-y-6">
+                <div className="xl:col-span-2 space-y-6 lg:space-y-8">
                     <div className="bg-card rounded-[4px] shadow-sm border border-borderColor overflow-hidden">
                         <div className="px-5 py-4 border-b border-borderColor flex justify-between items-center bg-bgMain/50">
                             <h3 className="font-[600] text-textPrimary flex items-center gap-2">
@@ -282,41 +289,57 @@ const OrderDetails = () => {
                             </h3>
                             <span className="px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-wider">{items.length} Units</span>
                         </div>
-                        <div className="divide-y divide-borderColor overflow-x-auto no-scrollbar">
-                            <div className='min-w-[500px]'>
+                        <div className="divide-y divide-borderColor">
+                            <div>
                                 {items.map((item, index) => (
-                                    <div key={index} className="px-6 py-5 flex gap-5 items-center hover:bg-bgMain/30 transition-colors group">
-                                        <div className="w-20 h-20 rounded-lg bg-bgMain overflow-hidden flex-shrink-0 border border-borderColor group-hover:border-primary/30 transition-all shadow-sm">
-                                            {item.productId?.images?.[0]?.url ? (
-                                                <img src={item.productId.images[0].url} alt={item.productId.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-textSecondary opacity-30">
-                                                    <FiBox size={30} />
+                                    <div key={index} className="px-5 py-5 flex flex-col sm:flex-row gap-4 sm:gap-5 items-start sm:items-center hover:bg-bgMain/30 transition-colors group">
+                                        <div className="flex items-stretch sm:items-center gap-4 w-full sm:w-auto flex-shrink-0">
+                                            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-bgMain overflow-hidden flex-shrink-0 border border-borderColor group-hover:border-primary/30 transition-all shadow-sm">
+                                                {item.productId?.images?.[0]?.url ? (
+                                                    <img src={item.productId.images[0].url} alt={item.productId.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-textSecondary opacity-30">
+                                                        <FiBox size={30} />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="flex flex-col justify-center flex-1 min-w-0 sm:hidden">
+                                                <h4 className="font-bold text-textPrimary text-sm mb-1 group-hover:text-primary transition-colors truncate">{item.productId?.name || 'Unknown Product'}</h4>
+                                                <div className='text-textSecondary text-xs font-[600]'>
+                                                    {item?.selectedVariant?.weight} {item?.selectedVariant?.unit}
                                                 </div>
-                                            )}
+                                                <div className="text-textSecondary text-xs font-[600] mt-1 pt-1 border-t border-borderColor/50 inline-block w-fit">
+                                                    Qty: {item?.quantity}
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="flex-1">
-                                            <h4 className="font-bold text-textPrimary text-base mb-1 group-hover:text-primary transition-colors">{item.productId?.name || 'Unknown Product'}</h4>
+                                        <div className="hidden sm:block flex-1 min-w-0">
+                                            <h4 className="font-bold text-textPrimary text-base mb-1 group-hover:text-primary transition-colors truncate">{item.productId?.name || 'Unknown Product'}</h4>
                                             <div className='text-textSecondary text-sm font-medium mt-1'>
                                                 {item?.selectedVariant?.weight} {item?.selectedVariant?.unit}
                                             </div>
                                         </div>
 
-                                        <div className="text-right">
-                                            <div className="flex flex-col items-end">
-                                                <p className="font-bold text-textPrimary text-base">
+                                        <div className="flex flex-row sm:flex-col justify-between sm:justify-end items-center sm:items-end w-full sm:w-auto sm:ml-auto bg-bgMain/30 sm:bg-transparent px-4 py-3 sm:p-0 rounded-md sm:rounded-none flex-shrink-0 mt-1 sm:mt-0 border border-borderColor/40 sm:border-transparent">
+                                            <div className="flex flex-col sm:items-end">
+                                                <p className="font-bold text-textPrimary text-sm sm:text-base leading-tight">
                                                     ${(item?.selectedVariant?.discountPrice || item?.selectedVariant?.price)?.toFixed(2)}
                                                 </p>
                                                 {item?.selectedVariant?.discountPrice !== null && item?.selectedVariant?.discountPrice < item?.selectedVariant?.price && (
-                                                    <span className="text-[12px] text-textSecondary line-through font-medium">
+                                                    <span className="text-[11px] sm:text-[12px] text-textSecondary line-through font-medium mt-0.5">
                                                         ${item?.selectedVariant?.price?.toFixed(2)}
                                                     </span>
                                                 )}
                                             </div>
-                                            <p className="text-xs text-textSecondary font-medium mt-0.5">Quantity: {item?.quantity}</p>
-                                            <p className="font-black text-primary mt-2 text-base">
-                                                ${((item?.selectedVariant?.discountPrice || item?.selectedVariant?.price) * item?.quantity)?.toFixed(2)}
-                                            </p>
+                                            
+                                            <p className="hidden sm:block text-xs text-textSecondary font-medium sm:mt-0.5">Quantity: {item?.quantity}</p>
+                                            
+                                            <div className="flex flex-col items-end">
+                                                <span className="sm:hidden text-[9px] uppercase tracking-widest font-bold text-textSecondary mb-0.5">Total</span>
+                                                <p className="font-black text-primary text-[15px] sm:text-base sm:mt-2 leading-tight">
+                                                    ${((item?.selectedVariant?.discountPrice || item?.selectedVariant?.price) * item?.quantity)?.toFixed(2)}
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
@@ -439,9 +462,11 @@ const OrderDetails = () => {
                         {status}
                     </span>
                 </div>
-                <div className="p-8">
-                    <div className="flex flex-row items-start justify-between relative overflow-x-auto pb-4 no-scrollbar min-w-[700px]">
-                        {orderJourneyNodes}
+                <div className="p-5 lg:p-8">
+                    <div className="overflow-x-hidden lg:overflow-x-auto pb-4 no-scrollbar -mx-5 lg:mx-0 px-5 lg:px-8">
+                        <div className="flex flex-col lg:flex-row items-start justify-between relative w-full lg:min-w-[800px] mt-2 lg:mt-0 gap-0">
+                            {orderJourneyNodes}
+                        </div>
                     </div>
 
                     {status === 'cancelled' && (
