@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Check, ChevronDown, ChevronRight, Eye, Grid, Heart, List, ShoppingCart, SlidersHorizontal, Star, X } from 'lucide-react';
+import { Check, ChevronDown, ChevronLeft, ChevronRight, Eye, Grid, Heart, List, ShoppingCart, SlidersHorizontal, Star, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { getAllProducts } from '../redux/slice/product.slice';
 import { getAllCategories } from '../redux/slice/category.slice';
@@ -26,7 +26,15 @@ const Shop = () => {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [sortBy, setSortBy] = useState('alphabetical-az');
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 12;
+    const itemsPerPage = 2; // Updated from 12 as per user change
+    const [isSmallScreen, setIsSmallScreen] = useState(false);
+
+    useEffect(() => {
+        const checkScreen = () => setIsSmallScreen(window.innerWidth < 480);
+        checkScreen();
+        window.addEventListener('resize', checkScreen);
+        return () => window.removeEventListener('resize', checkScreen);
+    }, []);
 
     // Filter states
     const [selectedAvailability, setSelectedAvailability] = useState([]);
@@ -183,6 +191,45 @@ const Shop = () => {
 
 
     const totalPages = Math.ceil(totalFiltered / itemsPerPage);
+
+    const getPageNumbers = () => {
+        const pages = [];
+        if (isSmallScreen) {
+            if (totalPages <= 4) {
+                for (let i = 1; i <= totalPages; i++) pages.push(i);
+            } else if (currentPage <= 2) {
+                pages.push(1, 2, '...', totalPages);
+            } else if (currentPage >= totalPages - 1) {
+                pages.push(1, '...', totalPages - 1, totalPages);
+            } else {
+                pages.push(1, '...', currentPage, '...', totalPages);
+            }
+            return pages;
+        }
+
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
+        } else {
+            if (currentPage <= 4) {
+                for (let i = 1; i <= 5; i++) pages.push(i);
+                pages.push('...');
+                pages.push(totalPages);
+            } else if (currentPage >= totalPages - 3) {
+                pages.push(1);
+                pages.push('...');
+                for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+            } else {
+                pages.push(1);
+                pages.push('...');
+                pages.push(currentPage - 1);
+                pages.push(currentPage);
+                pages.push(currentPage + 1);
+                pages.push('...');
+                pages.push(totalPages);
+            }
+        }
+        return pages;
+    };
 
     return (
         <>
@@ -691,30 +738,50 @@ const Shop = () => {
 
                         {/* Pagination UI */}
                         {!loading && totalFiltered > itemsPerPage && (
-                            <div className="mt-12 flex justify-center items-center gap-2">
+                            <div className="mt-12 flex justify-center items-center gap-1 sm:gap-2">
                                 <button
-                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                    onClick={() => {
+                                        setCurrentPage(prev => Math.max(prev - 1, 1));
+                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    }}
                                     disabled={currentPage === 1}
-                                    className="px-4 h-10 rounded border border-gray-100 flex items-center justify-center text-sm font-bold text-gray-400 hover:text-[var(--primary)] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                                    className="h-9 sm:h-11 px-2.5 sm:px-5 rounded-lg border border-gray-200 flex items-center justify-center gap-2 text-sm font-bold text-gray-500 hover:text-[var(--primary)] hover:border-[var(--primary)] disabled:opacity-30 disabled:cursor-not-allowed transition-all bg-white shadow-sm"
                                 >
-                                    Prev
+                                    <ChevronLeft size={isSmallScreen ? 14 : 18} />
+                                    <span className="hidden sm:inline">Prev</span>
                                 </button>
-                                {[...Array(totalPages)].map((_, i) => (
-                                    <button
-                                        key={i + 1}
-                                        onClick={() => setCurrentPage(i + 1)}
-                                        className={`w-10 h-10 rounded border flex items-center justify-center text-sm font-bold transition-all ${currentPage === i + 1 ? 'bg-[var(--primary)] text-white border-[var(--primary)]' : 'border-gray-200 text-[#1a1a1a] hover:bg-[var(--primary)] hover:text-white'}`}
-                                    >
-                                        {i + 1}
 
+                                {getPageNumbers().map((page, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={() => {
+                                            if (typeof page === 'number') {
+                                                setCurrentPage(page);
+                                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                                            }
+                                        }}
+                                        disabled={page === '...'}
+                                        className={`w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 rounded-lg border flex items-center justify-center text-xs sm:text-sm font-bold transition-all shadow-sm
+                                            ${page === '...'
+                                                ? 'border-transparent text-gray-400 cursor-default bg-transparent shadow-none'
+                                                : currentPage === page
+                                                    ? 'bg-[var(--primary)] text-white border-[var(--primary)] shadow-[0_4px_12px_rgba(0,0,0,0.1)]'
+                                                    : 'border-gray-200 text-[#1a1a1a] bg-white hover:bg-gray-50 hover:border-[var(--primary)] hover:text-[var(--primary)]'}`}
+                                    >
+                                        {page}
                                     </button>
                                 ))}
+
                                 <button
-                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                    onClick={() => {
+                                        setCurrentPage(prev => Math.min(prev + 1, totalPages));
+                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    }}
                                     disabled={currentPage === totalPages}
-                                    className="px-4 h-10 rounded border border-gray-100 flex items-center justify-center text-sm font-bold text-gray-400 hover:text-[var(--primary)] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                                    className="h-9 sm:h-11 px-2.5 sm:px-5 rounded-lg border border-gray-200 flex items-center justify-center gap-2 text-sm font-bold text-gray-500 hover:text-[var(--primary)] hover:border-[var(--primary)] disabled:opacity-30 disabled:cursor-not-allowed transition-all bg-white shadow-sm"
                                 >
-                                    Next
+                                    <span className="hidden sm:inline">Next</span>
+                                    <ChevronRight size={isSmallScreen ? 14 : 18} />
                                 </button>
                             </div>
                         )}

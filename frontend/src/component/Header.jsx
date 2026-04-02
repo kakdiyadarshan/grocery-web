@@ -478,17 +478,21 @@ const Header = () => {
                 )}
               </div>
 
-              {/* Wishlist Icon */}
+               {/* Wishlist Icon */}
               <Link to="/wishlist" className="relative text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors flex items-center gap-2">
                 <div className="relative">
                   <Heart className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.5]" />
-                  <span className="absolute -top-1.5 -right-2 sm:-top-2 sm:-right-2 bg-[var(--primary)] text-white text-[10px] sm:text-xs font-bold rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center border border-white">
-                    {wishlistCount}
-                  </span>
-
+                  {
+                    wishlistCount > 0 && (
+                      <span className="absolute -top-1.5 -right-2 sm:-top-2 sm:-right-2 bg-[var(--primary)] text-white text-[10px] sm:text-xs font-bold rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center border border-white">
+                        {wishlistCount}
+                      </span>
+                    )
+                  }
+ 
                 </div>
               </Link>
-
+ 
               {/* Cart Icon */}
               <button
                 onClick={() => setIsCartOpen(true)}
@@ -496,10 +500,14 @@ const Header = () => {
               >
                 <div className="relative">
                   <ShoppingBag className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.5]" />
-                  <span className="absolute -top-1.5 -right-2 sm:-top-2 sm:-right-2 bg-[var(--primary)] text-white text-[10px] sm:text-xs font-bold rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center border border-white">
-                    {cartCount}
-                  </span>
-
+                  {
+                    cartCount > 0 && (
+                      <span className="absolute -top-1.5 -right-2 sm:-top-2 sm:-right-2 bg-[var(--primary)] text-white text-[10px] sm:text-xs font-bold rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center border border-white">
+                        {cartCount}
+                      </span>
+                    )
+                  }
+ 
                 </div>
                 <span className="hidden md:block font-medium text-[var(--text-gray)] ml-1">My Cart</span>
               </button>
