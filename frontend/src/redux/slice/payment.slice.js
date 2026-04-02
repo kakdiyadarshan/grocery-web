@@ -67,7 +67,7 @@ const paymentSlice = createSlice({
                 state.error = action.payload;
             })
             .addCase(updatePaymentStatus.pending, (state) => {
-                state.loading = true;
+                // Do not set loading to true to prevent UI flash/refresh on inline status change
             })
             .addCase(updatePaymentStatus.fulfilled, (state, action) => {
                 state.loading = false;

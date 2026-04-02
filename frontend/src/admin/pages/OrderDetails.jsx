@@ -271,7 +271,7 @@ const OrderDetails = () => {
                                 { value: 'shipped', label: 'Shipped', icon: <FiTruck /> },
                                 { value: 'out for delivery', label: 'Out for Delivery', icon: <FiTruck /> },
                                 { value: 'delivered', label: 'Delivered', icon: <FiCheckCircle /> },
-                                { value: 'cancelled', label: 'Cancelled', icon: <FiXCircle /> }
+                                // { value: 'cancelled', label: 'Cancelled', icon: <FiXCircle /> }
                             ]}
                             className="min-w-[200px] w-full sm:w-auto"
                         />
@@ -441,9 +441,10 @@ const OrderDetails = () => {
                             </div>
                             <div className="flex justify-between items-center rounded-[4px]">
                                 <span className="text-xs font-bold text-textSecondary capitalize">Status</span>
-                                <span className={`text-[10px] font-[600] capitalize tracking-widest px-2.5 py-1 rounded-[4px] border shadow-sm ${payment[0]?.status === 'completed' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                                <span className={`text-[10px] font-[600] capitalize tracking-widest px-2.5 py-1 rounded-[4px] border shadow-sm ${payment[0]?.status === 'completed' || payment[0]?.status === 'paid' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
                                     payment[0]?.status === 'failed' ? 'bg-rose-50 text-rose-600 border-rose-200' :
-                                        'bg-amber-50 text-amber-600 border-amber-200'
+                                        payment[0]?.status === 'refunded' ? 'bg-indigo-50 text-indigo-600 border-indigo-200' :
+                                            'bg-amber-50 text-amber-600 border-amber-200'
                                     }`}>
                                     {payment[0]?.status}
                                 </span>

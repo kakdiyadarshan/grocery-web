@@ -493,7 +493,7 @@ const CheckOut = () => {
                 <button
                   onClick={handlePlaceOrder}
                   disabled={orderLoading || hasOutOfStockItems}
-                  className={`w-full py-4 rounded font-bold text-[16px] shadow-md flex justify-center items-center transition-all duration-300 ${(orderLoading || hasOutOfStockItems)
+                  className={`w-full text-white py-4 rounded font-[600] text-[16px] shadow-md flex justify-center items-center transition-all duration-300 ${(orderLoading || hasOutOfStockItems)
                     ? 'bg-gray-400 cursor-not-allowed shadow-none'
                     : 'bg-[var(--primary)] hover:bg-[var(--primary-hover)]'
                     }`}

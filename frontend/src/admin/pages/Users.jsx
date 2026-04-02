@@ -44,18 +44,18 @@ const Users = () => {
             render: (user) => <span className="text-textPrimary">{user.email || 'N/A'}</span>,
             searchKey: (user) => user.email
         },
-        {
-            header: 'Role',
-            accessor: 'role',
-            render: (user) => (
-                <span className={`px-2.5 py-1 rounded-[4px] text-[11px] font-bold uppercase tracking-wider border ${user.role === 'admin'
-                    ? 'bg-purple-50 text-purple-600 border-purple-200'
-                    : 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                    }`}>
-                    {user.role || 'user'}
-                </span>
-            ),
-        },
+        // {
+        //     header: 'Role',
+        //     accessor: 'role',
+        //     render: (user) => (
+        //         <span className={`px-2.5 py-1 rounded-[4px] text-[11px] font-bold uppercase tracking-wider border ${user.role === 'admin'
+        //             ? 'bg-purple-50 text-purple-600 border-purple-200'
+        //             : 'bg-emerald-50 text-emerald-600 border-emerald-200'
+        //             }`}>
+        //             {user.role || 'user'}
+        //         </span>
+        //     ),
+        // },
         {
             header: 'Mobile',
             accessor: 'mobileno',

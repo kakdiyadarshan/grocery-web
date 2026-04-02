@@ -74,10 +74,10 @@ const Orders = () => {
             render: (data) => (
                 <div className="flex items-center gap-3">
                     <div className="flex -space-x-3 overflow-hidden">
-                        {data.items?.slice(0, 3).map((item, i) => (
+                        {data.items?.slice(0, 2).map((item, i) => (
                             <div
                                 key={i}
-                                className="relative inline-block h-9 w-9 rounded-full ring-2 ring-white overflow-hidden bg-gray-100 shadow-sm transition-transform hover:scale-110 hover:z-10 border border-primary"
+                                className="relative inline-block h-9 w-9 rounded-full ring-2 ring-white overflow-hidden bg-gray-100 shadow-sm transition-transform  border border-primary"
                                 title={item.productId?.name}
                             >
                                 {item.productId?.images?.[0]?.url ? (
@@ -94,15 +94,15 @@ const Orders = () => {
                             </div>
                         ))}
 
-                        {data.items?.length > 3 && (
-                            <div className="relative inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-gray-800 bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-500">
-                                +{data.items.length - 3}
+                        {data.items?.length > 2 && (
+                            <div className="relative  h-9 w-9 border border-primary rounded-full ring-2 ring-white  bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-500">
+                                +{data.items.length - 2}
                             </div>
                         )}
                     </div>
-                    <div className='text-xs flex items-center text-gray-500 whitespace-nowrap self-center pl-2 !ml-1'>
+                    {/* <div className='text-xs flex items-center text-gray-500 whitespace-nowrap self-center pl-2 !ml-1'>
                         {data.items?.length} items
-                    </div>
+                    </div> */}
                 </div>
             )
         },

@@ -103,9 +103,9 @@ function ProductDetail() {
         }
     }, [product]);
 
-    const isOutOfStock = selectedVariant?.stock === 0;
+    const isOutOfStock = selectedVariant?.stock === 0;  
 
-    const incrementQuantity = () => setQuantity(prev => prev + 1);
+    const incrementQuantity = () => setQuantity(prev => (prev < selectedVariant?.stock ? prev + 1 : prev));
     const decrementQuantity = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
 
     const handleAddToCart = () => {
@@ -347,16 +347,30 @@ function ProductDetail() {
 
                         {/* Quantity Selector */}
                         <div className="flex items-center bg-[#F3F4F6] rounded-md w-32 h-10 mt-4 overflow-hidden">
-                            <button onClick={decrementQuantity} className="flex-1 flex items-center justify-center text-gray-500 hover:text-black transition">
+                            <button
+                                onClick={decrementQuantity}
+                                disabled={quantity <= 1}
+                                className={`flex-1 flex items-center justify-center transition ${quantity <= 1 ? "text-gray-300 cursor-not-allowed" : "text-gray-500 hover:text-black"}`}
+                            >
                                 <FiMinus className="text-xl" />
                             </button>
                             <span className="flex-1 flex items-center justify-center font-semibold text-gray-800 text-lg">
                                 {quantity}
                             </span>
-                            <button onClick={incrementQuantity} className="flex-1 flex items-center justify-center text-gray-500 hover:text-black transition">
+                            <button
+                                onClick={incrementQuantity}
+                                disabled={quantity >= selectedVariant?.stock}
+                                className={`flex-1 flex items-center justify-center transition ${quantity >= selectedVariant?.stock ? "text-gray-300 cursor-not-allowed" : "text-gray-500 hover:text-black"}`}
+                            >
                                 <FiPlus className="text-xl" />
                             </button>
                         </div>
+                        
+                        {quantity === selectedVariant?.stock && selectedVariant?.stock > 0 && (
+                            <div className="mt-2 text-xs font-semibold text-red-500 animate-pulse">
+                                Only {selectedVariant?.stock} units available in stock
+                            </div>
+                        )}
 
                         {/* Subtotal */}
                         <div className="flex items-center gap-2 mt-6">

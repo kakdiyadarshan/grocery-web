@@ -223,9 +223,9 @@ const orderSlice = createSlice({
                 state.currentOrder = action.payload;
             })
             .addCase(getOrderById.rejected, (state) => { state.loading = false; })
-
             .addCase(cancelOrder.rejected, (state) => { state.loading = false; })
-            .addCase(updateOrderStatus.pending, (state) => { state.loading = true; })
+            .addCase(updateOrderStatus.pending, (state) => { 
+            })
             .addCase(updateOrderStatus.fulfilled, (state, action) => {
                 state.loading = false;
                 state.currentOrder = { ...state.currentOrder, ...action.payload };
