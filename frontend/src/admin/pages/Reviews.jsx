@@ -102,7 +102,7 @@ const Reviews = () => {
             accessor: "comment",
             render: (row) => (
                 <div
-                    className="max-w-xs text-sm text-textSecondary line-clamp-2"
+                    className="max-w-xs text-sm text-textSecondary line-clamp-2 truncate "
                     title={row.comment}
                 >
                     {row.comment}

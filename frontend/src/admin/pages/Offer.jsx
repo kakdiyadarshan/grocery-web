@@ -133,7 +133,7 @@ const Offers = () => {
             render: (item) => (
                 <div className="flex -space-x-2">
                     {item.product_id?.slice(0, 3).map((prod, i) => (
-                        <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[10px] overflow-hidden shadow-sm" title={prod.name}>
+                        <div key={i} className="relative inline-block h-9 w-9 rounded-full ring-2 ring-white overflow-hidden bg-gray-100 shadow-sm transition-transform border border-primary" title={prod.name}>
                             {prod.images?.[0] ? (
                                 <img src={getImageUrl(prod.images[0])} alt="" className="w-full h-full object-cover" />
                             ) : (
@@ -142,7 +142,7 @@ const Offers = () => {
                         </div>
                     ))}
                     {item.product_id?.length > 3 && (
-                        <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-50 flex items-center justify-center text-[10px] font-bold text-gray-500 shadow-sm">
+                        <div className="relative  h-9 w-9 border border-primary rounded-full ring-2 ring-white  bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-500">
                             +{item.product_id.length - 3}
                         </div>
                     )}
