@@ -182,7 +182,7 @@ const ContactUs = () => {
 
                         {/* Footer */}
                         <div className="px-6 pb-6 flex justify-end gap-3">
-                            <button
+                            {/* <button
                                 onClick={() => {
                                     setIsViewModalOpen(false);
                                     handleDelete(selectedContact);
@@ -190,7 +190,7 @@ const ContactUs = () => {
                                 className="px-5 py-2.5 text-xs font-[600] uppercase tracking-wider border border-red-100 text-red-500 hover:bg-red-50 rounded-md transition-all"
                             >
                                 Delete
-                            </button>
+                            </button> */}
                             <button
                                 onClick={() => setIsViewModalOpen(false)}
                                 className="px-8 py-2.5 bg-primary text-white text-xs font-[600] uppercase tracking-wider rounded-md hover:bg-primaryHover transition-all"

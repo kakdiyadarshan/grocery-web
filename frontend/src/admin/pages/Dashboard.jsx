@@ -149,46 +149,6 @@ const Dashboard = () => {
 
   const displayedBarData = isSmallSize ? groupedBarData : barData;
 
-  const onPieEnter = (_, index) => {
-    setActiveIndex(index);
-  };
-
-  const pieData = useMemo(() => {
-    if (!allorders || allorders.length === 0) return [
-      { name: 'COD', value: 0, revenue: 0 },
-      { name: 'Stripe', value: 0, revenue: 0 }
-    ];
-
-    let cod = 0;
-    let codRev = 0;
-    let stripe = 0;
-    let stripeRev = 0;
-
-    allorders.forEach(o => {
-      if (o.status === 'cancelled') return;
-      if (o.paymentMethod === 'COD') {
-        cod++;
-        codRev += o.totalAmount || 0;
-      }
-      else if (o.paymentMethod === 'Stripe') {
-        stripe++;
-        stripeRev += o.totalAmount || 0;
-      }
-    });
-
-    const hasData = cod > 0 || stripe > 0;
-
-    // If absolutely no payment methods have been processed, show fallback so chart isn't empty visually
-    if (!hasData) return [
-      { name: 'COD', value: 1, revenue: 0 },
-      { name: 'Stripe', value: 0, revenue: 0 }
-    ];
-
-    return [
-      { name: 'COD', value: cod, revenue: codRev },
-      { name: 'Stripe', value: stripe, revenue: stripeRev }
-    ];
-  }, [allorders]);
 
   const categoryDistribution = useMemo(() => {
     if (!products || !categories) return { names: [], counts: [] };
@@ -338,9 +298,9 @@ const Dashboard = () => {
               </div>
             )}
           </div>
-          <div className='text-xs flex items-center text-gray-500 whitespace-nowrap self-center pl-2 !ml-1'>
+          {/* <div className='text-xs flex items-center text-gray-500 whitespace-nowrap self-center pl-2 !ml-1'>
             {data.items?.length} items
-          </div>
+          </div> */}
         </div>
       )
     },

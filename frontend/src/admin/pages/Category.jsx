@@ -142,7 +142,7 @@ const Category = () => {
             )
         },
         { header: 'Category Name', accessor: 'categoryName', sortable: true },
-        { header: 'Description', accessor: 'description', render: (row) => <span className="text-sm text-gray-500 line-clamp-1">{row.description || '-'}</span> },
+        { header: 'Description', accessor: 'description', render: (row) => <span className="text-sm text-gray-500 line-clamp-1 truncate">{row.description || '-'}</span> },
     ];
 
     return (

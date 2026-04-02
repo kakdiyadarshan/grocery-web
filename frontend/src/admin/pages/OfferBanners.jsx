@@ -26,6 +26,15 @@ const OfferBanners = () => {
 
     const columns = useMemo(() => [
         {
+            header: 'Order',
+            accessor: 'order',
+            render: (item) => (
+                <span className="text-textPrimary  font-medium">
+                    #{item.order}
+                </span>
+            )
+        },
+        {
             header: 'Image',
             accessor: 'image',
             hideInExport: true,
@@ -45,15 +54,6 @@ const OfferBanners = () => {
             render: (item) => (
                 <span className="font-semibold text-textPrimary ">
                     {item.title}
-                </span>
-            )
-        },
-        {
-            header: 'Order',
-            accessor: 'order',
-            render: (item) => (
-                <span className="text-textPrimary  font-medium">
-                    #{item.order}
                 </span>
             )
         },
