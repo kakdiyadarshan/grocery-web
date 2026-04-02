@@ -326,7 +326,7 @@ exports.createOrder = async (req, res) => {
             await Coupon.findByIdAndUpdate(couponId, { $addToSet: { usedBy: userId } });
         }
 
-        await Payment.create({ userId, orderId: order._id, paymentMethod, amount: totalAmount, status: 'paid' });
+        await Payment.create({ userId, orderId: order._id, paymentMethod, amount: totalAmount, status: 'pending' });
 
         // stock minus variant wise
         for (const item of items) {
@@ -730,10 +730,23 @@ exports.getOrderById = async (req, res) => {
 exports.updateOrderStatus = async (req, res) => {
     try {
         const { status } = req.body;
-        await Order.findByIdAndUpdate(req.params.id, {
+        const updatedOrder = await Order.findByIdAndUpdate(req.params.id, {
             status,
             $push: { trackingHistory: { status, timestamp: new Date(), description: `Order status updated to ${status}` } }
-        });
+        }, { new: true });
+
+        if (!updatedOrder) {
+            return res.status(404).json({ success: false, message: 'Order not found' });
+        }
+
+        // Logic for COD: Update payment status to 'paid' when delivered or completed
+        if (updatedOrder.paymentMethod === 'COD' && (status === 'delivered' || status === 'completed')) {
+            await Payment.findOneAndUpdate(
+                { orderId: updatedOrder._id },
+                { status: 'paid' }
+            );
+        }
+
         const order = await getOrderWithOffers(req.params.id);
 
         // Notify User about status update

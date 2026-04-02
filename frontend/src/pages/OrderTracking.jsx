@@ -102,7 +102,7 @@ const OrderTracking = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
           <div>
-            <Link to="/my-order" className="flex items-center gap-2 text-gray-500 hover:text-[var(--primary)] mb-4 transition-colors">
+            <Link to="/profile?tab=My Orders" className="flex items-center gap-2 text-gray-500 hover:text-[var(--primary)] mb-4 transition-colors">
               <ArrowLeft className="w-4 h-4" />
               Back to My Orders
             </Link>
@@ -115,11 +115,16 @@ const OrderTracking = () => {
             </p>
           </div>
 
-          <div className="text-left md:text-right">
-            <p className="text-sm text-gray-500 mb-1">Order ID: <span className="font-bold text-gray-900">{displayId}</span></p>
-            <div className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-700 px-3 py-1 rounded-full text-xs font-bold border border-orange-100">
-              <Truck className="w-3.5 h-3.5" />
-              Flash Delivery
+          <div className="text-left md:text-right flex flex-col items-start md:items-end gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+               <p className="text-sm text-gray-500 font-medium">Order ID: <span className="font-bold text-gray-900">{displayId}</span></p>
+            </div>
+            
+            <div className="flex flex-wrap items-center gap-2 md:justify-end">
+                <div className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-700 px-3 py-1 rounded-full text-xs font-bold border border-orange-100">
+                  <Truck className="w-3.5 h-3.5" />
+                  Flash Delivery
+                </div>
             </div>
           </div>
         </div>
@@ -228,6 +233,23 @@ const OrderTracking = () => {
                   <span className="font-bold">(-${((subtotal * couponId.discount) / 100).toFixed(2)})</span>
                 </div>
               )}
+              <div className="pt-4 border-t border-dashed space-y-4">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-500 font-medium italic">Payment: {data.paymentMethod || (data.payment && data.payment[0]?.paymentMethod) || 'N/A'}</span>
+                  {data.payment && (data.payment[0] || data.payment.status) && (
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight transition-all ${(data.payment[0]?.status || data.payment.status)?.toLowerCase() === 'paid'
+                      ? 'text-emerald-600 bg-emerald-50'
+                      : (data.payment[0]?.status || data.payment.status)?.toLowerCase() === 'failed'
+                        ? 'text-rose-600 bg-rose-50'
+                        : (data.payment[0]?.status || data.payment.status)?.toLowerCase() === 'refunded'
+                          ? 'text-purple-600 bg-purple-50'
+                          : 'text-amber-600 bg-amber-50'
+                      }`}>
+                      {(data.payment[0]?.status || data.payment.status)}
+                    </span>
+                  )}
+                </div>
+              </div>
               <div className="pt-4 border-t flex justify-between items-center">
                 <span className="text-gray-900 font-black text-lg">Total</span>
                 <div className="text-right">
