@@ -201,7 +201,7 @@ const CreateOfferBanner = () => {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                           <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Button Link</label>
                                     <input
@@ -261,7 +261,7 @@ const CreateOfferBanner = () => {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-medium text-gray-600 mb-1">Title Color</label>
                                     <div className="flex items-center gap-2 border border-gray-200 p-1.5 rounded-[4px] bg-gray-50">
@@ -300,7 +300,7 @@ const CreateOfferBanner = () => {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                         <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-medium text-gray-600 mb-1">Subtitle Color</label>
                                     <div className="flex items-center gap-2 border border-gray-200 p-1.5 rounded-[4px] bg-gray-50">
