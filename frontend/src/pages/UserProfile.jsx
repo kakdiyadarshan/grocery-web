@@ -635,7 +635,7 @@ const UserProfile = () => {
                                             {addresses.map((addr) => (
                                                 <div
                                                     key={addr._id}
-                                                    className={`relative group p-6 rounded-xl border transition-all duration-300 ${addr.isDefault
+                                                    className={`relative group p-4 rounded-xl border transition-all duration-300 ${addr.isDefault
                                                         ? 'border-primary bg-primary/[0.02] shadow-sm'
                                                         : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md'
                                                         }`}
