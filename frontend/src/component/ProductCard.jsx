@@ -66,7 +66,7 @@ const ProductCard = ({ product }) => {
             <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 flex flex-col gap-2">
                 {discount && !isOutOfStock && (
                     <span className="bg-[#FF4F4F] text-white text-[9px] sm:text-[12px] font-bold px-1.5 py-0.5 rounded shadow-sm">
-                        -{product.offer?.offer_type === "Fixed" ? `$${discount}` : `${discount}%`}
+                        -{product.offer?.offer_type === "Fixed" ? `$${discount}` : `${discount}%` } OFF
                     </span>
                 )}
                 {isOutOfStock && (
@@ -83,7 +83,7 @@ const ProductCard = ({ product }) => {
                     alt={title}
                     className={`max-w-full max-h-full object-contain transition-all duration-500 ${isOutOfStock ? '' : ''} ${hoverImage && !isOutOfStock ? 'group-hover:opacity-0 group-hover:scale-110' : 'group-hover:scale-110'}`}
                 />
-                {hoverImage && !isOutOfStock && (
+                {hoverImage && (
                     <img
                         src={hoverImage}
                         alt={title}
