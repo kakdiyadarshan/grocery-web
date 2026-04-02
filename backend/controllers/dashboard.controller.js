@@ -84,11 +84,11 @@ exports.getRevenueAnalytics = async (req, res) => {
 
         // Aggregation for Weekly
         const weeklyData = await Payment.aggregate([
-            { $match: { createdAt: { $gte: startOfWeek, $lte: endOfWeek }, status: 'completed' } },
+            { $match: { createdAt: { $gte: startOfWeek, $lte: endOfWeek }, status: 'paid' } },
             { $group: { _id: { day: { $dayOfWeek: "$createdAt" }, method: "$paymentMethod" }, revenue: { $sum: "$amount" } } }
         ]);
         const prevWeeklyData = await Payment.aggregate([
-            { $match: { createdAt: { $gte: startOfPrevWeek, $lte: endOfPrevWeek }, status: 'completed' } },
+            { $match: { createdAt: { $gte: startOfPrevWeek, $lte: endOfPrevWeek }, status: 'paid' } },
             { $group: { _id: null, total: { $sum: "$amount" } } }
         ]);
 
@@ -111,11 +111,11 @@ exports.getRevenueAnalytics = async (req, res) => {
 
         // Aggregation for Monthly
         const monthlyData = await Payment.aggregate([
-            { $match: { createdAt: { $gte: startOfYear, $lte: endOfYear }, status: 'completed' } },
+            { $match: { createdAt: { $gte: startOfYear, $lte: endOfYear }, status: 'paid' } },
             { $group: { _id: { month: { $month: "$createdAt" }, method: "$paymentMethod" }, revenue: { $sum: "$amount" } } }
         ]);
         const prevMonthlyData = await Payment.aggregate([
-            { $match: { createdAt: { $gte: startOfPrevYear, $lte: endOfPrevYear }, status: 'completed' } },
+            { $match: { createdAt: { $gte: startOfPrevYear, $lte: endOfPrevYear }, status: 'paid' } },
             { $group: { _id: null, total: { $sum: "$amount" } } }
         ]);
 
@@ -136,11 +136,11 @@ exports.getRevenueAnalytics = async (req, res) => {
 
         // Aggregation for Yearly
         const yearlyData = await Payment.aggregate([
-            { $match: { createdAt: { $gte: startOf5Years, $lte: endOfYear }, status: 'completed' } },
+            { $match: { createdAt: { $gte: startOf5Years, $lte: endOfYear }, status: 'paid' } },
             { $group: { _id: { year: { $year: "$createdAt" }, method: "$paymentMethod" }, revenue: { $sum: "$amount" } } }
         ]);
         const prevYearlyData = await Payment.aggregate([
-            { $match: { createdAt: { $gte: startOfPrev5Years, $lte: endOfPrev5Years }, status: 'completed' } },
+            { $match: { createdAt: { $gte: startOfPrev5Years, $lte: endOfPrev5Years }, status: 'paid' } },
             { $group: { _id: null, total: { $sum: "$amount" } } }
         ]);
 
