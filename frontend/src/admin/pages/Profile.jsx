@@ -164,7 +164,7 @@ const Profile = () => {
                                 </div>
                             </div>
                         </div>
-                        <nav className="flex flex-row lg:flex-col gap-2 lg:gap-0 overflow-x-auto pb-3 lg:pb-0 lg:space-y-2 snap-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                        <nav className="flex flex-row lg:flex-col justify-start md:justify-center  gap-2 lg:gap-0 overflow-x-auto pb-3 lg:pb-0 lg:space-y-2 snap-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                             {tabs.map((tab) => {
                                 const Icon = tab.icon;
                                 return (
