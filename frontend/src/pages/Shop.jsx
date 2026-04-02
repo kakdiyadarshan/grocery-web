@@ -26,7 +26,7 @@ const Shop = () => {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [sortBy, setSortBy] = useState('alphabetical-az');
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 2; // Updated from 12 as per user change
+    const itemsPerPage = 12; // Updated from 12 as per user change
     const [isSmallScreen, setIsSmallScreen] = useState(false);
 
     useEffect(() => {
