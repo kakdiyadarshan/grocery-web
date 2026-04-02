@@ -33,7 +33,8 @@ const BannerSlider = () => {
             link: banner.link || '/shop',
             bgColor: banner.bgColor || 'bg-[#f1fcf1]',
             titleStyle: banner.titleStyle,
-            subtitleStyle: banner.subtitleStyle
+            subtitleStyle: banner.subtitleStyle,
+            textPosition: banner.textPosition || 'left'
         }))
         : [];
 
@@ -72,40 +73,60 @@ const BannerSlider = () => {
                 {activeSlides.map((slide, index) => (
                     <div
                         key={slide.id}
-                        className={`min-w-full flex justify-start items-center px-6 py-10 md:px-16 md:py-12 min-h-[400px] md:min-h-[500px] bg-no-repeat bg-center bg-cover ${slide.bgColor}`}
+                        className={`min-w-full flex items-center px-6 py-10 md:px-16 md:py-12 min-h-[400px] md:min-h-[500px] bg-no-repeat bg-center bg-cover transition-all duration-1000 ${slide.bgColor} ${slide.textPosition === 'center' ? 'justify-center text-center' : slide.textPosition === 'right' ? 'justify-end text-right' : 'justify-start text-left'}`}
                         style={{ backgroundImage: `url(${slide.image})` }}
                     >
-                        <div className="flex flex-row w-full justify-between items-center gap-8 translate-x-0 md:translate-x-12">
+                        <div className={`flex flex-col w-full max-w-2xl transition-all duration-700 delay-300 ${currentSlide === index ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
 
-                            {/* Text Section */}
-                            <div className={`flex-1 text-left transition-all duration-700 delay-300 ${currentSlide === index ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-                                <h2
-                                    className="font-medium mb-2"
-                                    style={{ 
-                                        color: slide.titleStyle?.color || '#374151',
-                                        fontSize: slide.titleStyle?.fontSize || '2.25rem' // fallback to text-3xl/4xl approx
-                                    }}
-                                >
-                                    {slide.title}
-                                </h2>
-                                <h1
-                                    className="font-medium mb-4 md:mb-8 leading-tight"
-                                    style={{ 
-                                        color: slide.subtitleStyle?.color || '#374151',
-                                        fontSize: slide.subtitleStyle?.fontSize || '1.5rem' // fallback to text-xl/2xl approx
-                                    }}
-                                >
-                                    {slide.subtitle}
-                                </h1>
-                                <p className="text-sm sm:text-base md:text-xl text-gray-600 mb-6 md:mb-8 max-w-sm md:max-w-xl">
+                            {/* Main Title */}
+                            <h2
+                                className={`font-semibold mb-2 sm:mb-4 leading-tight slide-title-${index}`}
+                                style={{ 
+                                    color: slide.titleStyle?.color || '#1b1b1b',
+                                }}
+                            >
+                                {slide.title}
+                            </h2>
+
+                            {/* Subtitle */}
+                            <h1
+                                className={`font-medium mb-4 md:mb-8 leading-tight slide-subtitle-${index}`}
+                                style={{ 
+                                    color: slide.subtitleStyle?.color || '#555555',
+                                }}
+                            >
+                                {slide.subtitle}
+                            </h1>
+
+                            {/* Description (Optional) */}
+                            {slide.description && (
+                                <p className={`text-sm sm:text-base md:text-xl text-gray-600 mb-6 md:mb-8 max-w-sm md:max-w-xl ${slide.textPosition === 'center' ? 'mx-auto' : slide.textPosition === 'right' ? 'ml-auto' : ''}`}>
                                     {slide.description}
                                 </p>
-                                <button className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white px-6 py-2.5 rounded-lg font-medium text-base transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg shadow-[#38b47e]/20"
+                            )}
+
+                            {/* Button */}
+                            <div className={`flex ${slide.textPosition === 'center' ? 'justify-center' : slide.textPosition === 'right' ? 'justify-end' : 'justify-start'}`}>
+                                <button className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white px-6 py-2.5 rounded-lg font-bold text-sm sm:text-base transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg shadow-[#38b47e]/20 active:scale-95"
                                     onClick={() => window.location.href = slide.link}
                                 >
                                     {slide.buttonText}
                                 </button>
                             </div>
+
+                            {/* Responsive scaling with dynamic classes */}
+                            <style dangerouslySetInnerHTML={{ __html: `
+                                .slide-title-${index} { 
+                                    font-size: calc(${slide.titleStyle?.fontSize || '48px'} * 0.7); 
+                                }
+                                .slide-subtitle-${index} { 
+                                    font-size: calc(${slide.subtitleStyle?.fontSize || '20px'} * 0.8); 
+                                }
+                                @media (min-width: 768px) {
+                                    .slide-title-${index} { font-size: ${slide.titleStyle?.fontSize || '48px'} !important; }
+                                    .slide-subtitle-${index} { font-size: ${slide.subtitleStyle?.fontSize || '20px'} !important; }
+                                }
+                            `}} />
                         </div>
                     </div>
                 ))}
