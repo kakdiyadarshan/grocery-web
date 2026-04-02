@@ -8,7 +8,6 @@ import { getCart } from '../redux/slice/cart.slice';
 import { getWishlist } from '../redux/slice/wishlist.slice';
 import { logout, fetchUserProfile } from '../redux/slice/auth.slice';
 import { getAllProducts } from '../redux/slice/product.slice';
-
 import { getAllCategories } from '../redux/slice/category.slice';
 
 const Header = () => {

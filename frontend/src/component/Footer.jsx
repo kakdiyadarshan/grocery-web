@@ -4,17 +4,11 @@ import { Link } from 'react-router-dom';
 import { FaFacebookF, FaInstagram, FaYoutube, FaCcVisa, FaCcMastercard, FaCcAmex, FaCcPaypal, FaCcDiscover } from 'react-icons/fa';
 import { TiMessages } from 'react-icons/ti';
 import { FaXTwitter } from 'react-icons/fa6';
-
-import { getAllCategories } from '../redux/slice/category.slice';
 import { useDispatch, useSelector } from 'react-redux';
 
 const Footer = () => {
     const dispatch = useDispatch();
     const { categories } = useSelector((state) => state.category);
-
-    useEffect(() => {
-        dispatch(getAllCategories());
-    }, [dispatch]);
 
     // const scrollToTop = () => {
     //     window.scrollTo({

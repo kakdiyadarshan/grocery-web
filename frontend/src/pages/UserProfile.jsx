@@ -75,11 +75,17 @@ const UserProfile = () => {
     });
 
     const passwordSchema = Yup.object().shape({
-        oldPassword: Yup.string().required('Current password is required'),
-        newPassword: Yup.string().min(8, 'Must be at least 8 characters').required('New password is required'),
+        oldPassword: Yup.string()
+            .trim()
+            .required('Current password is required'),
+        newPassword: Yup.string()
+            .trim()
+            .min(8, 'Must be at least 8 characters')
+            .required('New password is required'),
         confirmPassword: Yup.string()
+            .trim()
             .oneOf([Yup.ref('newPassword'), null], 'Passwords must match')
-            .required('Please confirm your new password term'),
+            .required('Please confirm your new password'),
     });
 
     const handleProfileUpdate = async (values, { setSubmitting }) => {
@@ -132,7 +138,12 @@ const UserProfile = () => {
 
     const handlePasswordChange = async (values, { resetForm, setSubmitting }) => {
         try {
-            const response = await axios.put(`${BASE_URL}/change-password`, values, {
+            const trimmedValues = {
+                oldPassword: values.oldPassword.trim(),
+                newPassword: values.newPassword.trim(),
+                confirmPassword: values.confirmPassword.trim(),
+            };
+            const response = await axios.put(`${BASE_URL}/change-password`, trimmedValues, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             toast.success("Password changed successfully!");

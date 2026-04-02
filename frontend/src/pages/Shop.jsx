@@ -92,7 +92,6 @@ const Shop = () => {
 
     useEffect(() => {
         dispatch(getAllProducts({ paginate: false }));
-        dispatch(getAllCategories());
         if (isAuthenticated) {
             dispatch(getWishlist());
         }

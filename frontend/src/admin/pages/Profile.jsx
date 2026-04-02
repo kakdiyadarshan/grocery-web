@@ -100,17 +100,25 @@ const Profile = () => {
     const handlePasswordSubmit = async (e) => {
         e.preventDefault();
 
-        if (passwordData.newPassword !== passwordData.confirmPassword) {
+        const { oldPassword, newPassword, confirmPassword } = passwordData;
+        const trimmedNewPassword = newPassword.trim();
+        const trimmedConfirmPassword = confirmPassword.trim();
+
+        if (trimmedNewPassword !== trimmedConfirmPassword) {
             dispatch(setAlert({ text: 'New passwords do not match', type: 'error' }));
             return;
         }
 
-        if (passwordData.newPassword.length < 8) {
+        if (trimmedNewPassword.length < 8) {
             dispatch(setAlert({ text: 'Password must be at least 8 characters long', type: 'error' }));
             return;
         }
 
-        const result = await dispatch(changePassword(passwordData));
+        const result = await dispatch(changePassword({
+            oldPassword: oldPassword.trim(),
+            newPassword: trimmedNewPassword,
+            confirmPassword: trimmedConfirmPassword
+        }));
 
         if (changePassword.fulfilled.match(result)) {
             setPasswordData({

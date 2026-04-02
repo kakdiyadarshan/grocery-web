@@ -12,7 +12,6 @@ import cmsbanner2 from '../Image/cms-banner-2.png';
 import bannerImg from '../Image/banner-img.jpg';
 import Newsletter from '../component/Newsletter';
 
-import { getAllCategories } from '../redux/slice/category.slice';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { getAllProducts, getBestSellingProducts, getFeaturedProducts } from '../redux/slice/product.slice';
@@ -27,7 +26,6 @@ function Home() {
   const { offerbanners } = useSelector((state) => state.offerbanner);
 
   useEffect(() => {
-    dispatch(getAllCategories());
     dispatch(getAllProducts({ paginate: false }));
     dispatch(getFeaturedProducts());
     dispatch(fetchOfferBanners());
