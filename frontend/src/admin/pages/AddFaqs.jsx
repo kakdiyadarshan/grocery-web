@@ -159,7 +159,7 @@ const AddFaqs = ({ editingFaq, onClose }) => {
 
                     {/* Main Title Input */}
                     <div className="mb-6 sm:mb-8 p-4 sm:p-6 bg-white border border-gray-200 rounded-[4px] shadow-sm hover:shadow-md transition-shadow">
-                        <label className="block text-xs sm:text-sm font-bold text-gray-700 uppercase tracking-wider mb-2 sm:mb-3">
+                        <label className="block text-xs sm:text-sm font-bold text-textPrimary capitalize mb-2 sm:mb-3">
                             FAQ Title <span className="text-primary">*</span>
                         </label>
                         <input
@@ -187,7 +187,7 @@ const AddFaqs = ({ editingFaq, onClose }) => {
                                             <span className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-[4px] bg-primary text-white font-bold text-xs sm:text-sm shadow-sm">
                                                 {String(index + 1).padStart(2, '0')}
                                             </span>
-                                            <h4 className="font-bold text-gray-800 uppercase tracking-widest text-[11px] sm:text-xs">Question Block</h4>
+                                            <h4 className="font-bold text-textPrimary capitalize text-[12px] sm:text-[14px]">Question Block</h4>
                                         </div>
 
                                         <div className="flex items-center gap-1.5 sm:absolute sm:top-0 sm:right-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
@@ -198,7 +198,7 @@ const AddFaqs = ({ editingFaq, onClose }) => {
 
                                     {/* Standard Input for Question */}
                                     <div className="mb-4 sm:mb-5">
-                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Question Text</label>
+                                        <label className="block text-xs font-bold text-textPrimary capitalize tracking-wider mb-2">Question Text</label>
                                         <input
                                             type="text"
                                             value={faq.faqQuestion}
@@ -211,7 +211,7 @@ const AddFaqs = ({ editingFaq, onClose }) => {
 
                                     {/* Standard Quill for Answer */}
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Answer Content</label>
+                                        <label className="block text-xs font-bold text-textPrimary capitalize tracking-wider mb-2">Answer Content</label>
                                         <div className={`rounded-[4px] border ${aError ? 'border-red-400' : 'border-gray-200 hover:border-gray-300'} focus-within:border-primary focus-within:ring-[1px] focus-within:ring-primary transition-all bg-white quill-wrapper-fix relative`}>
                                             <ReactQuill
                                                 theme="snow"
@@ -231,12 +231,12 @@ const AddFaqs = ({ editingFaq, onClose }) => {
 
                     <button
                         onClick={handleAddFaq}
-                        className="mt-6 sm:mt-8 w-full py-4 sm:py-5 border-2 border-dashed border-gray-300 rounded-[4px] text-gray-500 hover:border-primary hover:text-primary bg-white hover:bg-primary/5 transition-all flex items-center justify-center gap-3 group shadow-sm active:scale-[0.99]"
+                        className="mt-6 sm:mt-8 w-full py-4 sm:py-4 border-2 border-dashed border-gray-300 rounded-[4px] text-gray-500 hover:border-primary hover:text-primary bg-white hover:bg-primary/5 transition-all flex items-center justify-center gap-3 group shadow-sm active:scale-[0.99]"
                     >
                         <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-100 text-gray-500 group-hover:bg-primary group-hover:text-white flex items-center justify-center transition-colors">
                             <Plus className="w-4 h-4" />
                         </div>
-                        <span className="font-bold tracking-widest text-xs sm:text-sm uppercase">Add Another Question</span>
+                        <span className="font-bold text-xs sm:text-sm capitalize">Add Another Question</span>
                     </button>
 
                     {/* Extra padding for mobile clear scroll */}

@@ -880,7 +880,7 @@ const UserProfile = () => {
                                                                 type="checkbox"
                                                                 name="isDefault"
                                                                 id="isDefault"
-                                                                className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary h-4 w-4"
+                                                                className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4"
                                                             />
                                                             <label htmlFor="isDefault" className="text-sm font-medium text-gray-600 cursor-pointer">Set as default shipping address</label>
                                                         </div>
