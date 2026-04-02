@@ -38,7 +38,7 @@ const Reviews = () => {
             render: (row) => (
                 <div className="flex items-center">
                     <img src={`${IMAGE_URL}/${row.productId?.images?.[0]?.public_id}`} alt={row.productId?.name} className="w-12 h-12 object-cover rounded-lg" />
-                    <span className="font-medium text-textPrimary ms-3">
+                    <span className="font-medium text-textPrimary ms-3 line-clamp-1 whitespace-nowrap overflow-hidden text-ellipsis">
                         {row.productId?.name || 'Unknown Product'}
                     </span>
                 </div>
