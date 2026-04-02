@@ -34,7 +34,7 @@ function App() {
 
   return (
     <>
-      <Toaster richColors position="bottom-right" />
+      <Toaster richColors position="bottom-right" expand={true}  />
       <Routes>
         {/* Layout Wrapper for Shared Components (Header/Footer) */}
         <Route element={<Layout />}>

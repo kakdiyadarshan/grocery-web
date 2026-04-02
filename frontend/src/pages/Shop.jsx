@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Check, ChevronDown, ChevronRight, Eye, Grid, Heart, List, ShoppingCart, SlidersHorizontal, Star, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
@@ -13,6 +13,7 @@ import { AiFillHeart, AiOutlineEye, AiOutlineHeart, AiOutlineShoppingCart } from
 const Shop = () => {
     const dispatch = useDispatch();
     const location = useLocation();
+    const navigate = useNavigate();
     const { products = [], allProducts = [], totalProducts = 0, loading = false } = useSelector((state) => state.product || {});
     const { categories: apiCategories = [] } = useSelector((state) => state.category || {});
     const { wishlist } = useSelector((state) => state.wishlist || {});
@@ -544,6 +545,9 @@ const Shop = () => {
                                                             onClick={(e) => {
                                                                 e.preventDefault();
                                                                 e.stopPropagation();
+                                                                if (!isAuthenticated) {
+                                                                    return navigate('/login');
+                                                                }
                                                                 if (isInWishlist) {
                                                                     dispatch(removeFromWishlist(product._id));
                                                                 } else {
@@ -569,6 +573,9 @@ const Shop = () => {
                                                     onClick={(e) => {
                                                         e.preventDefault();
                                                         e.stopPropagation();
+                                                        if (!isAuthenticated) {
+                                                            return navigate('/login');
+                                                        }
                                                         if (!outOfStock) dispatch(addToCart({
                                                             productId: product._id,
                                                             variantId: variant?._id,
@@ -654,6 +661,9 @@ const Shop = () => {
                                                             onClick={(e) => {
                                                                 e.preventDefault();
                                                                 e.stopPropagation();
+                                                                if (!isAuthenticated) {
+                                                                    return navigate('/login');
+                                                                }
                                                                 if (!outOfStock) dispatch(addToCart({
                                                                     productId: product._id,
                                                                     variantId: variant?._id,

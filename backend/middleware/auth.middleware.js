@@ -27,7 +27,7 @@ exports.auth = async (req, res, next) => {
         }
     } catch (error) {
         console.log(error);
-        return res.status(401).json({ status: 401, message: error.message })
+        return res.status(401).json({ status: 401, message: "Please Login Again" })
     }
 }
 
