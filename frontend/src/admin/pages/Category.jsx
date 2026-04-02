@@ -312,7 +312,7 @@ const Category = () => {
                     onClick={handleCloseViewModal}
                 >
                     <div
-                        className="bg-white rounded-2xl shadow-2xl w-full max-w-[95vw] sm:max-w-lg overflow-hidden transform transition-all animate-in zoom-in-95 duration-300 border border-gray-100 flex flex-col max-h-[90vh] cursor-default"
+                        className="bg-white rounded-[4px] shadow-2xl w-full max-w-[95vw] sm:max-w-lg overflow-hidden transform transition-all animate-in zoom-in-95 duration-300 border border-gray-100 flex flex-col max-h-[90vh] cursor-default"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header Hero Image - Responsive Height */}
@@ -329,7 +329,7 @@ const Category = () => {
                                     e.stopPropagation();
                                     handleCloseViewModal();
                                 }}
-                                className="absolute top-3 right-3 sm:top-4 sm:right-4 p-2 sm:p-2.5 bg-white/20 backdrop-blur-md hover:bg-white/40 text-white rounded-full shadow-lg transition-all active:scale-90 border border-white/30 group z-10"
+                                className="absolute top-3 right-3 sm:top-4 sm:right-4 p-2 sm:p-2.5 bg-white backdrop-blur-md text-black rounded-full shadow-lg transition-all active:scale-90 border border-white/30 group z-10"
                             >
                                 <FiX className="group-hover:rotate-90 transition-transform duration-300 w-4 h-4 sm:w-5 sm:h-5" />
                             </button>
@@ -372,14 +372,14 @@ const Category = () => {
                                         setIsViewModalOpen(false);
                                         handleOpenModal(selectedCategory);
                                     }}
-                                    className="order-2 sm:order-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-white text-primary border-2 border-primary/20 hover:border-primary hover:bg-primary/5 rounded-xl transition-all font-bold text-[10px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 shadow-sm"
+                                    className="order-2 sm:order-1 px-4 sm:px-6 py-3 sm:py-3.5 bg-white text-primary border-2 border-primary/20 hover:border-primary hover:bg-primary/5 rounded-[4px] transition-all font-bold text-[10px] sm:text-[12px] capitalize tracking-widest flex items-center justify-center gap-2 active:scale-95"
                                 >
                                     Edit Details
                                 </button>
                                 <button
                                     type="button"
                                     onClick={handleCloseViewModal}
-                                    className="order-1 sm:order-2 px-6 sm:px-10 py-3 sm:py-3.5 bg-primary text-white hover:bg-white border-2 border-primary hover:text-primary hover:border-primary/20 rounded-xl transition-all font-bold text-[10px] sm:text-xs uppercase tracking-widest shadow-xl shadow-primary/20 active:scale-95 flex items-center justify-center"
+                                    className="order-1 sm:order-2 px-6 sm:px-10 py-3 sm:py-3.5 bg-primary text-white hover:bg-white border-2 border-primary hover:text-primary hover:border-primary/20 rounded-[4px] transition-all font-bold text-[10px] sm:text-[12px] capitalize tracking-widest  active:scale-95 flex items-center justify-center"
                                 >
                                     Done
                                 </button>

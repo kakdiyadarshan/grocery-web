@@ -104,12 +104,13 @@ const Transactions = () => {
                         row.status === 'paid' ? '!bg-emerald-50 !text-emerald-600 !border-emerald-200' :
                         row.status === 'pending' ? '!bg-amber-50 !text-amber-600 !border-amber-200' :
                         row.status === 'failed' ? '!bg-rose-50 !text-rose-600 !border-rose-200' :
+                        row.status === 'refunded' ? '!bg-indigo-50 !text-indigo-600 !border-indigo-200' :
                         '!bg-gray-50 !text-gray-600 !border-gray-200'
                     }`}
                     options={[
                         { value: 'pending', label: 'Pending' },
                         { value: 'paid', label: 'Paid' },
-                        { value: 'failed', label: 'Failed' }
+                        { value: 'failed', label: 'Failed' },
                     ]}
                 />
             )

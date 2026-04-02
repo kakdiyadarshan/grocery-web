@@ -292,8 +292,8 @@ exports.createOrder = async (req, res) => {
                 paymentMethod,
                 amount: totalAmount,
                 status: 'pending',
-                pendingOrderData: { 
-                    userId, items, totalAmount, couponId, paymentMethod, addressId, addressDetails 
+                pendingOrderData: {
+                    userId, items, totalAmount, couponId, paymentMethod, addressId, addressDetails
                 }
             });
 
@@ -790,7 +790,7 @@ exports.trackOrder = async (req, res) => {
         }
 
         const createdAt = new Date(order.createdAt);
-        
+
         const getStepTime = (statusId, fallbackMinutes) => {
             if (trackingMap[statusId]) return new Date(trackingMap[statusId]);
             return new Date(createdAt.getTime() + fallbackMinutes * 60 * 1000);
@@ -799,30 +799,30 @@ exports.trackOrder = async (req, res) => {
         const displayStatus = (order.displayStatus || order.status)?.toLowerCase();
 
         const steps = [
-            { 
-                status: "Order Placed", 
-                date: getStepTime('pending', 0), 
-                isCompleted: true 
+            {
+                status: "Order Placed",
+                date: getStepTime('pending', 0),
+                isCompleted: true
             },
-            { 
-                status: "Processing", 
-                date: getStepTime('processing', 15), 
-                isCompleted: ['processing', 'shipped', 'out for delivery', 'delivered', 'completed'].includes(displayStatus) 
+            {
+                status: "Processing",
+                date: getStepTime('processing', 15),
+                isCompleted: ['processing', 'shipped', 'out for delivery', 'delivered', 'completed'].includes(displayStatus)
             },
-            { 
-                status: "Shipped", 
-                date: getStepTime('shipped', 45), 
-                isCompleted: ['shipped', 'out for delivery', 'delivered', 'completed'].includes(displayStatus) 
+            {
+                status: "Shipped",
+                date: getStepTime('shipped', 45),
+                isCompleted: ['shipped', 'out for delivery', 'delivered', 'completed'].includes(displayStatus)
             },
-            { 
-                status: "Out for Delivery", 
-                date: getStepTime('out for delivery', 60), 
-                isCompleted: ['out for delivery', 'delivered', 'completed'].includes(displayStatus) 
+            {
+                status: "Out for Delivery",
+                date: getStepTime('out for delivery', 60),
+                isCompleted: ['out for delivery', 'delivered', 'completed'].includes(displayStatus)
             },
-            { 
-                status: "Delivered", 
-                date: getStepTime('delivered', 120), 
-                isCompleted: ['delivered', 'completed'].includes(displayStatus) 
+            {
+                status: "Delivered",
+                date: getStepTime('delivered', 120),
+                isCompleted: ['delivered', 'completed'].includes(displayStatus)
             }
         ];
 
@@ -864,11 +864,23 @@ exports.cancelOrder = async (req, res) => {
         for (const item of order.items) {
             await adjustProductStock(item, +item.quantity);
         }
-        if (order.paymentMethod === 'Stripe') {
-            const payment = await Payment.findOne({ orderId: order._id });
-            if (payment?.stripePaymentIntentId) {
-                await stripe.refunds.create({ payment_intent: payment.stripePaymentIntentId });
+
+        const payment = await Payment.findOne({ orderId: order._id });
+        if (payment) {
+            if (order.paymentMethod === 'Stripe') {
+                if (payment.stripePaymentIntentId) {
+                    try {
+
+                        await stripe.refunds.create({ payment_intent: payment.stripePaymentIntentId });
+                    } catch (err) {
+                        console.error("Stripe refund error:", err);
+                    }
+                }
+                payment.status = 'refunded';
+            } else {
+                payment.status = 'cancelled';
             }
+            await payment.save();
         }
 
         res.status(200).json({ success: true, data: order });
@@ -890,16 +902,19 @@ exports.handleStripeWebhook = async (req, res) => {
         const session = event.data.object;
         const { paymentId } = session.metadata;
 
+        const paymentIntentId = session.payment_intent;
+
         const payment = await Payment.findById(paymentId);
         if (payment && !payment.orderId && payment.pendingOrderData) {
             const orderData = payment.pendingOrderData;
-            
+
             // Create the order finally
             const order = await Order.create({
                 ...orderData,
                 trackingHistory: [{ status: 'pending', description: 'Order successfully placed via Stripe' }]
             });
 
+            payment.stripePaymentIntentId = paymentIntentId;
             payment.orderId = order._id;
             payment.status = 'paid';
             payment.pendingOrderData = null;
@@ -949,6 +964,7 @@ exports.verifyStripeSession = async (req, res) => {
         if (session.payment_status === 'paid') {
             const { paymentId } = session.metadata;
             let payment = await Payment.findById(paymentId);
+            const paymentIntentId = session.payment_intent;
 
             if (!payment) return res.status(404).json({ success: false, message: 'Payment record not found' });
 
@@ -967,6 +983,7 @@ exports.verifyStripeSession = async (req, res) => {
                 payment.orderId = order._id;
                 payment.status = 'paid';
                 payment.pendingOrderData = null;
+                payment.stripePaymentIntentId = paymentIntentId;
                 await payment.save();
 
                 // Stock update
@@ -992,10 +1009,10 @@ exports.verifyStripeSession = async (req, res) => {
                 });
             }
 
-            return res.status(200).json({ 
-                success: true, 
-                message: 'Payment verified and Order created', 
-                data: order 
+            return res.status(200).json({
+                success: true,
+                message: 'Payment verified and Order created',
+                data: order
             });
         }
 
@@ -1006,4 +1023,3 @@ exports.verifyStripeSession = async (req, res) => {
     }
 };
 
-// Removed getOrderMonthlyAnalytics and getRevenueAnalytics (moved to dashboard.controller.js)

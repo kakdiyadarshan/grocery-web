@@ -20,7 +20,10 @@ const paymentSchema = new mongoose.Schema({
         enum: ["COD", "Stripe"],
         required: true
     },
-
+    stripePaymentIntentId: {
+        type: String,
+        required: false
+    },
     amount: {
         type: Number,
         required: true
