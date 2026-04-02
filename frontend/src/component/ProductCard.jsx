@@ -19,9 +19,9 @@ const ProductCard = ({ product }) => {
 
     const handleWishlistToggle = (e) => {
         e.stopPropagation();
-        if (!isAuthenticated) {
-            return navigate('/login');
-        }
+        // if (!isAuthenticated) {
+        //     return navigate('/login');
+        // }
         if (isInWishlist) {
             dispatch(removeFromWishlist(product._id));
         } else {
@@ -31,9 +31,9 @@ const ProductCard = ({ product }) => {
 
     const handleAddToCart = (e) => {
         e.stopPropagation();
-        if (!isAuthenticated) {
-            return navigate('/login');
-        }
+        // if (!isAuthenticated) {
+        //     return navigate('/login');
+        // }
         if (isOutOfStock) return;
         dispatch(addToCart({
             productId: product._id,

@@ -545,9 +545,9 @@ const Shop = () => {
                                                             onClick={(e) => {
                                                                 e.preventDefault();
                                                                 e.stopPropagation();
-                                                                if (!isAuthenticated) {
-                                                                    return navigate('/login');
-                                                                }
+                                                                // if (!isAuthenticated) {
+                                                                //     return navigate('/login');
+                                                                // }
                                                                 if (isInWishlist) {
                                                                     dispatch(removeFromWishlist(product._id));
                                                                 } else {
@@ -573,9 +573,9 @@ const Shop = () => {
                                                     onClick={(e) => {
                                                         e.preventDefault();
                                                         e.stopPropagation();
-                                                        if (!isAuthenticated) {
-                                                            return navigate('/login');
-                                                        }
+                                                        // if (!isAuthenticated) {
+                                                        //     return navigate('/login');
+                                                        // }
                                                         if (!outOfStock) dispatch(addToCart({
                                                             productId: product._id,
                                                             variantId: variant?._id,
@@ -661,9 +661,9 @@ const Shop = () => {
                                                             onClick={(e) => {
                                                                 e.preventDefault();
                                                                 e.stopPropagation();
-                                                                if (!isAuthenticated) {
-                                                                    return navigate('/login');
-                                                                }
+                                                                // if (!isAuthenticated) {
+                                                                //     return navigate('/login');
+                                                                // }
                                                                 if (!outOfStock) dispatch(addToCart({
                                                                     productId: product._id,
                                                                     variantId: variant?._id,

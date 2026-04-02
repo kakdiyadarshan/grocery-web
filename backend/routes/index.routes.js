@@ -135,6 +135,7 @@ indexRoutes.post('/subscribe', addSubscriber);
 indexRoutes.get('/all-subscribers', auth, authorizeRoles('admin'), getAllSubscribers);
 indexRoutes.delete('/delete-subscriber/:id', auth, authorizeRoles('admin'), deleteSubscriber);
 indexRoutes.post('/send-offer-email', auth, authorizeRoles('admin'), sendOfferEmail);
+
 // Review routes (Rate and Review)
 indexRoutes.post('/addReview', auth, upload.array('images', 5), createReview);
 indexRoutes.get('/getReview/:id', getReviewById);
