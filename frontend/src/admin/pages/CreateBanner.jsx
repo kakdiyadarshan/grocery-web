@@ -168,7 +168,7 @@ const CreateBanner = () => {
                                     name="title"
                                     value={formData.title}
                                     onChange={handleInputChange}
-                                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-[4px] focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-gray-400"
+                                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-[4px] focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-gray-400 "
                                     placeholder="e.g. Summer Collection"
                                     required
                                 />
@@ -186,7 +186,7 @@ const CreateBanner = () => {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                           <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Button Link</label>
                                     <input
@@ -246,8 +246,8 @@ const CreateBanner = () => {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
+                            <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
+                                <div className=' '>
                                     <label className="block text-xs font-medium text-gray-600 mb-1">Title Color</label>
                                     <div className="flex items-center gap-2 border border-gray-200 p-1.5 rounded-[4px] bg-gray-50">
                                         <input
@@ -260,7 +260,7 @@ const CreateBanner = () => {
                                         <span className="text-xs text-gray-500 font-mono uppercase truncate">{formData.titleColor}</span>
                                     </div>
                                 </div>
-                                <div>
+                                <div className=''>
                                     <label className="block text-xs font-medium text-gray-600 mb-1">Title Size</label>
 
                                     <CustomSelect
@@ -286,7 +286,7 @@ const CreateBanner = () => {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                         <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-medium text-gray-600 mb-1">Subtitle Color</label>
                                     <div className="flex items-center gap-2 border border-gray-200 p-1.5 rounded-[4px] bg-gray-50">

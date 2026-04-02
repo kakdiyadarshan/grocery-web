@@ -80,14 +80,20 @@ const BannerSlider = () => {
                             {/* Text Section */}
                             <div className={`flex-1 text-left transition-all duration-700 delay-300 ${currentSlide === index ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
                                 <h2
-                                    className="text-3xl md:text-4xl font-medium mb-2"
-                                    style={{ color: slide.titleStyle?.color || '#374151' }}
+                                    className="font-medium mb-2"
+                                    style={{ 
+                                        color: slide.titleStyle?.color || '#374151',
+                                        fontSize: slide.titleStyle?.fontSize || '2.25rem' // fallback to text-3xl/4xl approx
+                                    }}
                                 >
                                     {slide.title}
                                 </h2>
                                 <h1
-                                    className="text-xl md:text-2xl font-medium mb-4 md:mb-8 leading-tight"
-                                    style={{ color: slide.subtitleStyle?.color || '#374151' }}
+                                    className="font-medium mb-4 md:mb-8 leading-tight"
+                                    style={{ 
+                                        color: slide.subtitleStyle?.color || '#374151',
+                                        fontSize: slide.subtitleStyle?.fontSize || '1.5rem' // fallback to text-xl/2xl approx
+                                    }}
                                 >
                                     {slide.subtitle}
                                 </h1>

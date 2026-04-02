@@ -176,7 +176,7 @@ function Home() {
 
           {/* 3. Sub Banners */}
           <div className='grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-8 mb-10'>
-            {(offerbanners?.length >= 3 ? offerbanners.slice(0, 3) : [
+            {(offerbanners?.length > 0 ? offerbanners.slice(0, 3) : [
               { image: { url: subbanner1 }, title: 'Fresh Organic Products', subtitle: '10% Discount', link: '/shop' },
               { image: { url: subbanner2 }, title: 'Strawberry & Lemon', subtitle: '20% Discount', link: '/shop' },
               { image: { url: subbanner3 }, title: 'Fresh Bilberry Products', subtitle: '30% Discount', link: '/shop' },
@@ -188,11 +188,23 @@ function Home() {
                 </div>
 
                 {/* Content Overlay */}
-                <div className='relative h-full flex flex-col justify-center p-8 z-10'>
-                  <span className='text-lg text-gray-700 mb-2 block'>
+                <div className={`relative h-full flex flex-col justify-center p-8 z-10 w-full ${banner.textPosition === 'center' ? 'items-center text-center' : banner.textPosition === 'right' ? 'items-end text-right' : 'items-start text-left'}`}>
+                  <span
+                    className='block mb-2'
+                    style={{
+                      color: banner.subtitleStyle?.color || '#374151',
+                      fontSize: banner.subtitleStyle?.fontSize || '18px'
+                    }}
+                  >
                     {banner.subtitle}
                   </span>
-                  <h3 className='text-2xl font-semibold text-[#2e3d30] mb-4 max-w-[180px] leading-tight'>
+                  <h3
+                    className='font-semibold mb-4 max-w-[200px] leading-tight'
+                    style={{
+                      color: banner.titleStyle?.color || '#2e3d30',
+                      fontSize: banner.titleStyle?.fontSize || '24px'
+                    }}
+                  >
                     {banner.title}
                   </h3>
                   <div className='flex items-center gap-1 group/btn'>
@@ -259,11 +271,14 @@ function Home() {
                   <img src={banner.image?.url} alt="" className='w-full h-full object-cover' />
                 </div>
 
-                {/* Text Content - Positioned Left */}
-                <div className='relative h-full flex flex-col justify-center items-start p-8 sm:p-12 z-10 w-full sm:w-2/3'>
+                {/* Text Content */}
+                <div className={`relative h-full flex flex-col justify-center p-8 sm:p-12 z-10 w-full ${banner.textPosition === 'center' ? 'items-center text-center' : banner.textPosition === 'right' ? 'items-end text-right' : 'items-start text-left sm:w-2/3'}`}>
                   <h3
-                    className='text-xl sm:text-2xl lg:text-2xl font-semibold mb-6 sm:mb-8 max-w-[180px] sm:max-w-[280px] leading-tight'
-                    style={{ color: banner.titleStyle?.color }}
+                    className='font-semibold mb-6 sm:mb-8 max-w-[200px] sm:max-w-[320px] leading-tight'
+                    style={{
+                      color: banner.titleStyle?.color || '#253D4E',
+                      fontSize: banner.titleStyle?.fontSize || '24px'
+                    }}
                   >
                     {banner.title}
                   </h3>
