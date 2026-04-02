@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { User, Heart, ShoppingBag, Menu, ChevronDown, ChevronUp, AlignLeft, X, Search, LogOut } from 'lucide-react';
+import { User, UserPlus, Heart, ShoppingBag, Menu, ChevronDown, ChevronUp, AlignLeft, X, Search, LogOut } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import logo from '../Image/logo.png';
@@ -462,12 +462,13 @@ const Header = () => {
                               Login
                             </Link>
                           </li>
-                          <li className="border-t border-gray-50">
+                          <li className="border-t border-gray-100">
                             <Link
                               to="/register"
                               onClick={() => setIsUserMenuOpen(false)}
                               className="flex items-center gap-3 px-5 py-3 text-[14px] text-[var(--text-gray)] hover:text-[var(--primary)] hover:bg-gray-50 transition-all font-bold"
                             >
+                              <UserPlus size={17} className="stroke-[2]" />
                               Register Account
                             </Link>
                           </li>
@@ -478,7 +479,7 @@ const Header = () => {
                 )}
               </div>
 
-               {/* Wishlist Icon */}
+              {/* Wishlist Icon */}
               <Link to="/wishlist" className="relative text-[var(--text-gray)] hover:text-[var(--primary)] transition-colors flex items-center gap-2">
                 <div className="relative">
                   <Heart className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.5]" />
@@ -489,10 +490,10 @@ const Header = () => {
                       </span>
                     )
                   }
- 
+
                 </div>
               </Link>
- 
+
               {/* Cart Icon */}
               <button
                 onClick={() => setIsCartOpen(true)}
@@ -507,7 +508,7 @@ const Header = () => {
                       </span>
                     )
                   }
- 
+
                 </div>
                 <span className="hidden md:block font-medium text-[var(--text-gray)] ml-1">My Cart</span>
               </button>
