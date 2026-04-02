@@ -82,7 +82,7 @@ function ProductDetailsAdmin() {
     return (
         <div className="bg-white min-h-screen no-scrollbar">
             {/* ===== Breadcrumbs ===== */}
-            <div className="max-w-[1440px] mx-auto px-4 md:mt-6 mt-4">
+            <div className="mx-auto md:mt-6 mt-4">
                 <div className="flex flex-col">
                     <h2 className="text-2xl font-bold text-gray-800 text-textprimary tracking-tight">{product.name}</h2>
                     <Breadcrumb />
@@ -90,7 +90,7 @@ function ProductDetailsAdmin() {
             </div>
 
             {/* ===== Main Container ===== */}
-            <div className="max-w-[1440px] mx-auto px-4 py-8 no-scrollbar">
+            <div className="mx-auto py-8 no-scrollbar">
 
                 {/* Product Details */}
                 <div className="flex flex-col lg:flex-row gap-10">

@@ -258,6 +258,7 @@ const OrderDetails = () => {
                         <CustomSelect
                             value={status}
                             onChange={handleStatusChange}
+                            searchable={false}
                             options={[
                                 { value: 'pending', label: 'Pending', icon: <FiClock /> },
                                 { value: 'processing', label: 'Processing', icon: <FiBox /> },
@@ -403,7 +404,7 @@ const OrderDetails = () => {
                             </div>
                         ) : (
                             <p className="text-sm text-textSecondary italic py-2">No shipping address provided</p>
-                        )}
+                        )}refunded
                     </div>
 
                     {/* Payment Info */}

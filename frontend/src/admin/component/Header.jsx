@@ -140,11 +140,11 @@ const Header = ({ onToggleSidebar }) => {
         </div>
 
         <div className="flex items-center gap-3 sm:gap-5">
-          <div className="hidden sm:flex items-center gap-2 pr-4 border-r border-gray-100">
-            <button onClick={toggleFullScreen} className="p-2.5 text-gray-500 rounded-xl hover:bg-green-50 hover:text-green-600 transition-all duration-200 focus:outline-none">
+          <div className="sm:flex items-center gap-2 pr-4 border-r border-gray-100">
+            <button onClick={toggleFullScreen} className="hidden md:block p-2.5 text-gray-500 rounded-xl hover:bg-green-50 hover:text-green-600 transition-all duration-200 focus:outline-none">
               <Maximize size={20} />
             </button>
-            <div className="relative notification-container">
+            <div className="static sm:relative notification-container">
               <button
                 onClick={() => setIsNotificationOpen(!isNotificationOpen)}
                 className={`p-2.5 rounded-xl transition-all duration-200 focus:outline-none relative ${isNotificationOpen ? 'bg-green-50 text-green-600 ring-2 ring-green-500/20' : 'text-gray-500 hover:bg-green-50 hover:text-green-600'}`}
@@ -159,7 +159,7 @@ const Header = ({ onToggleSidebar }) => {
               </button>
 
               {isNotificationOpen && (
-                <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white rounded-[4px] shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-gray-100 overflow-hidden animate-in fade-in zoom-in duration-200 transform origin-top-right">
+                <div className="absolute left-4 right-4 top-[72px] sm:top-auto sm:left-auto sm:right-0 sm:mt-3 w-auto sm:w-96 bg-white rounded-[4px] shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-gray-100 overflow-hidden animate-in fade-in zoom-in duration-200 transform origin-top sm:origin-top-right">
                   <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between bg-white">
                     <h3 className="font-bold text-gray-900 flex items-center gap-2">
                       Notifications
