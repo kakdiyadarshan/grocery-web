@@ -7,6 +7,7 @@ import { getAllProducts } from '../redux/slice/product.slice';
 import { getAllCategories } from '../redux/slice/category.slice';
 import { addToCart } from '../redux/slice/cart.slice';
 import { getWishlist, addToWishlist, removeFromWishlist } from '../redux/slice/wishlist.slice';
+import { AiFillHeart, AiOutlineEye, AiOutlineHeart, AiOutlineShoppingCart } from 'react-icons/ai';
 
 
 const Shop = () => {
@@ -520,19 +521,19 @@ const Shop = () => {
                                             <Link id={`link-${product._id}`} to={`/product-details/${product._id}`} className="hidden">{product.name}</Link>
 
                                             <div className="absolute top-4 left-4 z-20 flex flex-col gap-1.5 pointer-events-none">
-                                                {hasDiscount && (
-                                                    <span className="bg-[#E73959] text-white text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-sm shadow-sm tracking-wide uppercase">
+                                                {hasDiscount && !outOfStock && (
+                                                    <span className="bg-[#FF4F4F] text-white text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-sm shadow-sm tracking-wide uppercase">
                                                         {product.offer?.offer_type === "Fixed" ? `$${product.offer?.offer_value}` : `${product.offer?.offer_value}%`} OFF
                                                     </span>
                                                 )}
                                                 {outOfStock && (
-                                                    <span className="bg-gray-900/90 text-white text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-sm shadow-sm tracking-wide">
-                                                        SOLD OUT
+                                                    <span className="bg-red-500 uppercase text-white text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-sm shadow-sm tracking-wider">
+                                                        Out of Stock
                                                     </span>
                                                 )}
                                             </div>
 
-                                            <div className={`absolute top-4 right-4 z-20 flex flex-col gap-2 transition-all duration-300 ${viewType === 'grid' ? 'sm:opacity-0 sm:translate-x-2 sm:group-hover:opacity-100 sm:group-hover:translate-x-0' : ''}`}>
+                                            <div className={`absolute top-4 right-3 z-20 flex flex-col gap-2 transition-all duration-300 ${viewType === 'grid' ? 'sm:opacity-0 sm:translate-x-2 sm:group-hover:opacity-100 sm:group-hover:translate-x-0' : ''}`}>
                                                 {(() => {
                                                     const isInWishlist = wishlistItems.some(wish => {
                                                         const wishProductId = typeof wish.productId === 'object' ? wish.productId?._id : wish.productId;
@@ -549,13 +550,18 @@ const Shop = () => {
                                                                     dispatch(addToWishlist(product._id));
                                                                 }
                                                             }}
-                                                            className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 bg-white border border-gray-100/50 ${isInWishlist
-                                                                ? 'text-[var(--primary)]'
-                                                                : 'text-[#62728f] hover:text-[var(--primary)]'
-                                                                }`}
                                                             title={isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
+                                                            className={`w-9 h-9 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center transition-all transform active:scale-90 ${isInWishlist
+                                                                ? 'text-red-500 hover:bg-red-500 hover:text-white'
+                                                                : 'text-gray-500 hover:bg-[var(--primary)] hover:text-white'
+                                                                }`}
+                                                        // className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 bg-white border border-gray-100/50 ${isInWishlist
+                                                        //     ? 'text-[var(--primary)]'
+                                                        //     : 'text-[#62728f] hover:text-[var(--primary)]'
+                                                        //     }`}
+                                                        // title={isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
                                                         >
-                                                            <Heart size={16} fill={isInWishlist ? "currentColor" : "none"} className={isInWishlist ? 'sm:scale-110' : ''} />
+                                                            {isInWishlist ? <AiFillHeart size={18} /> : <AiOutlineHeart size={18} />}
                                                         </button>
                                                     );
                                                 })()}
@@ -569,19 +575,25 @@ const Shop = () => {
                                                             quantity: 1
                                                         }));
                                                     }}
-                                                    disabled={outOfStock}
-                                                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 bg-white border border-gray-100/50 ${outOfStock ? 'text-gray-300' : 'text-[#62728f] hover:text-[var(--primary)]'} disabled:opacity-50 disabled:cursor-not-allowed`}
                                                     title={outOfStock ? "Out of Stock" : "Add to Cart"}
+                                                    disabled={outOfStock}
+                                                    className={`w-9 h-9 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center transition-all transform active:scale-90 ${outOfStock
+                                                        ? 'text-gray-300 cursor-not-allowed'
+                                                        : 'text-gray-500 hover:bg-[var(--primary)] hover:text-white'
+                                                        }`}
+                                                // disabled={outOfStock}
+                                                // className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center transition-all active:scale-95 bg-white border border-gray-100/50 ${outOfStock ? 'text-gray-300 cursor-not-allowed' : 'text-[#62728f] hover:text-[var(--primary)]'} disabled:opacity-50 disabled:cursor-not-allowed`}
+                                                // title={outOfStock ? "Out of Stock" : "Add to Cart"}
                                                 >
-                                                    <ShoppingCart size={16} />
+                                                    <AiOutlineShoppingCart size={18} />
                                                 </button>
                                                 <Link
                                                     to={`/product-details/${product._id}`}
                                                     onClick={(e) => e.stopPropagation()}
-                                                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center transition-all duration-300 bg-white border border-gray-100/50 text-[#62728f] hover:text-[var(--primary)] hover:scale-105 active:scale-95`}
+                                                    className={`w-9 h-9 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-500 hover:bg-[var(--primary)] hover:text-white transition-all transform active:scale-90`}
                                                     title="Quick View"
                                                 >
-                                                    <Eye size={16} />
+                                                    <AiOutlineEye size={18} />
                                                 </Link>
                                             </div>
 
@@ -591,8 +603,15 @@ const Shop = () => {
                                                     <img
                                                         src={product.images?.[0]?.url || 'https://via.placeholder.com/400?text=No+Image'}
                                                         alt={product.name}
-                                                        className={`max-w-full max-h-[140px] sm:max-h-[160px] object-contain transition-transform duration-500 group-hover:scale-105 ${outOfStock ? 'grayscale opacity-70' : ''}`}
+                                                        className={`max-w-full max-h-[140px] sm:max-h-[160px] object-contain transition-all duration-500 ${product.images?.[1] ? 'group-hover:opacity-0 group-hover:scale-110' : 'group-hover:scale-105'}`}
                                                     />
+                                                    {product.images?.[1] && (
+                                                        <img
+                                                            src={product.images[1].url}
+                                                            alt={product.name}
+                                                            className="absolute inset-0 w-full h-full max-h-[140px] sm:max-h-[160px] m-auto object-contain transition-all duration-500 opacity-0 group-hover:opacity-100 group-hover:scale-110"
+                                                        />
+                                                    )}
                                                 </div>
                                             </div>
 
