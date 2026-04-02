@@ -345,6 +345,7 @@ const Profile = () => {
                                     <div className="space-y-2">
                                         <label className="text-sm font-medium text-gray-700">Gender</label>
                                         <CustomSelect
+                                            searchable={false}
                                             label=""
                                             options={[
                                                 { value: 'male', label: 'Male' },
