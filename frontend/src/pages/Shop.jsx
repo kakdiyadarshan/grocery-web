@@ -180,26 +180,26 @@ const Shop = () => {
         setCurrentPage(1);
     };
 
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const totalPages = Math.ceil(totalFiltered / itemsPerPage);
 
     return (
         <>
-            <div className="bg-white">
-                <div className="container mx-auto px-4 py-8 lg:py-12">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div>
-                            <h1 className="text-xl lg:text-2xl font-[600] text-[#1a1a1a] tracking-tight">Products</h1>
-                        </div>
-                        <nav className="flex items-center text-sm font-medium">
-                            <Link to="/" className="text-gray-400 hover:text-[var(--primary)] transition-colors">Home</Link>
-                            <ChevronRight size={14} className="mx-2 text-gray-300" />
-                            <span className="text-[#1a1a1a]">{selectedCategories.length === 1 ? selectedCategories[0] : 'Shop'}</span>
-                        </nav>
-                    </div>
+
+
+            <div className="bg-[#f8f9fa] border-b border-gray-100 py-10 md:py-14 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-[1440px] mx-auto px-2 md:px-0 lg:px-4">
+                    <h1 className="text-3xl md:text-[40px] font-bold text-[#1a1a1a] mb-3 tracking-tight">Shop</h1>
+                    <nav className="flex items-center text-sm font-medium">
+                        <Link to="/" className="text-gray-400 hover:text-[var(--primary)] transition-colors">Home</Link>
+                        <ChevronRight size={14} className="mx-2 text-gray-300" />
+                        <span className="text-[#1a1a1a]">{selectedCategories.length === 1 ? selectedCategories[0] : 'Shop'}</span>
+                    </nav>
                 </div>
             </div>
 
-            <div className="container mx-auto px-4">
+            <div className="container mx-auto px-4 py-12">
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Mobile Filter Backdrop */}
                     <div
@@ -210,11 +210,16 @@ const Shop = () => {
                     <aside className={`lg:w-1/4 xl:w-[22%] shrink-0 transition-all duration-300 ease-in-out flex flex-col ${isFilterOpen
                         ? 'fixed top-0 left-0 bottom-0 w-[300px] z-[60] bg-white p-6 shadow-2xl translate-x-0'
                         : 'fixed top-0 left-0 bottom-0 w-[300px] z-[60] bg-white p-6 -translate-x-full lg:translate-x-0'} 
-                        lg:relative lg:inset-auto lg:z-0 lg:p-0 lg:bg-transparent lg:shadow-none lg:overflow-visible border-r border-gray-100/0`}>
-                        <div className="flex items-center justify-between mb-8 lg:hidden">
-                            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Filters</h2>
-                            <button onClick={() => setIsFilterOpen(false)} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
-                                <X size={20} className="text-gray-700" />
+                        lg:relative lg:translate-x-0 lg:w-1/4 lg:p-0 lg:z-0 lg:bg-transparent lg:shadow-none`}>
+
+                        {/* Mobile Header for Sidebar */}
+                        <div className="flex items-center justify-between lg:hidden pb-6 border-b border-gray-100 mb-6 font-bold text-gray-900 text-xl">
+                            <span>Filters</span>
+                            <button
+                                onClick={() => setIsFilterOpen(false)}
+                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                            >
+                                <X size={24} />
                             </button>
                         </div>
 
@@ -417,58 +422,94 @@ const Shop = () => {
 
                     <main className="flex-1">
                         <div className="bg-white p-4 rounded-md border border-gray-100 mb-8 flex flex-wrap items-center justify-between gap-4">
-                            <div className="flex items-center gap-6">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-6">
                                 <button
                                     onClick={() => setIsFilterOpen(true)}
                                     className="lg:hidden flex items-center gap-2 text-sm font-bold text-[#1a1a1a] bg-gray-50 px-4 py-2 rounded border border-gray-200"
                                 >
                                     <SlidersHorizontal size={16} /> Filters
                                 </button>
-                                <div className="hidden lg:flex items-center gap-2 text-sm">
-                                    <span className="text-gray-400 font-medium">Sort by:</span>
-                                    <div className="relative group">
-                                        <select
-                                            value={sortBy}
-                                            onChange={(e) => setSortBy(e.target.value)}
-                                            className="appearance-none bg-transparent pr-8 pl-1 font-bold text-[#1a1a1a] outline-none cursor-pointer"
-                                        >
-                                            <option value="alphabetical-az">Alphabetically, A-Z</option>
-                                            <option value="alphabetical-za">Alphabetically, Z-A</option>
-                                            <option value="price-low-high">Price, low to high</option>
-                                            <option value="price-high-low">Price, high to low</option>
-                                        </select>
-                                        <ChevronDown size={14} className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400" />
-                                    </div>
+                                <div className="text-sm sm:text-base text-gray-500">
+                                    Showing <span className="text-gray-900 font-bold">{totalFiltered > 0 ? indexOfFirstItem + 1 : 0}-{Math.min(indexOfLastItem, totalFiltered)}</span> of <span className="text-gray-900 font-bold">{totalFiltered}</span> results
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-6 lg:gap-8">
-                                <span className="text-sm font-bold text-[#1a1a1a]">{totalFiltered} {totalFiltered === 1 ? 'Product' : 'Products'}</span>
-                                <div className="flex items-center gap-1.5 border-l border-gray-100 pl-6 lg:pl-8">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-start sm:justify-end gap-3 sm:gap-6">
+                                <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-1.5 bg-white shadow-sm hover:border-[var(--primary)] transition-colors cursor-pointer group">
+                                    <span className="text-xs sm:text-sm text-gray-400 font-medium group-hover:text-[var(--primary)] uppercase tracking-wider">Sort:</span>
+                                    <select
+                                        value={sortBy}
+                                        onChange={(e) => setSortBy(e.target.value)}
+                                        className="text-xs sm:text-sm font-bold border-none bg-transparent focus:ring-0 cursor-pointer text-gray-700 group-hover:text-[var(--primary)] transition-colors appearance-none pr-6 relative"
+                                        style={{ backgroundImage: 'none' }}
+                                    >
+                                        <option value="alphabetical-az">Alphabetical (A-Z)</option>
+                                        <option value="alphabetical-za">Alphabetical (Z-A)</option>
+                                        <option value="price-low-high">Price: Low to High</option>
+                                        <option value="price-high-low">Price: High to Low</option>
+                                        <option value="newest">Newest First</option>
+                                    </select>
+                                    <ChevronDown size={14} className="text-gray-400 group-hover:text-[var(--primary)] -ml-4" />
+                                </div>
+
+                                <div className="sm:flex hidden items-center gap-1 bg-gray-50 p-1 rounded-lg border border-gray-200">
                                     <button
                                         onClick={() => setViewType('grid')}
-                                        className={`p-2 rounded transition-colors ${viewType === 'grid' ? 'text-[var(--primary)] bg-[var(--primary-light)]' : 'text-gray-400 hover:text-gray-600'}`}
+                                        className={`p-2 rounded-md transition-all duration-300 ${viewType === 'grid' ? 'bg-white text-[var(--primary)] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                                        title="Grid View"
                                     >
-                                        <Grid size={20} />
+                                        <Grid size={18} />
                                     </button>
                                     <button
                                         onClick={() => setViewType('list')}
-                                        className={`p-2 rounded transition-colors ${viewType === 'list' ? 'text-[var(--primary)] bg-[var(--primary-light)]' : 'text-gray-400 hover:text-gray-600'}`}
+                                        className={`p-2 rounded-md transition-all duration-300 ${viewType === 'list' ? 'bg-white text-[var(--primary)] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                                        title="List View"
                                     >
-                                        <List size={22} />
+                                        <List size={20} />
                                     </button>
                                 </div>
                             </div>
                         </div>
 
+                        <style>{`
+                            @keyframes fadeInBox {
+                                from { opacity: 0; transform: translateY(15px); }
+                                to { opacity: 1; transform: translateY(0); }
+                            }
+                            .animate-fadeInBox {
+                                animation: fadeInBox 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                            }
+                            @keyframes shimmer {
+                                0% { transform: translateX(-100%); }
+                                100% { transform: translateX(100%); }
+                            }
+                            .animate-shimmer {
+                                animation: shimmer 1.5s infinite;
+                            }
+                        `}</style>
                         {loading ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-8">
+                            <div className="grid grid-cols-1 min-[425px]:grid-cols-2 min-[768px]:grid-cols-3 min-[1280px]:grid-cols-4 gap-4 sm:gap-6">
                                 {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-                                    <div key={i} className="bg-white rounded-xl p-4 border border-gray-100 space-y-4 animate-pulse">
-                                        <div className="aspect-square bg-gray-100 rounded-lg" />
-                                        <div className="h-4 bg-gray-100 rounded w-1/3" />
-                                        <div className="h-6 bg-gray-100 rounded w-3/4" />
-                                        <div className="h-6 bg-gray-100 rounded w-1/2" />
+                                    <div key={i} className="bg-white rounded-2xl border border-gray-100 p-3 sm:p-4 overflow-hidden shadow-sm">
+                                        <div className="relative h-[160px] sm:h-[180px] bg-gray-100 rounded-xl mb-4 overflow-hidden">
+                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer" />
+                                        </div>
+                                        <div className="space-y-3 px-1">
+                                            <div className="h-3 w-1/3 bg-gray-100 rounded overflow-hidden relative">
+                                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer" />
+                                            </div>
+                                            <div className="h-5 w-3/4 bg-gray-100 rounded overflow-hidden relative">
+                                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer" />
+                                            </div>
+                                            <div className="flex justify-between items-center pt-2">
+                                                <div className="h-6 w-1/4 bg-gray-100 rounded overflow-hidden relative">
+                                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer" />
+                                                </div>
+                                                <div className="h-8 w-8 bg-gray-100 rounded-full overflow-hidden relative">
+                                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer" />
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -559,11 +600,6 @@ const Shop = () => {
                                                                 ? 'text-red-500 hover:bg-red-500 hover:text-white'
                                                                 : 'text-gray-500 hover:bg-[var(--primary)] hover:text-white'
                                                                 }`}
-                                                        // className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 bg-white border border-gray-100/50 ${isInWishlist
-                                                        //     ? 'text-[var(--primary)]'
-                                                        //     : 'text-[#62728f] hover:text-[var(--primary)]'
-                                                        //     }`}
-                                                        // title={isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
                                                         >
                                                             {isInWishlist ? <AiFillHeart size={18} /> : <AiOutlineHeart size={18} />}
                                                         </button>
@@ -584,20 +620,17 @@ const Shop = () => {
                                                     }}
                                                     title={outOfStock ? "Out of Stock" : "Add to Cart"}
                                                     disabled={outOfStock}
-                                                    className={`w-9 h-9 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center transition-all transform active:scale-90 ${outOfStock
+                                                    className={`w-9 h-9 rounded-full bg-white border border-gray-100 flex items-center justify-center transition-all transform active:scale-90 ${outOfStock
                                                         ? 'text-gray-300 cursor-not-allowed'
-                                                        : 'text-gray-500 hover:bg-[var(--primary)] hover:text-white'
+                                                        : 'text-gray-500 hover:bg-[var(--primary)] hover:text-white shadow-md shadow-[var(--primary)]/10'
                                                         }`}
-                                                // disabled={outOfStock}
-                                                // className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center transition-all active:scale-95 bg-white border border-gray-100/50 ${outOfStock ? 'text-gray-300 cursor-not-allowed' : 'text-[#62728f] hover:text-[var(--primary)]'} disabled:opacity-50 disabled:cursor-not-allowed`}
-                                                // title={outOfStock ? "Out of Stock" : "Add to Cart"}
                                                 >
                                                     <AiOutlineShoppingCart size={18} />
                                                 </button>
                                                 <Link
                                                     to={`/product-details/${product._id}`}
                                                     onClick={(e) => e.stopPropagation()}
-                                                    className={`w-9 h-9 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-500 hover:bg-[var(--primary)] hover:text-white transition-all transform active:scale-90`}
+                                                    className={`w-9 h-9 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-500 hover:bg-[var(--primary)] hover:text-white shadow-md shadow-[var(--primary)]/10 transition-all transform active:scale-90`}
                                                     title="Quick View"
                                                 >
                                                     <AiOutlineEye size={18} />
@@ -626,7 +659,7 @@ const Shop = () => {
                                                 <div className="text-[11px] sm:text-[13px] text-[#8e9aab] mb-1 font-medium truncate transition-colors">
                                                     {product.category?.categoryName || 'Vegetables'}
                                                 </div>
-                                                <h3 className="text-[14px] sm:text-[16px] font-[700] text-[#112a46] leading-tight sm:leading-snug mb-1.5 line-clamp-1 group-hover:text-[var(--primary)] transition-colors">
+                                                <h3 className="text-[14px] sm:text-[16px] font-semibold text-[#112a46] leading-tight sm:leading-snug mb-1.5 line-clamp-1 group-hover:text-[var(--primary)] transition-colors">
                                                     {product.name}
                                                 </h3>
                                                 <div className="flex items-center gap-1 mb-2 sm:mb-3">
@@ -685,32 +718,87 @@ const Shop = () => {
                             </div>
                         )}
 
-                        {/* Pagination UI */}
+                        {/* Pagination UI - Mobile-First & Proper Design */}
                         {!loading && totalFiltered > itemsPerPage && (
-                            <div className="mt-12 flex justify-center items-center gap-2">
-                                <button
-                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                    disabled={currentPage === 1}
-                                    className="px-4 h-10 rounded border border-gray-100 flex items-center justify-center text-sm font-bold text-gray-400 hover:text-[var(--primary)] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                                >
-                                    Prev
-                                </button>
-                                {[...Array(totalPages)].map((_, i) => (
+                            <div className="mt-12 mb-8 flex justify-center items-center w-full overflow-hidden sm:px-2 ">
+                                <div className="flex items-center gap-1.5 sm:gap-3 max-w-full py-3 ">
                                     <button
-                                        key={i + 1}
-                                        onClick={() => setCurrentPage(i + 1)}
-                                        className={`w-10 h-10 rounded border flex items-center justify-center text-sm font-bold transition-all ${currentPage === i + 1 ? 'bg-[var(--primary)] text-white border-[var(--primary)]' : 'border-gray-200 text-[#1a1a1a] hover:bg-[var(--primary)] hover:text-white'}`}
+                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                        disabled={currentPage === 1}
+                                        className="w-10 h-10 sm:w-auto sm:px-5 sm:h-11 rounded-full sm:rounded-lg border border-gray-200 bg-white flex items-center justify-center gap-2 text-sm font-bold text-gray-700 hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed group shadow-sm"
                                     >
-                                        {i + 1}
+                                        <ChevronDown size={18} className="rotate-90 group-hover:-translate-x-0.5 transition-transform" />
+                                        <span className="hidden sm:inline">Prev</span>
                                     </button>
-                                ))}
-                                <button
-                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                    disabled={currentPage === totalPages}
-                                    className="px-4 h-10 rounded border border-gray-100 flex items-center justify-center text-sm font-bold text-gray-400 hover:text-[var(--primary)] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                                >
-                                    Next
-                                </button>
+
+                                    <div className="flex items-center gap-1.5">
+                                        {(() => {
+                                            const pages = [];
+                                            const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+                                            const delta = isMobile ? 0 : 1; // Show fewer neighbors on mobile
+
+                                            if (totalPages <= 5) {
+                                                for (let i = 1; i <= totalPages; i++) pages.push(i);
+                                            } else {
+                                                pages.push(1);
+
+                                                if (currentPage > delta + 3) {
+                                                    pages.push('...');
+                                                }
+
+                                                const start = Math.max(2, currentPage - delta);
+                                                const end = Math.min(totalPages - 1, currentPage + delta);
+
+                                                if (currentPage <= delta + 3) {
+                                                    for (let i = 2; i <= Math.max(isMobile ? 3 : 5, end); i++) pages.push(i);
+                                                } else if (currentPage >= totalPages - delta - 2) {
+                                                    for (let i = Math.min(totalPages - (isMobile ? 2 : 4), start); i <= totalPages - 1; i++) pages.push(i);
+                                                } else {
+                                                    for (let i = start; i <= end; i++) pages.push(i);
+                                                }
+
+                                                if (currentPage < totalPages - delta - 2) {
+                                                    pages.push('...');
+                                                }
+
+                                                pages.push(totalPages);
+                                            }
+
+                                            return pages.map((page, index) => {
+                                                if (page === '...') {
+                                                    return (
+                                                        <span key={`el-${index}`} className="w-8 sm:w-10 h-10 flex items-center justify-center text-gray-400 font-medium select-none">
+                                                            ...
+                                                        </span>
+                                                    );
+                                                }
+                                                const isActive = currentPage === page;
+                                                return (
+                                                    <button
+                                                        key={page}
+                                                        onClick={() => setCurrentPage(page)}
+                                                        className={`w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center text-sm sm:text-base font-bold transition-all duration-300 transform active:scale-90
+                                                            ${isActive
+                                                                ? 'bg-[var(--primary)] border-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/30 scale-105'
+                                                                : 'bg-white border border-gray-200 text-gray-600 hover:border-[var(--primary)] hover:text-[var(--primary)]'
+                                                            }`}
+                                                    >
+                                                        {page}
+                                                    </button>
+                                                );
+                                            });
+                                        })()}
+                                    </div>
+
+                                    <button
+                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                        disabled={currentPage === totalPages}
+                                        className="w-10 h-10 sm:w-auto sm:px-5 sm:h-11 rounded-full sm:rounded-lg border border-gray-200 bg-white flex items-center justify-center gap-2 text-sm font-bold text-gray-700 hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed group shadow-sm"
+                                    >
+                                        <span className="hidden sm:inline">Next</span>
+                                        <ChevronDown size={18} className="-rotate-90 group-hover:translate-x-0.5 transition-transform" />
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </main>
