@@ -153,7 +153,7 @@ const CreateOfferBanner = () => {
 
     return (
         <div className="text-gray-800 max-w-[1600px] mx-auto">
-            <div className="flex items-center gap-4 sm:mb-8 mb-4">
+            <div className="flex items-center gap-4 sm:mb-8 mb-4 sm:mt-4 mt-2">
                 <button
                     onClick={navigateBack}
                     className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -167,9 +167,9 @@ const CreateOfferBanner = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start h-[calc(100vh-140px)]">
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start h-[calc(100vh-140px)]">
                 {/* Form Section - Scrollable */}
-                <div className="lg:col-span-4 h-full overflow-y-auto pr-2 no-scrollbar">
+                <div className="xl:col-span-4 h-full overflow-y-auto pr-2 no-scrollbar">
                     <form onSubmit={handleSubmit} className="space-y-6 bg-white p-4 rounded-[4px] border border-gray-100 shadow-sm">
 
                         {/* Basic Info */}
@@ -338,11 +338,6 @@ const CreateOfferBanner = () => {
                                     />
                                 </div>
                             </div>
-
-                            
-
-                            
-
                         </div>
 
                         {/* Image Upload */}
@@ -376,8 +371,8 @@ const CreateOfferBanner = () => {
                 </div>
 
                 {/* Preview Section - Sticky */}
-                <div className="lg:col-span-8 h-full flex flex-col pt-1">
-                    <div className="bg-gray-100 rounded-[4px] border border-gray-200 overflow-hidden relative flex-1 flex items-center justify-center lg:p-8 sm:p-6 p-4 shadow-inner">
+                <div className="xl:col-span-8 h-full flex flex-col pt-1">
+                    <div className="bg-gray-100 rounded-[4px] border border-gray-200 overflow-hidden relative flex-1 flex items-center justify-center xl:p-8 sm:p-6 p-4 shadow-inner">
                         <div className="hidden sm:block absolute top-4 left-4 bg-black/60 text-white px-3 py-1 rounded-[4px] text-xs font-bold uppercase tracking-wider backdrop-blur-md z-10">Live Preview</div>
 
                         <div className="w-full max-w-5xl bg-white rounded-[4px] shadow-2xl overflow-hidden relative group transform transition-all duration-300 hover:shadow-3xl">

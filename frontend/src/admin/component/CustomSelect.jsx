@@ -122,7 +122,7 @@ const CustomSelect = ({
                         </div>
                     )}
 
-                    <div className="overflow-y-auto max-h-40  no-scrollbar py-1">
+                    <div className="overflow-y-auto max-h-50  no-scrollbar py-1">
                         {filteredOptions.length === 0 ? (
                             <div className="px-4 py-6 text-sm text-gray-500 text-center">
                                 {options.length === 0 ? "No options available" : `No results found for "${searchTerm}"`}

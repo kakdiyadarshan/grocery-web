@@ -183,7 +183,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                     {results.products.map((prod) => (
                       <button
                         key={prod._id}
-                        onClick={() => navigateTo(`/admin/products`)}
+                        onClick={() => navigateTo(`/admin/products/view/${prod._id}`)}
                         className="w-full flex items-center justify-between p-3 rounded-[4px] hover:bg-green-50 group transition-all"
                       >
                         <div className="flex items-center gap-3 text-left overflow-hidden">

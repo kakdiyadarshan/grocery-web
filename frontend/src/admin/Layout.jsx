@@ -21,7 +21,7 @@ const Layout = () => {
       <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
 
       {/* Main Content */}
-      <div className="flex flex-col min-h-screen transition-all duration-300 ml-0 min-[600px]:ml-20 lg:ml-72 w-auto">
+      <div className="flex flex-col min-h-screen transition-all duration-300 ml-0 lg:ml-72 w-auto">
 
         {/* Header */}
         <Header onToggleSidebar={toggleSidebar} />
