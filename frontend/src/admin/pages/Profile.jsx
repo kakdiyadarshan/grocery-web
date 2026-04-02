@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiUser, FiLock, FiEye, FiEyeOff, FiUpload, FiCheckCircle } from 'react-icons/fi';
+import { FiUser, FiLock, FiEye, FiEyeOff, FiUpload, FiCheckCircle, FiCamera } from 'react-icons/fi';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserProfile, updateUserProfile, changePassword } from '../../redux/slice/auth.slice';
 import { setAlert } from '../../redux/slice/alert.slice';
@@ -46,7 +46,7 @@ const Profile = () => {
                 lastname: user.lastname || '',
                 email: user.email || '',
                 mobileno: user.mobileno || '',
-                gender: user.gender ? user.gender.toLowerCase() : ''
+                gender: user.gender || ''
             });
             if (user.photo && user.photo.url) {
                 setPreviewImage(user.photo.url);
@@ -137,45 +137,47 @@ const Profile = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <div className="lg:col-span-3">
-                    <div className="bg-white rounded-[4px] shadow-custom p-6 sticky top-24">
-                        <div className="mt-8 pt-4 mb-4">
+                <div className="lg:col-span-4 xl:col-span-3">
+                    <div className="bg-white rounded-lg shadow-custom p-4 sm:p-6 lg:sticky lg:top-24">
+                        <div className="mt-2 lg:mt-6 mb-6">
                             <div className="text-center">
-                                <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-tr from-primary to-primaryLight p-1">
-                                    <div className="w-full h-full rounded-full bg-white overflow-hidden">
+                                <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-4 rounded-full bg-gradient-to-tr from-primary to-primaryLight p-1">
+                                    <div className="w-full h-full rounded-full bg-white overflow-hidden shadow-inner flex items-center justify-center">
                                         {user?.photo ? (
                                             <img src={`${IMAGE_URL}/${user?.photo?.public_id}`} alt="Profile" className="w-full h-full object-cover" />
                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center">
+                                            <div className="w-full h-full flex items-center justify-center bg-gray-50">
                                                 <FiUser className="text-primary" size={40} />
                                             </div>
                                         )}
                                     </div>
                                 </div>
-                                <h3 className="font-bold text-textPrimary text-lg">
+                                <h3 className="font-bold text-textPrimary text-lg px-1 overflow-wrap-break-word break-words">
                                     {user?.firstname} {user?.lastname}
                                 </h3>
-                                <p className="text-sm text-gray-500 mt-1">{user?.email}</p>
-                                <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-green-50 text-primary rounded-full text-xs font-semibold">
-                                    <FiCheckCircle size={14} />
+                                <p className="text-xs sm:text-sm text-gray-500 mt-1 px-1 break-all">
+                                    {user?.email}
+                                </p>
+                                <div className="mt-3 inline-flex items-center justify-center gap-2 px-3 py-1.5 bg-green-50 text-green-600 rounded-full text-xs font-semibold">
+                                    <FiCheckCircle size={14} className="flex-shrink-0" />
                                     {user?.isVerified ? 'Verified' : 'Not Verified'}
                                 </div>
                             </div>
                         </div>
-                        <nav className="space-y-2">
+                        <nav className="flex flex-row lg:flex-col gap-2 lg:gap-0 overflow-x-auto pb-3 lg:pb-0 lg:space-y-2 snap-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                             {tabs.map((tab) => {
                                 const Icon = tab.icon;
                                 return (
                                     <button
                                         key={tab.id}
                                         onClick={() => setActiveTab(tab.id)}
-                                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-[4px] transition-all duration-200 ${activeTab === tab.id
-                                            ? 'bg-primary text-white shadow-lg shadow-primary/30'
-                                            : 'text-gray-600 hover:bg-gray-50 hover:text-primary'
+                                        className={`flex-shrink-0 lg:w-full flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-200 snap-center ${activeTab === tab.id
+                                            ? 'bg-primary text-white shadow-md shadow-primary/30'
+                                            : 'text-gray-600 hover:bg-gray-50 hover:text-primary border lg:border-transparent border-gray-200'
                                             }`}
                                     >
-                                        <Icon size={20} />
-                                        <span className="font-medium">{tab.label}</span>
+                                        <Icon size={18} className="flex-shrink-0" />
+                                        <span className="font-medium text-sm lg:whitespace-normal whitespace-nowrap text-left">{tab.label}</span>
                                     </button>
                                 );
                             })}
@@ -183,11 +185,11 @@ const Profile = () => {
                     </div>
                 </div>
 
-                <div className="lg:col-span-9">
+                <div className="lg:col-span-8 xl:col-span-9">
                     {/* Overview Tab */}
                     {activeTab === 'overview' && (
-                        <div className="bg-white rounded-[4px] shadow-custom p-6 md:p-8">
-                            <h2 className="text-2xl font-bold text-textPrimary mb-6">Account Overview</h2>
+                        <div className="bg-white rounded-lg shadow-custom p-5 sm:p-6 md:p-8">
+                            <h2 className="text-xl sm:text-2xl font-bold text-textPrimary mb-6">Account Overview</h2>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
@@ -259,34 +261,32 @@ const Profile = () => {
 
                     {/* Edit Profile Tab */}
                     {activeTab === 'edit-profile' && (
-                        <div className="bg-white rounded-[4px] shadow-custom p-6 md:p-8">
-                            <h2 className="text-2xl font-bold text-textPrimary mb-6">Edit Profile</h2>
+                        <div className="bg-white rounded-lg shadow-custom p-5 sm:p-6 md:p-8">
+                            <h2 className="text-xl sm:text-2xl font-bold text-textPrimary mb-6">Edit Profile</h2>
 
                             <form onSubmit={handleProfileSubmit} className="space-y-6">
-                                <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-200 rounded-[4px] bg-gray-50">
-                                    <div className="w-32 h-32 mb-4 rounded-full bg-gradient-to-tr from-primary to-primaryLight p-1">
-                                        <div className="w-full h-full rounded-full bg-white overflow-hidden">
-                                            {previewImage ? (
-                                                <img src={previewImage} alt="Profile Preview" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center">
-                                                    <FiUser className="text-primary" size={60} />
-                                                </div>
-                                            )}
+                                <div className="flex flex-col items-center justify-center mb-8">
+                                    <div className="relative group">
+                                        <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-gradient-to-tr from-primary to-primaryLight p-1 shadow-md transition-transform group-hover:scale-105">
+                                            <div className="w-full h-full rounded-full bg-white overflow-hidden shadow-inner flex items-center justify-center bg-gray-50">
+                                                {previewImage ? (
+                                                    <img src={previewImage} alt="Profile Preview" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <FiUser className="text-gray-400" size={50} />
+                                                )}
+                                            </div>
                                         </div>
+                                        <label className="absolute bottom-1 right-1 p-2 sm:p-2.5 bg-primary text-white rounded-full cursor-pointer shadow-lg hover:bg-primaryHover transition-all hover:scale-110 border-2 sm:border-4 border-white" title="Upload New Photo">
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleImageChange}
+                                                className="hidden"
+                                            />
+                                            <FiCamera size={16} />
+                                        </label>
                                     </div>
-                                    <label className="cursor-pointer">
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleImageChange}
-                                            className="hidden"
-                                        />
-                                        <div className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-[4px] hover:bg-primaryHover transition-colors">
-                                            <FiUpload size={18} />
-                                            <span>Upload New Photo</span>
-                                        </div>
-                                    </label>
+                                    <p className="mt-4 text-xs sm:text-sm text-gray-500 font-medium">Allowed JPG, GIF or PNG. Max size of 2MB.</p>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -347,9 +347,9 @@ const Profile = () => {
                                         <CustomSelect
                                             label=""
                                             options={[
-                                                { value: 'male', label: 'Male' },
-                                                { value: 'female', label: 'Female' },
-                                                { value: 'other', label: 'Other' }
+                                                { value: 'Male', label: 'Male' },
+                                                { value: 'Female', label: 'Female' },
+                                                { value: 'Other', label: 'Other' }
                                             ]}
                                             value={profileData.gender || ''}
                                             onChange={(value) => {
@@ -379,8 +379,8 @@ const Profile = () => {
 
                     {/* Change Password Tab */}
                     {activeTab === 'change-password' && (
-                        <div className="bg-white rounded-[4px] shadow-custom p-6 md:p-8">
-                            <h2 className="text-2xl font-bold text-textPrimary mb-2">Change Password</h2>
+                        <div className="bg-white rounded-lg shadow-custom p-5 sm:p-6 md:p-8">
+                            <h2 className="text-xl sm:text-2xl font-bold text-textPrimary mb-2">Change Password</h2>
 
                             <form onSubmit={handlePasswordSubmit} className="space-y-6 max-w-2xl">
                                 <div className="space-y-2">
