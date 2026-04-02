@@ -50,7 +50,8 @@ const Table = ({ columns = [], data = [], onEdit, onView, onDelete, itemsPerPage
     manualPagination = false, manualTotalPages, manualCurrentPage, onManualPageChange,
     manualRowsPerPage, onManualRowsPerPageChange, manualTotalItems, onSearch, hidePagination = false, hideSearch = false,
     exportFileName = "table_data",
-    allowExport = false
+    allowExport = false,
+    loading = false
 }) => {
     const [searchTerm, setSearchTerm] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
@@ -204,9 +205,16 @@ const Table = ({ columns = [], data = [], onEdit, onView, onDelete, itemsPerPage
 
     return (
         <>
-            <div className="w-full bg-white rounded-[4px] my-5 shadow-sm border border-gray-100 overflow-hidden transition-colors duration-300 font-jost">
+            <div className="w-full bg-white rounded-[4px] my-5 shadow-sm border border-gray-100 overflow-hidden transition-colors duration-300 font-jost relative">
+                {/* Subtle Progress Bar for loading */}
+                {loading && (
+                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-gray-100 overflow-hidden z-20">
+                        <div className="h-full bg-primary animate-[loading_1.5s_infinite_ease-in-out] origin-left"></div>
+                    </div>
+                )}
                 {/* Top Controls */}
                 <div className="p-3 flex flex-col md:flex-row justify-between items-center gap-4 border-b border-gray-100">
+
                     {!hideSearch && <div className="relative w-full md:w-72">
                         <input
                             type="text"

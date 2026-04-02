@@ -31,6 +31,7 @@ const Product = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
@@ -57,15 +58,24 @@ const Product = () => {
         ],
     };
 
+    // Debounce search term to prevent excessive API calls
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchTerm);
+            if (searchTerm) setCurrentPage(1);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
     useEffect(() => {
         const params = {
             page: currentPage,
             limit: itemsPerPage,
             paginate: true,
-            search: searchTerm
+            search: debouncedSearch
         };
         dispatch(getAllProducts(params));
-    }, [dispatch, currentPage, itemsPerPage, searchTerm]);
+    }, [dispatch, currentPage, itemsPerPage, debouncedSearch]);
 
     useEffect(() => {
         dispatch(getAllCategories());
@@ -347,18 +357,21 @@ const Product = () => {
                 return variantDetails;
             },
             render: (row) => {
-                const lowStockItems = row.weighstWise.filter(v => v.stock <= 10);
-                if (lowStockItems.length === 0) {
-                    return <span className="text-green-600 font-bold text-xs  tracking-wider">In Stock</span>;
+                const lowStocks = row.weighstWise
+                    .filter(v => v.stock <= 10)
+                    .map(v => Number(v.stock));
+
+                if (lowStocks.length === 0) {
+                    return <span className="text-green-600 font-bold text-xs tracking-wider">In Stock</span>;
                 }
+
+                const minStock = Math.min(...lowStocks);
+                const maxStock = Math.max(...lowStocks);
+
                 return (
-                    <div className="flex flex-col gap-1">
-                        {lowStockItems.map((item, idx) => (
-                            <span key={idx} className=" font-bold text-red-500 ">
-                                {item.stock}
-                            </span>
-                        ))}
-                    </div>
+                    <span className="font-bold text-red-500 text-xs">
+                        {minStock === maxStock ? minStock : `${minStock} - ${maxStock}`}
+                    </span>
                 );
             }
         },
@@ -370,9 +383,7 @@ const Product = () => {
         },
     ];
 
-    if (loading) {
-        return <AdminLoader message="Loading products..." icon={FiShoppingCart} />;
-    }
+    // Removed early loading return to prevent page "refresh" (unmount) during typing or pagination
 
     return (
         <>
@@ -387,50 +398,54 @@ const Product = () => {
                         className=" gap-2 flex items-center justify-center w-full sm:w-auto sm:px-5 px-3 py-2.5 bg-white text-primary border border-primary rounded-[4px] hover:bg-primary/5 transition-all shadow-md active:scale-95 font-medium text-sm tracking-wider whitespace-nowrap"
                     >
                         <FiBarChart2 size={18} />
-                        <span className='hidden md:block'>Stock Analytics</span>
+                        <span className='hidden xl:block'>Stock Analytics</span>
                     </button>
                     <button
                         onClick={() => setIsImportModalOpen(true)}
                         className=" gap-2 flex items-center justify-center w-full sm:w-auto sm:px-5 px-3 py-2.5 bg-primary text-white rounded-[4px] hover:bg-primaryHover transition-all shadow-md active:scale-95 font-medium text-sm  tracking-wider whitespace-nowrap"
                     >
                         <FiUpload size={18} />
-                        <span className='hidden md:block'>Bulk Import</span>
+                        <span className='hidden xl:block'>Bulk Import</span>
                     </button>
                     <button
                         onClick={() => handleOpenModal()}
                         className=" gap-2 flex items-center justify-center w-full sm:w-auto sm:px-5 px-3 py-2.5 bg-primary text-white rounded-[4px] hover:bg-primaryHover transition-all shadow-md active:scale-95 font-medium text-sm  tracking-wider whitespace-nowrap"
                     >
                         <FiPlus size={18} />
-                        <span className='hidden md:block'>Add Product</span>
+                        <span className='hidden xl:block'>Add Product</span>
                     </button>
                 </div>
             </div>
 
 
 
-            <Table
-                columns={columns}
-                data={products}
-                onEdit={handleOpenModal}
-                onView={handleView}
-                onDelete={handleDelete}
-                itemsPerPage={itemsPerPage}
-                manualPagination={true}
-                manualTotalItems={totalProducts}
-                manualCurrentPage={currentPage}
-                manualRowsPerPage={itemsPerPage}
-                onManualPageChange={(page) => setCurrentPage(page)}
-                onManualRowsPerPageChange={(rows) => {
-                    setItemsPerPage(rows);
-                    setCurrentPage(1);
-                }}
-                onSearch={(val) => {
-                    setSearchTerm(val);
-                    setCurrentPage(1);
-                }}
-                exportFileName="Products"
-                allowExport={true}
-            />
+            {loading && products.length === 0 && !searchTerm ? (
+                <AdminLoader message="Loading products..." icon={FiShoppingCart} />
+            ) : (
+                <Table
+                    columns={columns}
+                    data={products}
+                    onEdit={handleOpenModal}
+                    onView={handleView}
+                    onDelete={handleDelete}
+                    itemsPerPage={itemsPerPage}
+                    manualPagination={true}
+                    manualTotalItems={totalProducts}
+                    manualCurrentPage={currentPage}
+                    manualRowsPerPage={itemsPerPage}
+                    onManualPageChange={(page) => setCurrentPage(page)}
+                    onManualRowsPerPageChange={(rows) => {
+                        setItemsPerPage(rows);
+                        setCurrentPage(1);
+                    }}
+                    onSearch={(val) => {
+                        setSearchTerm(val);
+                    }}
+                    exportFileName="Products"
+                    allowExport={true}
+                    loading={loading}
+                />
+            )}
 
             {isModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
@@ -743,6 +758,11 @@ const Product = () => {
                 }
                 .quill-wrapper-fix .ql-tooltip {
                     z-index: 9999 !important;
+                }
+                @keyframes loading {
+                    0% { transform: translateX(-100%) scaleX(0.2); }
+                    50% { transform: translateX(0%) scaleX(0.5); }
+                    100% { transform: translateX(100%) scaleX(0.2); }
                 }
             `}} />
 
