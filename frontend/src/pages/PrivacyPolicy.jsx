@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import Subscribe from './Subscribe';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllPrivacy } from '../redux/slice/privacy.slice';
@@ -8,7 +7,7 @@ import Newsletter from '../component/Newsletter';
 const PrivacyPolicy = () => {
 
     const dispatch = useDispatch();
-    const { privacy, loading } = useSelector((state) => state.privacy);
+    const { privacy } = useSelector((state) => state.privacy);
 
     useEffect(() => {
         dispatch(getAllPrivacy());
@@ -41,8 +40,6 @@ const PrivacyPolicy = () => {
                     </div>
                 </div>
             </div>
-
-            {/* <Subscribe /> */}
 
             {/* Newsletter */}
             <Newsletter className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-4 py-4 sm:py-6 pt-6 mt-8" />

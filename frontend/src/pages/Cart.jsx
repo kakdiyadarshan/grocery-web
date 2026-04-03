@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Trash2, ShoppingBag, ArrowRight, Minus, Plus, Home, ChevronRight, ShieldCheck, Truck, ArrowLeft, Tag, X, CheckCircle2, Ticket } from 'lucide-react';
+import  { useState, useEffect } from 'react';
+import {  ShoppingBag, ArrowRight, Minus, Plus,  ChevronRight, ShieldCheck, Truck, ArrowLeft, Tag, X, CheckCircle2, Ticket } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getCart, removeFromCart, updateCartQuantity, applyCoupon, removeCoupon, applyCouponFromServer } from '../redux/slice/cart.slice';
@@ -69,24 +69,7 @@ const Cart = () => {
         setCouponLoading(true);
         setCouponError('');
 
-        // dispatch(applyCouponFromServer({ id: foundCoupon._id }))
-        //   .unwrap()
-        //   .then((couponData) => {
-        //     dispatch(applyCoupon({ code: couponData.code, discount: couponData.discount, _id: couponData.couponId }));
-        //     localStorage.setItem('appliedCoupon', JSON.stringify({ code: couponData.code, discount: couponData.discount, _id: couponData.couponId }));
-        //     setCouponError('');
-        //   })
-        //   .catch((error) => {
-        //     const message =
-        //       typeof error === 'string'
-        //         ? error
-        //         : error?.message || error?.data?.message || 'Invalid or inactive coupon code.';
-        //     setCouponError(message);
-        //   })
-        //   .finally(() => {
-        //     setCouponLoading(false);
-        //   });
-        dispatch(applyCouponFromServer({ code }))
+        dispatch(applyCouponFromServer({ id: foundCoupon._id }))
             .unwrap()
             .then((couponData) => {
                 dispatch(applyCoupon({ code: couponData.code, discount: couponData.discount, _id: couponData.couponId }));

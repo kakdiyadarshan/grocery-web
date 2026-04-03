@@ -1,14 +1,13 @@
-import React, { useEffect } from 'react';
+import  { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllTerms } from '../redux/slice/terms.slice';
-import Subscribe from './Subscribe';
 import { Link } from 'react-router-dom';
 import Newsletter from '../component/Newsletter';
 
 const Termscondition = () => {
 
     const dispatch = useDispatch();
-    const { terms, loading } = useSelector((state) => state.terms);
+    const { terms } = useSelector((state) => state.terms);
 
     useEffect(() => {
         dispatch(getAllTerms());
@@ -43,8 +42,6 @@ const Termscondition = () => {
                         </div>
                     </div>
                 </div>
-
-                {/* <Subscribe /> */}
 
                 {/* Newsletter */}
                 <Newsletter className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-4 py-4 sm:py-6 " />

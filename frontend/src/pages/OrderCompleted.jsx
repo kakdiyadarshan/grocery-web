@@ -17,8 +17,6 @@ const OrderCompleted = () => {
 
   const { currentOrder, loading } = useSelector((state) => state.order);
 
-  const [verifiedOrderId, setVerifiedOrderId] = React.useState(null);
-  const effectiveOrderId = orderId || verifiedOrderId;
 
   useEffect(() => {
     const verifyAndLoadOrder = async () => {
@@ -37,7 +35,6 @@ const OrderCompleted = () => {
           });
           const result = await response.json();
           if (result.success && result.data?._id) {
-            setVerifiedOrderId(result.data._id);
             currentId = result.data._id;
           }
         } catch (error) {
@@ -90,7 +87,6 @@ const OrderCompleted = () => {
     ? `${addr.address}, ${addr.city}, ${addr.state} - ${addr.zip}, ${addr.country}`
     : "Address not available";
 
-  const couponId = currentOrder.couponId || {};
 
   const subtotal = orderItems.reduce((acc, item) => {
     const variant = item.selectedVariant;

@@ -1,14 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
-import axios from 'axios';
 import { toast } from 'sonner';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAddresses, addAddress, updateAddress, deleteAddress, setDefaultAddress } from '../redux/slice/address.slice';
-import { fetchUserProfile as fetchAuthUserProfile } from '../redux/slice/auth.slice';
-import { FiUser, FiSettings, FiLock, FiCheckCircle, FiCamera, FiEye, FiEyeOff, FiChevronRight, FiHome, FiMail, FiPhone, FiList, FiPlus, FiTrash2, FiEdit2, FiMapPin, FiMoreVertical } from 'react-icons/fi';
-import { BASE_URL } from '../utils/baseUrl';
+import { fetchUserProfile as fetchAuthUserProfile, updateUserProfile, changePassword } from '../redux/slice/auth.slice';
+import { FiUser, FiSettings, FiLock, FiCheckCircle, FiCamera, FiEye, FiEyeOff, FiChevronRight, FiHome, FiMail, FiPhone, FiList, FiPlus, FiTrash2, FiEdit2, FiMapPin } from 'react-icons/fi';
 import CustomSelect from '../admin/component/CustomSelect';
 import MyOrder from './MyOrder';
 import { ArrowLeft } from 'lucide-react';
@@ -16,12 +14,11 @@ import DeleteModal from '../admin/component/DeleteModal';
 
 const UserProfile = () => {
     const dispatch = useDispatch();
+    const { user, loading: authLoading } = useSelector((state) => state.auth);
     const { addresses, loading: addressLoading, submitLoading } = useSelector((state) => state.address);
 
     const [isEditing, setIsEditing] = useState(false);
     const [activeTab, setActiveTab] = useState('Overview');
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
 
     const genderOptions = [
         { label: 'Male', value: 'Male' },
@@ -36,13 +33,12 @@ const UserProfile = () => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [addressToDelete, setAddressToDelete] = useState(null);
 
-    const token = localStorage.getItem('token');
     const location = useLocation();
 
     useEffect(() => {
-        fetchUserProfile();
+        dispatch(fetchAuthUserProfile());
         dispatch(fetchAddresses());
-    }, [dispatch]);
+    }, [dispatch]); // Run once on mount
 
     useEffect(() => {
         const params = new URLSearchParams(location.search);
@@ -52,27 +48,6 @@ const UserProfile = () => {
         }
     }, [location.search]);
 
-    const fetchUserProfile = async () => {
-        try {
-            setLoading(true);
-            const response = await axios.get(`${BASE_URL}/getusersById`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setUser(response.data.data);
-        } catch (error) {
-            toast.error(error.response?.data?.message || "Failed to fetch profile");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const profileSchema = Yup.object().shape({
-        firstname: Yup.string().required('First name is required'),
-        lastname: Yup.string().required('Last name is required'),
-        email: Yup.string().email('Invalid email').required('Email is required'),
-        mobileno: Yup.string().required('Mobile number is required'),
-        gender: Yup.string().required('Gender is required'),
-    });
 
     const passwordSchema = Yup.object().shape({
         oldPassword: Yup.string()
@@ -97,17 +72,10 @@ const UserProfile = () => {
             formData.append('mobileno', values.mobileno);
             formData.append('gender', values.gender);
 
-            const response = await axios.put(`${BASE_URL}/update-profile`, formData, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
-            setUser(response.data.data);
+            await dispatch(updateUserProfile(formData)).unwrap();
             setIsEditing(false);
-            toast.success("Profile updated successfully!");
         } catch (error) {
-            toast.error(error.response?.data?.message || "Update failed");
+            // error toast handled by slice
         } finally {
             setSubmitting(false);
         }
@@ -121,18 +89,10 @@ const UserProfile = () => {
             const formData = new FormData();
             formData.append('photo', file);
 
-            const response = await axios.put(`${BASE_URL}/update-profile`, formData, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
-            setUser(response.data.data);
-            // Refresh redux auth user so the header avatar updates immediately.
-            dispatch(fetchAuthUserProfile());
+            await dispatch(updateUserProfile(formData)).unwrap();
             toast.success("Profile photo updated!");
         } catch (error) {
-            toast.error(error.response?.data?.message || "Photo upload failed");
+            // error toast handled by slice
         }
     };
 
@@ -143,13 +103,10 @@ const UserProfile = () => {
                 newPassword: values.newPassword.trim(),
                 confirmPassword: values.confirmPassword.trim(),
             };
-            const response = await axios.put(`${BASE_URL}/change-password`, trimmedValues, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            toast.success("Password changed successfully!");
+            await dispatch(changePassword(trimmedValues)).unwrap();
             resetForm();
         } catch (error) {
-            toast.error(error.response?.data?.message || "Password change failed");
+            // error toast handled by slice
         } finally {
             setSubmitting(false);
         }
@@ -193,7 +150,7 @@ const UserProfile = () => {
         dispatch(setDefaultAddress(id));
     };
 
-    if (loading) {
+    if (authLoading && !user) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary border-b-2"></div>

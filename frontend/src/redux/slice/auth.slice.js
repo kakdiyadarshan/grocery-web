@@ -237,7 +237,9 @@ const authSlice = createSlice({
                 state.error = action.payload?.message || "Login failed";
             })
             .addCase(fetchUserProfile.pending, (state) => {
-                state.loading = true;
+                if (!state.user) {
+                    state.loading = true;
+                }
                 state.error = null;
             })
             .addCase(fetchUserProfile.fulfilled, (state, action) => {
@@ -252,7 +254,6 @@ const authSlice = createSlice({
                 state.message = action.payload.message || "User Profile Fetch Failed";
             })
             .addCase(updateUserProfile.pending, (state) => {
-                state.loading = true;
                 state.error = null;
             })
             .addCase(updateUserProfile.fulfilled, (state, action) => {
@@ -349,7 +350,6 @@ const authSlice = createSlice({
                 state.error = action.payload?.message || "Reset password failed";
             })
             .addCase(changePassword.pending, (state) => {
-                state.loading = true;
                 state.error = null;
             })
             .addCase(changePassword.fulfilled, (state, action) => {
