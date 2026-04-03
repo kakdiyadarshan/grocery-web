@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import DataTable from '../component/DataTable';
-import { FiPlus, FiImage, FiShoppingCart } from 'react-icons/fi';
+import { FiPlus, FiShoppingCart } from 'react-icons/fi';
 import { fetchBanners, deleteBanner } from '../../redux/slice/banner.slice';
 import AdminLoader from '../component/AdminLoader';
 import Breadcrumb from '../component/Breadcrumb';
@@ -28,7 +28,7 @@ const Banners = () => {
         navigate('/admin/banners/create');
     }, [navigate]);
 
-    const columns = useMemo(() => [
+    const columns = useMemo(() => [    
         {
             header: 'Order',
             accessor: 'order',

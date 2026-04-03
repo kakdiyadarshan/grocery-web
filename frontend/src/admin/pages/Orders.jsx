@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { fetchOrders, deleteOrder, updateOrderStatus } from '../../redux/slice/order.slice';
+import { fetchOrders, deleteOrder } from '../../redux/slice/order.slice';
 import DataTable from '../component/DataTable';
 import AdminLoader from '../component/AdminLoader';
 import Breadcrumb from '../component/Breadcrumb';
-import { FiCheck, FiX, FiShoppingCart, FiMapPin, FiPackage, FiClock, FiTruck, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { FiShoppingCart, FiPackage, FiClock, FiAlertCircle } from 'react-icons/fi';
 import { IMAGE_URL } from '../../utils/baseUrl';
 
 const Orders = () => {
@@ -13,30 +13,9 @@ const Orders = () => {
     const navigate = useNavigate();
     const { allorders, loading } = useSelector((state) => state.order);
 
-    console.log("____________-----allorders", allorders);
-    const [statusUpdating, setStatusUpdating] = useState(null);
-
     useEffect(() => {
         dispatch(fetchOrders());
     }, [dispatch]);
-
-    const handleStatusUpdate = useCallback(async (id, status) => {
-        try {
-            setStatusUpdating(id);
-            await dispatch(updateOrderStatus({ id, status })).unwrap();
-        } finally {
-            setStatusUpdating(null);
-        }
-    }, [dispatch]);
-
-    // Determine possible next statuses
-    const getNextStatusOptions = useCallback((currentStatus) => {
-        const options = [];
-        if (currentStatus === 'pending') options.push('processing', 'cancelled');
-        if (currentStatus === 'processing') options.push('shipped', 'cancelled');
-        if (currentStatus === 'shipped') options.push('delivered', 'cancelled');
-        return options;
-    }, []);
 
     const columns = useMemo(() => [
         {
@@ -80,9 +59,9 @@ const Orders = () => {
                                 className="relative inline-block h-9 w-9 rounded-full ring-2 ring-white overflow-hidden bg-gray-100 shadow-sm transition-transform  border border-primary"
                                 title={item.productId?.name}
                             >
-                                {item.productId?.images?.[0]?.url ? (
+                                {item.productId?.images?.[0]?.public_id ? (
                                     <img
-                                        src={item.productId.images[0].url}
+                                        src={`${IMAGE_URL}/${item.productId.images[0].public_id}`}
                                         alt={item.productId.name}
                                         className="h-full w-full object-cover"
                                     />
@@ -100,9 +79,6 @@ const Orders = () => {
                             </div>
                         )}
                     </div>
-                    {/* <div className='text-xs flex items-center text-gray-500 whitespace-nowrap self-center pl-2 !ml-1'>
-                        {data.items?.length} items
-                    </div> */}
                 </div>
             )
         },

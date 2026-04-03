@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { fetchPayments, updatePaymentStatus } from '../../redux/slice/payment.slice';
 import AdminLoader from '../component/AdminLoader';
-import { FiDownload, FiHash, FiClock, FiUser, FiInfo, FiDollarSign, FiShoppingCart } from 'react-icons/fi';
+import { FiShoppingCart } from 'react-icons/fi';
 import DataTable from '../component/DataTable';
 import { useDispatch, useSelector } from 'react-redux';
 import Breadcrumb from '../component/Breadcrumb';

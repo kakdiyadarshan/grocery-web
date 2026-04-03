@@ -1,31 +1,20 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Table from '../component/DataTable';
-import { FiPlus, FiX, FiRefreshCw, FiTrash2, FiShoppingCart } from 'react-icons/fi';
+import { FiPlus, FiX, FiShoppingCart } from 'react-icons/fi';
 import Breadcrumb from '../component/Breadcrumb';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-    getAllBlogCategory,
-    createBlogCategory,
-    updateBlogCategory,
-    deleteBlogCategory
-} from '../../redux/slice/blogCategory.slice';
+import { getAllBlogCategory, createBlogCategory, updateBlogCategory, deleteBlogCategory } from '../../redux/slice/blogCategory.slice';
 import AdminLoader from '../component/AdminLoader';
 
 const BlogCategoryAdmin = () => {
     const dispatch = useDispatch();
     const { blogCategory: data, loading, submitLoading } = useSelector((state) => state.blogCategory);
-
-    // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [currentId, setCurrentId] = useState(null);
     const [formData, setFormData] = useState({ blogCategoryName: '' });
     const [error, setError] = useState('');
 
-    // Delete Modal state
-    const [deleteItem, setDeleteItem] = useState(null);
-
-    // ─── GET ALL ─────────────────────────────────────────────────────────────────
     const fetchCategories = () => {
         dispatch(getAllBlogCategory());
     };
@@ -51,7 +40,6 @@ const BlogCategoryAdmin = () => {
         },
     ];
 
-    // ─── CREATE / UPDATE ─────────────────────────────────────────────────────────
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -71,26 +59,12 @@ const BlogCategoryAdmin = () => {
         }
     };
 
-    // ─── EDIT ────────────────────────────────────────────────────────────────────
     const handleEdit = (item) => {
         setFormData({ blogCategoryName: item.blogCategoryName });
         setCurrentId(item._id);
         setIsEditing(true);
         setIsModalOpen(true);
     };
-
-    // // ─── DELETE ──────────────────────────────────────────────────────────────────
-    // const promptDelete = (item) => {
-    //     setDeleteItem(item);
-    // };
-
-    // const confirmDelete = async () => {
-    //     if (!deleteItem) return;
-    //     const action = await dispatch(deleteBlogCategory(deleteItem._id));
-    //     if (action.type.endsWith('/fulfilled')) {
-    //         setDeleteItem(null);
-    //     }
-    // };
 
     const handleDelete = useCallback(async (blogCategory) => {
         dispatch(deleteBlogCategory(blogCategory._id));
@@ -110,8 +84,6 @@ const BlogCategoryAdmin = () => {
 
     return (
         <>
-            {/* Header */}
-
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 md:my-6 my-4">
                 <div className="flex flex-col">
                     <h2 className="text-2xl font-bold text-gray-800 text-textprimary tracking-tight">Blog Categories</h2>
@@ -127,24 +99,19 @@ const BlogCategoryAdmin = () => {
                     </button>
                 </div>
             </div>
+            <Table
+                columns={columns}
+                data={data}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                itemsPerPage={10}
+                exportFileName="Blog_Categories"
+                allowExport={false}
+            />
 
-            {/* Table */}
-                <Table
-                    columns={columns}
-                    data={data}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    itemsPerPage={10}
-                    exportFileName="Blog_Categories"
-                    allowExport={false}
-                />
-    
-
-            {/* Add / Edit Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
                     <div className="bg-white rounded-[4px] shadow-xl w-full max-w-md overflow-hidden font-jost">
-                        {/* Modal Header */}
                         <div className="p-4 border-b border-gray-100 flex justify-between items-center">
                             <h3 className="text-lg font-bold text-gray-800">
                                 {isEditing ? 'Edit Blog Category' : 'Add Blog Category'}
@@ -156,8 +123,6 @@ const BlogCategoryAdmin = () => {
                                 <FiX size={20} />
                             </button>
                         </div>
-
-                        {/* Modal Body */}
                         <form onSubmit={handleSubmit} className="p-5">
                             <div className="mb-5">
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -200,47 +165,7 @@ const BlogCategoryAdmin = () => {
                         </form>
                     </div>
                 </div>
-            )}
-
-            {/* Delete Confirmation Modal */}
-            {/* {deleteItem && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-[4px] shadow-xl w-full max-w-sm overflow-hidden font-jost p-6 text-center">
-                        <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                            <FiTrash2 className="text-red-500 text-xl" />
-                        </div>
-                        <h3 className="text-lg font-bold text-gray-800 mb-2">Delete Category</h3>
-                        <p className="text-sm text-gray-500 mb-6">
-                            Are you sure you want to delete <span className="font-semibold text-gray-700">"{deleteItem.blogCategoryName}"</span>? This action cannot be undone.
-                        </p>
-
-                        <div className="flex justify-center gap-3">
-                            <button
-                                type="button"
-                                onClick={() => setDeleteItem(null)}
-                                disabled={submitLoading}
-                                className="px-5 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-[4px] hover:bg-gray-200 transition-colors disabled:opacity-70"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="button"
-                                onClick={confirmDelete}
-                                disabled={submitLoading}
-                                className="px-5 py-2.5 text-sm font-semibold text-white bg-red-500 rounded-[4px] hover:bg-red-600 shadow-lg shadow-red-500/30 transition-all flex items-center gap-2 disabled:opacity-70"
-                            >
-                                {submitLoading && (
-                                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                    </svg>
-                                )}
-                                Delete
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )} */}
+            )} 
         </>
     );
 };

@@ -1,10 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ShoppingCart, XCircle, CheckCircle2, Clock, Calendar, ChevronDown, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { CheckCircle2, Calendar, ChevronDown, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import DataTable from '../component/DataTable';
-import {
-  PieChart, Pie, Sector, ResponsiveContainer, Cell, Tooltip,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList
-} from 'recharts';
+import { ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import ReactApexChart from 'react-apexcharts';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchOrders } from '../../redux/slice/order.slice';
@@ -13,12 +10,7 @@ import { getAllProducts } from '../../redux/slice/product.slice';
 import { FiPackage, FiClock, FiShoppingCart, } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { getAllCategories } from '../../redux/slice/category.slice';
-import { Sparklines, SparklinesBars, SparklinesLine } from 'react-sparklines';
 import AdminLoader from '../component/AdminLoader';
-
-
-
-const COLORS = ['#228B22', '#fbbf24', '#ef4444', "#70bb70"];
 
 const formatCompact = (val) => {
   if (val >= 1000000) return `$${(val / 1000000).toFixed(val % 1000000 === 0 ? 0 : 1)}M`;
@@ -40,59 +32,13 @@ const TriangleBar = (props) => {
   return <path d={getPath(x, y, width, height)} stroke="none" fill={color} />;
 };
 
-const renderActiveShape = (props) => {
-  const {
-    cx, cy, innerRadius, outerRadius, startAngle, endAngle,
-    fill, payload, percent, value
-  } = props;
-
-  const revenueFormatted = payload.revenue >= 1000
-    ? `$${(payload.revenue / 1000).toFixed(1).replace(/\.0$/, '')}k`
-    : `$${payload.revenue?.toLocaleString() || '0'}`;
-
-  return (
-    <g>
-      <text x={cx} y={cy} dy={-24} textAnchor="middle" fill={fill} className="text-[13px] font-extrabold uppercase tracking-widest">
-        {payload.name}
-      </text>
-      <text x={cx} y={cy} dy={4} textAnchor="middle" fill="#0f172a" className="text-[26px] font-black tracking-tight">
-        {value}
-      </text>
-      <text x={cx} y={cy} dy={24} textAnchor="middle" fill="#10b981" className="text-[14px] font-bold">
-        {revenueFormatted}
-      </text>
-      <text x={cx} y={cy} dy={42} textAnchor="middle" fill="#94a3b8" className="text-[11px] font-bold">
-        (${(percent * 100).toFixed(1)}%)
-      </text>
-      <Sector
-        cx={cx}
-        cy={cy}
-        innerRadius={innerRadius}
-        outerRadius={outerRadius + 6}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        fill={fill}
-      />
-      <Sector
-        cx={cx}
-        cy={cy}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        innerRadius={innerRadius - 4}
-        outerRadius={innerRadius}
-        fill={fill}
-      />
-    </g>
-  );
-};
-
 const Dashboard = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
   const { allorders, loading } = useSelector((state) => state.order);
-  const { monthlyAnalytics, revenueAnalytics, loading: dashboardLoading } = useSelector((state) => state.dashboard);
-  const { categories, loading: categoryLoading } = useSelector((state) => state.category);
+  const { monthlyAnalytics, revenueAnalytics } = useSelector((state) => state.dashboard);
+  const { categories } = useSelector((state) => state.category);
   const { products } = useSelector((state) => state.product);
 
   const currentYearStr = new Date().getFullYear().toString();
@@ -127,7 +73,6 @@ const Dashboard = () => {
       { name: 'Oct', orders: 0 }, { name: 'Nov', orders: 0 }, { name: 'Dec', orders: 0 },
     ];
 
-  const [activeIndex, setActiveIndex] = useState(0);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   useEffect(() => {
@@ -139,7 +84,6 @@ const Dashboard = () => {
   const isMobileSize = windowWidth < 768;
   const isSmallSize = windowWidth < 640;
 
-  // Group data by 3-month intervals for small screens
   const groupedBarData = [
     { name: 'Jan-Mar', orders: barData.slice(0, 3).reduce((sum, item) => sum + item.orders, 0) },
     { name: 'Apr-Jun', orders: barData.slice(3, 6).reduce((sum, item) => sum + item.orders, 0) },
@@ -298,9 +242,6 @@ const Dashboard = () => {
               </div>
             )}
           </div>
-          {/* <div className='text-xs flex items-center text-gray-500 whitespace-nowrap self-center pl-2 !ml-1'>
-            {data.items?.length} items
-          </div> */}
         </div>
       )
     },
@@ -377,9 +318,6 @@ const Dashboard = () => {
           );
         })()}
       </div>
-
-
-      {/* ____________________________________________________________________________________________ */}
 
       {/* top chart 1 */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
@@ -493,9 +431,6 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-
-
-      {/* ____________________________________________________________________________________________ */}
 
       {/* bottom chart */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
@@ -722,9 +657,6 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-      {/* ____________________________________________________________________________________________ */}
-
-
 
       {/* Products and Recent Orders Table Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -749,8 +681,7 @@ const Dashboard = () => {
         <div className="bg-white p-4 rounded-md border border-slate-100">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold">Top Selling Products</h3>
-            {/* <button className="text-xs font-semibold text-slate-400 hover:text-emerald-500 transition-colors">See all</button> */}
-          </div>
+                  </div>
           <div className="space-y-7">
             {topSellingProducts.length > 0 ? topSellingProducts.map((p, i) => (
               <RecentOrderRow
@@ -829,15 +760,6 @@ const MetricCard = ({ title, value, percentage = 0, color }) => {
     </div>
   );
 };
-
-const ActivityLegend = ({ dotColor, label }) => (
-  <div className="flex items-center gap-2">
-    <div className={`w-2 h-2 rounded-full ${dotColor}`}></div>
-    <span className="text-xs text-slate-500 font-medium">{label}</span>
-  </div>
-);
-
-
 
 const RecentOrderRow = ({ name, price, img }) => (
   <div className="flex items-center justify-between group ">

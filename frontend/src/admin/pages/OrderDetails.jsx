@@ -4,7 +4,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getOrderById, updateOrderStatus } from '../../redux/slice/order.slice';
 import { FiArrowLeft, FiBox, FiCreditCard, FiMapPin, FiTruck, FiCheckCircle, FiClock, FiXCircle, FiShoppingCart } from 'react-icons/fi';
 import CustomSelect from '../component/CustomSelect';
-import { IMAGE_URL } from '../../utils/baseUrl';
 import AdminLoader from '../component/AdminLoader';
 
 const TrackingNode = memo(({ title, time, time1, desc, isCompleted, isActive, isLast }) => {
@@ -13,12 +12,9 @@ const TrackingNode = memo(({ title, time, time1, desc, isCompleted, isActive, is
             {!isLast && (
                 <>
                     {/* Horizontal Line for Desktop */}
-                    <div className={`hidden lg:block absolute left-[calc(50%+12px)] right-[-50%] top-[11px] h-[2px] transition-all duration-500 z-0 ${isCompleted ? 'bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.3)]' : 'bg-borderColor'
-                        }`}></div>
-                    
+                    <div className={`hidden lg:block absolute left-[calc(50%+12px)] right-[-50%] top-[11px] h-[2px] transition-all duration-500 z-0 ${isCompleted ? 'bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.3)]' : 'bg-borderColor'}`}></div>
                     {/* Vertical Line for Mobile/Tablet */}
-                    <div className={`lg:hidden absolute left-[11px] top-[24px] bottom-[-8px] w-[2px] transition-all duration-500 z-0 ${isCompleted ? 'bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.3)]' : 'bg-borderColor'
-                        }`}></div>
+                    <div className={`lg:hidden absolute left-[11px] top-[24px] bottom-[-8px] w-[2px] transition-all duration-500 z-0 ${isCompleted ? 'bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.3)]' : 'bg-borderColor'}`}></div>
                 </>
             )}
 
@@ -91,19 +87,6 @@ const OrderDetails = () => {
             case 'completed': return 'text-emerald-600 bg-emerald-50 border-emerald-200';
             case 'cancelled': return 'text-rose-600 bg-rose-50 border-rose-200';
             default: return 'text-textSecondary bg-bgMain border-borderColor';
-        }
-    }, []);
-
-    const getTextColor = useCallback((status) => {
-        switch (status) {
-            case 'pending': return 'text-amber-600';
-            case 'processing': return 'text-blue-600';
-            case 'shipped': return 'text-violet-600';
-            case 'out for delivery': return 'text-orange-600';
-            case 'delivered':
-            case 'completed': return 'text-emerald-600';
-            case 'cancelled': return 'text-rose-600';
-            default: return 'text-textSecondary';
         }
     }, []);
 
@@ -272,8 +255,9 @@ const OrderDetails = () => {
                                 { value: 'shipped', label: 'Shipped', icon: <FiTruck /> },
                                 { value: 'out for delivery', label: 'Out for Delivery', icon: <FiTruck /> },
                                 { value: 'delivered', label: 'Delivered', icon: <FiCheckCircle /> },
-                                // { value: 'cancelled', label: 'Cancelled', icon: <FiXCircle /> }
+                                // { value: 'cancelled', label: 'Cancelled', icon: <FiXCircle /> },
                             ]}
+                            disabled={['delivered', 'cancelled'].includes(status)}
                             className="min-w-[200px] w-full sm:w-auto"
                         />
                     </div>
@@ -400,7 +384,6 @@ const OrderDetails = () => {
                             </div>
                         </div>
                     </div>
-
                     {/* Shipping Address */}
                     <div className="bg-card rounded-[4px] shadow-sm border border-borderColor p-5 group transition-all hover:border-primary/20">
                         <h3 className="font-[600] text-textPrimary mb-5 pb-3 border-b border-borderColor flex items-center gap-2">
@@ -427,9 +410,8 @@ const OrderDetails = () => {
                             </div>
                         ) : (
                             <p className="text-sm text-textSecondary italic py-2">No shipping address provided</p>
-                        )}refunded
+                        )}
                     </div>
-
                     {/* Payment Info */}
                     <div className="bg-card rounded-[4px] shadow-sm border border-borderColor p-5 group transition-all hover:border-primary/20">
                         <h3 className="font-[600] text-textPrimary mb-5 pb-3 border-b border-borderColor flex items-center gap-2">

@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllFAQs, deleteFAQ } from '../../redux/slice/faq.slice';
-import { Loader2 } from 'lucide-react';
 import AddFaqs from './AddFaqs';
-import { FiEdit2, FiPlus, FiTrash2, FiHelpCircle, FiShoppingCart } from 'react-icons/fi';
+import { FiEdit2, FiPlus, FiTrash2, FiShoppingCart } from 'react-icons/fi';
 import AdminLoader from '../component/AdminLoader';
 import Breadcrumb from '../component/Breadcrumb';
 import DeleteModal from '../component/DeleteModal';
@@ -142,14 +141,11 @@ const Faqs = () => {
                                 className="flex items-center p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition-colors"
                                 onClick={() => toggleAccordion(faq._id)}
                             >
-                                {/* Number Badge */}
                                 <div className={`flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-[4px] flex items-center justify-center mr-3 sm:mr-4 border transition-colors ${openAccordion === faq._id ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-primary border-gray-200 text-white'}`}>
                                     <span className="text-xs sm:text-sm font-bold">
                                         {String(index + 1).padStart(2, '0')}
                                     </span>
                                 </div>
-
-                                {/* Title */}
                                 <div
                                     className={`flex-1 font-bold text-sm sm:text-base pr-2 sm:pr-4 line-clamp-1 transition-colors ${openAccordion === faq._id ? 'text-gray-900' : 'text-gray-700'}`}
                                     dangerouslySetInnerHTML={{ __html: faq.title }}
@@ -158,8 +154,6 @@ const Faqs = () => {
                                 <div className="px-3 py-1.5 bg-gray-50 rounded-[4px] text-[10px] text-gray-500 uppercase font-bold mr-4 border border-gray-200 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
                                     {faq.faqs?.length || 0} Questions
                                 </div>
-
-                                {/* Toggle Icon */}
                                 <div className="flex-shrink-0 text-gray-400 ml-2 sm:ml-4">
                                     {openAccordion === faq._id ? (
                                         <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">

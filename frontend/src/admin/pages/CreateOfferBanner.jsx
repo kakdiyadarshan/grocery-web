@@ -5,13 +5,13 @@ import { createOfferBanner, fetchOfferBanners, updateOfferBanner } from '../../r
 import { FiUploadCloud, FiArrowLeft, FiCheck } from 'react-icons/fi';
 import { Loader2 } from 'lucide-react';
 import CustomSelect from '../component/CustomSelect';
+import Breadcrumb from '../component/Breadcrumb';
 
-// Helper functions moved outside to avoid re-creation
 const getPreviewPositionClass = (pos) => {
     switch (pos) {
         case 'center': return 'justify-center text-center';
         case 'right': return 'justify-end text-right pr-[8%]';
-        default: return 'pl-[8%] text-left'; // left
+        default: return 'pl-[8%] text-left';
     }
 };
 
@@ -153,29 +153,29 @@ const CreateOfferBanner = () => {
 
     return (
         <div className="text-gray-800 max-w-[1600px] mx-auto">
-            <div className="flex items-center gap-4 sm:mb-8 mb-4 sm:mt-4 mt-2">
-                <button
-                    onClick={navigateBack}
-                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                >
-                    <FiArrowLeft size={24} />
-                </button>
-                <div>
-                    <h2 className="sm:text-2xl text-lg font-bold text-gray-800">
-                        {id ? 'Edit Banner' : 'Create New Banner'}
-                    </h2>
+            <div className='sm:mb-8 mb-4 sm:mt-4 mt-2'>
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={navigateBack}
+                        className="hover:bg-gray-100 rounded-full transition-colors"
+                    >
+                        <FiArrowLeft size={24} />
+                    </button>
+                    <div>
+                        <h2 className="sm:text-2xl text-lg font-bold text-gray-800">
+                            {id ? 'Edit Banner' : 'Create New Banner'}
+                        </h2>
+                    </div>
                 </div>
+                <Breadcrumb />
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start h-[calc(100vh-140px)]">
                 {/* Form Section - Scrollable */}
                 <div className="xl:col-span-4 h-full overflow-y-auto pr-2 no-scrollbar">
                     <form onSubmit={handleSubmit} className="space-y-6 bg-white p-4 rounded-[4px] border border-gray-100 shadow-sm">
-
-                        {/* Basic Info */}
                         <div className="space-y-4">
                             <h3 className="text-sm font-bold text-gray-900 capitalize tracking-wider border-b border-gray-100 pb-2">Basic Info</h3>
-
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Banner Title</label>
                                 <input
@@ -188,7 +188,6 @@ const CreateOfferBanner = () => {
                                     required
                                 />
                             </div>
-
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Subtitle / Description</label>
                                 <textarea
@@ -200,8 +199,7 @@ const CreateOfferBanner = () => {
                                     placeholder="Enter a brief description..."
                                 />
                             </div>
-
-                           <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Button Link</label>
                                     <input
@@ -225,7 +223,6 @@ const CreateOfferBanner = () => {
                                     />
                                 </div>
                             </div>
-
                             <div className="flex items-center gap-3 pt-2">
                                 <label className="relative inline-flex items-center cursor-pointer group">
                                     <input
@@ -244,7 +241,6 @@ const CreateOfferBanner = () => {
                         {/* Styling & Layout */}
                         <div className="space-y-4 pt-4 border-t border-gray-100">
                             <h3 className="text-sm font-bold text-gray-900 capitalize tracking-wider border-b border-gray-100 pb-2">Design & Layout</h3>
-
                             <div>
                                 <label className="block text-xs font-medium text-gray-600 mb-1">Content Position</label>
                                 <div className="flex border border-gray-300 rounded-[4px] overflow-hidden">
@@ -260,8 +256,7 @@ const CreateOfferBanner = () => {
                                     ))}
                                 </div>
                             </div>
-
-                        <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-medium text-gray-600 mb-1">Title Color</label>
                                     <div className="flex items-center gap-2 border border-gray-200 p-1.5 rounded-[4px] bg-gray-50">
@@ -299,8 +294,7 @@ const CreateOfferBanner = () => {
                                     />
                                 </div>
                             </div>
-
-                         <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-medium text-gray-600 mb-1">Subtitle Color</label>
                                     <div className="flex items-center gap-2 border border-gray-200 p-1.5 rounded-[4px] bg-gray-50">
@@ -374,9 +368,7 @@ const CreateOfferBanner = () => {
                 <div className="xl:col-span-8 h-full flex flex-col pt-1">
                     <div className="bg-gray-100 rounded-[4px] border border-gray-200 overflow-hidden relative flex-1 flex items-center justify-center xl:p-8 sm:p-6 p-4 shadow-inner">
                         <div className="hidden sm:block absolute top-4 left-4 bg-black/60 text-white px-3 py-1 rounded-[4px] text-xs font-bold uppercase tracking-wider backdrop-blur-md z-10">Live Preview</div>
-
                         <div className="w-full max-w-5xl bg-white rounded-[4px] shadow-2xl overflow-hidden relative group transform transition-all duration-300 hover:shadow-3xl">
-                            {/* Aspect Ratio Wrapper 16:7 */}
                             <div className="w-full relative aspect-[16/7]">
                                 {previewImage ? (
                                     <div

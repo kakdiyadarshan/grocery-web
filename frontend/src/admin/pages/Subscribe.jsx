@@ -8,7 +8,7 @@ import AdminLoader from '../component/AdminLoader';
 
 const Subscribe = () => {
     const dispatch = useDispatch();
-    const { subscribers: data, loading, submitLoading, emailLoading } = useSelector((state) => state.subscribe);
+    const { subscribers: data, loading, emailLoading } = useSelector((state) => state.subscribe);
 
     const [showEmailModal, setShowEmailModal] = useState(false);
     const [emailForm, setEmailForm] = useState({ subject: '', message: '' });
@@ -100,7 +100,6 @@ const Subscribe = () => {
     return (
         <div className="">
             {/* Header Section */}
-
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 md:my-6 my-4">
                 <div className="flex flex-col">
                     <h2 className="text-2xl font-bold text-gray-800 text-textprimary tracking-tight">Subscribers</h2>
@@ -184,7 +183,6 @@ const Subscribe = () => {
 
                         {/* Modal Body */}
                         <div className="px-6 py-5 space-y-4">
-                            {/* Subject */}
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                                     Email Subject <span className="text-red-500">*</span>
@@ -201,8 +199,6 @@ const Subscribe = () => {
                                 />
                                 {errors.subject && <p className="text-red-500 text-xs mt-1">{errors.subject}</p>}
                             </div>
-
-                            {/* Message */}
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                                     Message / Offer Details <span className="text-red-500">*</span>
@@ -219,8 +215,6 @@ const Subscribe = () => {
                                 />
                                 {errors.message && <p className="text-red-500 text-xs mt-1">{errors.message}</p>}
                             </div>
-
-                            {/* Info note */}
                             <div className="flex items-start gap-2.5 bg-blue-50 border border-blue-100 rounded-[4px] px-4 py-3">
                                 <FiMail size={15} className="text-blue-500 mt-0.5 shrink-0" />
                                 <p className="text-xs text-blue-600 leading-relaxed">

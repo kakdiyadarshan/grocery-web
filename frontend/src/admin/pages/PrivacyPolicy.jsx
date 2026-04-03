@@ -5,19 +5,17 @@ import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { HexColorPicker } from 'react-colorful';
 import { TbTextSize } from "react-icons/tb";
-import {
-    MdFormatBold, MdFormatItalic, MdFormatUnderlined, MdFormatAlignLeft, MdFormatAlignCenter, MdFormatAlignRight, MdFormatAlignJustify, MdFormatListBulleted, MdFormatListNumbered, MdFormatIndentDecrease, MdFormatIndentIncrease, MdLink, MdUndo, MdRedo, MdDelete, MdOutlineFileUpload, MdOutlineContentCopy, MdMenu
-} from "react-icons/md";
+import { MdFormatBold, MdFormatItalic, MdFormatUnderlined, MdFormatAlignLeft, MdFormatAlignCenter, MdFormatAlignRight, MdFormatAlignJustify, MdFormatListBulleted, MdFormatListNumbered, MdFormatIndentDecrease, MdFormatIndentIncrease, MdLink, MdUndo, MdRedo, MdOutlineFileUpload, MdOutlineContentCopy } from "react-icons/md";
 import { CgColorPicker } from "react-icons/cg";
 import { AiOutlineBars, AiOutlineFontColors } from "react-icons/ai";
-import { FaCheck, FaRegCheckCircle, FaRegImage, FaRegImages } from "react-icons/fa";
+import { FaCheck, FaRegCheckCircle, FaRegImage } from "react-icons/fa";
 import { PiTextStrikethroughBold } from "react-icons/pi";
 import { TiArrowSortedDown } from "react-icons/ti";
 import { IoIosLink, IoMdClose, IoMdLink } from "react-icons/io";
 import { Loader2 } from 'lucide-react';
 import { LuTrash2 } from 'react-icons/lu';
 import AdminLoader from '../component/AdminLoader';
-import { FiShield, FiShoppingCart } from 'react-icons/fi';
+import { FiShoppingCart } from 'react-icons/fi';
 
 const Quill = ReactQuill.Quill;
 if (Quill) {
@@ -35,8 +33,6 @@ if (Quill) {
         whitelist: ['100', '200', '300', '400', '500', '600', '700', '800', '900']
     });
     Quill.register(FontWeight, true);
-
-    // Register text alignment as inline style
     const AlignStyle = Quill.import('attributors/style/align');
     Quill.register(AlignStyle, true);
 }
@@ -45,24 +41,20 @@ const CustomDropdown = ({ options, value, onChange, label, icon, editorId, forma
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
     const savedSelectionRef = useRef(null);
-
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setIsOpen(false);
             }
         };
-
         if (isOpen) {
             document.addEventListener('mousedown', handleClickOutside);
         }
-
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [isOpen]);
 
-    // Save selection BEFORE opening dropdown (critical fix)
     const handleButtonClick = () => {
         if (!isOpen && editorId && editorRefs.current[editorId]) {
             const quill = editorRefs.current[editorId].getEditor();
@@ -78,13 +70,9 @@ const CustomDropdown = ({ options, value, onChange, label, icon, editorId, forma
         if (editorId && editorRefs.current[editorId]) {
             const quill = editorRefs.current[editorId].getEditor();
             const selection = savedSelectionRef.current;
-
             if (selection) {
-                // Focus and restore selection
                 quill.focus();
                 quill.setSelection(selection.index, selection.length);
-
-                // FIX: Use 'user' source to ensure history tracking
                 if (selection.length > 0) {
                     quill.formatText(selection.index, selection.length, format, optionValue, 'user');
                 } else {
@@ -133,7 +121,7 @@ const CustomDropdown = ({ options, value, onChange, label, icon, editorId, forma
     );
 };
 
-// Custom Align Dropdown Component - Responsive
+// Custom Align Dropdown 
 const AlignDropdown = ({ value, onChange, editorId, editorRefs }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
@@ -145,11 +133,9 @@ const AlignDropdown = ({ value, onChange, editorId, editorRefs }) => {
                 setIsOpen(false);
             }
         };
-
         if (isOpen) {
             document.addEventListener('mousedown', handleClickOutside);
         }
-
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
@@ -181,7 +167,6 @@ const AlignDropdown = ({ value, onChange, editorId, editorRefs }) => {
             if (selection) {
                 quill.focus();
                 quill.setSelection(selection.index, selection.length);
-                // FIX: Use 'user' source to ensure history tracking
                 quill.formatLine(selection.index, selection.length || 1, 'align', optionValue || false, 'user');
             }
         }
@@ -223,7 +208,7 @@ const AlignDropdown = ({ value, onChange, editorId, editorRefs }) => {
     );
 };
 
-// Custom Color Picker Component - Responsive
+// Custom Color Picker
 const AdvancedColorPicker = ({ onSelect, onClose, initialColor = '#000000' }) => {
     const [color, setColor] = useState(initialColor);
     const [showAdvanced, setShowAdvanced] = useState(false);
@@ -299,8 +284,6 @@ const AdvancedColorPicker = ({ onSelect, onClose, initialColor = '#000000' }) =>
         </div>
     );
 };
-
-
 
 const PrivacyPolicy = () => {
     const dispatch = useDispatch();
@@ -428,7 +411,6 @@ const PrivacyPolicy = () => {
             return [...updated, newSection];
         });
 
-        // Close sidebar on mobile after adding section
         if (window.innerWidth < 768) {
             setShowSidebar(false);
         }
@@ -467,7 +449,6 @@ const PrivacyPolicy = () => {
         }
     }, [focusedEditor]);
 
-    // FIX: Updated applyFormat to use 'user' source
     const applyFormat = useCallback((format, value) => {
         if (savedSelection && editorRefs.current[savedSelection.editorId]) {
             const quill = editorRefs.current[savedSelection.editorId].getEditor();
@@ -542,7 +523,6 @@ const PrivacyPolicy = () => {
         setShowLinkModal(true);
     }, [savedSelection, focusedEditor, sections]);
 
-    // FIX: Updated handleApplyLink to use 'user' source
     const handleApplyLink = useCallback(() => {
         if (!linkData.url || !linkData.editorId || !linkData.range || !editorRefs.current[linkData.editorId]) {
             setShowLinkModal(false);
@@ -566,7 +546,6 @@ const PrivacyPolicy = () => {
         setShowLinkModal(false);
     }, [linkData]);
 
-    // FIX: Updated handleListFormat to use 'user' source
     const handleListFormat = useCallback((listType) => {
         if (focusedEditor && editorRefs.current[focusedEditor]) {
             const quill = editorRefs.current[focusedEditor].getEditor();
@@ -579,7 +558,6 @@ const PrivacyPolicy = () => {
         }
     }, [focusedEditor]);
 
-    // FIX: Updated handleIndent to use 'user' source
     const handleIndent = useCallback((direction) => {
         if (focusedEditor && editorRefs.current[focusedEditor]) {
             const quill = editorRefs.current[focusedEditor].getEditor();

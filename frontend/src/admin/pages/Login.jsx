@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { loginUser } from '../../redux/slice/auth.slice';
-// import loginlogo from '../../Img/loginlogo1.svg';
 
 const Login = () => {
     const dispatch = useDispatch();
@@ -49,7 +48,6 @@ const Login = () => {
 
     return (
         <div className="min-h-screen bg-bg-color flex items-center justify-center p-4 font-jost relative overflow-hidden">
-            {/* Background Decor */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary opacity-5 rounded-full blur-3xl"></div>
                 <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-100 opacity-20 rounded-full blur-3xl"></div>
@@ -58,9 +56,6 @@ const Login = () => {
             <div className="bg-white rounded-[4px] shadow-xl w-full max-w-md p-5 md:p-12 relative z-10 border border-gray-100">
                 <div className="text-center mb-10">
                     <div className="flex items-center justify-center gap-2 mb-2 w-full">
-                        <div className='mt-[-17px]'>
-                            {/* <img src={loginlogo} alt="" /> */}
-                        </div>
                         <h1 className="text-3xl font-bold text-primary">Grocery</h1>
                     </div>
                     <p className="text-textSecondary text-sm">Welcome back! Please login to your account.</p>
