@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Check, ChevronDown, ChevronLeft, ChevronRight, Eye, Grid, Heart, List, ShoppingCart, SlidersHorizontal, Star, X } from 'lucide-react';
+import { Check, ChevronDown, ChevronLeft, ChevronRight, Grid, List, ShoppingCart, SlidersHorizontal, Star, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { getAllProducts } from '../redux/slice/product.slice';
-import { getAllCategories } from '../redux/slice/category.slice';
 import { addToCart } from '../redux/slice/cart.slice';
 import { getWishlist, addToWishlist, removeFromWishlist } from '../redux/slice/wishlist.slice';
 import { AiFillHeart, AiOutlineEye, AiOutlineHeart, AiOutlineShoppingCart } from 'react-icons/ai';
@@ -17,9 +16,7 @@ import { LuArrowUpNarrowWide, LuArrowDownNarrowWide } from "react-icons/lu";
 const Shop = () => {
     const dispatch = useDispatch();
     const location = useLocation();
-    const navigate = useNavigate();
     const { products = [], allProducts = [], totalProducts = 0, loading = false } = useSelector((state) => state.product || {});
-    const { categories: apiCategories = [] } = useSelector((state) => state.category || {});
     const { wishlist } = useSelector((state) => state.wishlist || {});
     const { isAuthenticated } = useSelector((state) => state.auth || {});
     const wishlistItems = wishlist?.items || [];
@@ -30,7 +27,7 @@ const Shop = () => {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [sortBy, setSortBy] = useState('alphabetical-az');
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 12; // Updated from 12 as per user change
+    const itemsPerPage = 12; 
     const [isSmallScreen, setIsSmallScreen] = useState(false);
 
     useEffect(() => {
@@ -40,13 +37,13 @@ const Shop = () => {
         return () => window.removeEventListener('resize', checkScreen);
     }, []);
 
-    // Filter states
+    
     const [selectedAvailability, setSelectedAvailability] = useState([]);
     const [priceRange, setPriceRange] = useState({ min: '', max: '' });
     const [selectedWeights, setSelectedWeights] = useState([]);
     const [selectedCategories, setSelectedCategories] = useState(categoryParam ? [categoryParam] : []);
 
-    // Toggle state for filter sections
+    
     const [expandedFilters, setExpandedFilters] = useState({
         categories: true,
         price: true,
@@ -59,17 +56,17 @@ const Shop = () => {
     };
 
     useEffect(() => {
-        // Handle body scroll locking and prevent layout shift
+        
         const handleBodyScroll = () => {
             const isMobileFilter = isFilterOpen && window.innerWidth < 1024;
 
             if (isMobileFilter) {
-                // Prevent scrolling and compensate for scrollbar width to avoid layout jump
+                
                 const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
                 document.body.style.overflow = 'hidden';
                 document.body.style.paddingRight = `${scrollbarWidth}px`;
             } else {
-                // Restore scrolling and remove compensation padding
+                
                 document.body.style.overflow = 'auto';
                 document.body.style.paddingRight = '';
             }
@@ -77,7 +74,7 @@ const Shop = () => {
 
         handleBodyScroll();
 
-        // Close mobile filter and restore scroll when screen is resized to desktop
+        
         const handleResize = () => {
             handleBodyScroll();
             if (window.innerWidth >= 1024 && isFilterOpen) {
@@ -104,23 +101,23 @@ const Shop = () => {
     useEffect(() => {
         if (categoryParam) {
             setSelectedCategories([categoryParam]);
-            // Reset other filters to ensure only that category is shown
+            
             setSelectedAvailability([]);
             setPriceRange({ min: '', max: '' });
             setSelectedWeights([]);
         } else {
-            // Only clear categories if we're not filtering via the sidebar (i.e. no URL param)
-            // But usually, navigating back to /shop without params means clear everything.
+            
+            
             setSelectedCategories([]);
             setSelectedAvailability([]);
             setPriceRange({ min: '', max: '' });
             setSelectedWeights([]);
         }
         setCurrentPage(1);
-    }, [categoryParam, location.key]); // Use location.key to catch clicks on the same link
+    }, [categoryParam, location.key]); 
 
     useEffect(() => {
-        // Fetch paginated products based on all filters
+        
         dispatch(getAllProducts({
             page: currentPage,
             limit: itemsPerPage,
@@ -135,7 +132,7 @@ const Shop = () => {
         }));
     }, [dispatch, currentPage, itemsPerPage, selectedCategories, priceRange, selectedWeights, selectedAvailability, sortBy, searchParams, categoryParam]);
 
-    // Compute dynamic filter options from products
+    
     const filterOptions = React.useMemo(() => {
         const weightsMap = new Map();
         const categoriesMap = new Map();
@@ -172,7 +169,7 @@ const Shop = () => {
         };
     }, [allProducts]);
 
-    // We now use server-side data directly
+    
     const filteredProductsSlice = products;
     const totalFiltered = totalProducts;
 
@@ -236,21 +233,6 @@ const Shop = () => {
 
     return (
         <>
-            {/* <div className="bg-white">
-                <div className="container mx-auto px-4 py-8 lg:py-12">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div>
-                            <h1 className="text-xl lg:text-2xl font-[600] text-[#1a1a1a] tracking-tight">Products</h1>
-                        </div>
-                        <nav className="flex items-center text-sm font-medium">
-                            <Link to="/" className="text-gray-400 hover:text-[var(--primary)] transition-colors">Home</Link>
-                            <ChevronRight size={14} className="mx-2 text-gray-300" />
-                            <span className="text-[#1a1a1a]">{selectedCategories.length === 1 ? selectedCategories[0] : 'Shop'}</span>
-                        </nav>
-                    </div>
-                </div>
-            </div> */}
-
              <div className="bg-[#f8f9fa] border-b border-gray-100 py-10 md:py-14 px-4 sm:px-6 lg:px-8">
                             <div className="max-w-[1440px] mx-auto px-2 md:px-0 lg:px-4">
                                 <h1 className="text-3xl md:text-[40px] font-bold text-[#1a1a1a] mb-3 tracking-tight">Shop</h1>
@@ -625,11 +607,6 @@ const Shop = () => {
                                                                 ? 'text-red-500 hover:bg-red-500 hover:text-white'
                                                                 : 'text-gray-500 hover:bg-[var(--primary)] hover:text-white'
                                                                 }`}
-                                                        // className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 bg-white border border-gray-100/50 ${isInWishlist
-                                                        //     ? 'text-[var(--primary)]'
-                                                        //     : 'text-[#62728f] hover:text-[var(--primary)]'
-                                                        //     }`}
-                                                        // title={isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
                                                         >
                                                             {isInWishlist ? <AiFillHeart size={18} /> : <AiOutlineHeart size={18} />}
                                                         </button>
@@ -654,9 +631,6 @@ const Shop = () => {
                                                         ? 'text-gray-300 cursor-not-allowed'
                                                         : 'text-gray-500 hover:bg-[var(--primary)] hover:text-white'
                                                         }`}
-                                                // disabled={outOfStock}
-                                                // className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex items-center justify-center transition-all active:scale-95 bg-white border border-gray-100/50 ${outOfStock ? 'text-gray-300 cursor-not-allowed' : 'text-[#62728f] hover:text-[var(--primary)]'} disabled:opacity-50 disabled:cursor-not-allowed`}
-                                                // title={outOfStock ? "Out of Stock" : "Add to Cart"}
                                                 >
                                                     <AiOutlineShoppingCart size={18} />
                                                 </button>
