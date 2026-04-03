@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import NewsletterImage from '../Image/newsletter.png';
 import { subscribeNewsletter } from '../redux/slice/subscribe.slice';

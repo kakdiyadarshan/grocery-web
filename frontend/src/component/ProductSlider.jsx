@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import { useRef } from 'react';
 import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
 import ProductCard from './ProductCard';
 
@@ -18,72 +18,6 @@ const ProductSlider = ({ title, products, className = '' }) => {
       });
     }
   };
-
-  // useEffect(() => {
-  //   const setupDragScroll = (el) => {
-  //     if (!el) return null;
-  //     let isDown = false;
-  //     let startX;
-  //     let scrollLeft;
-
-  //     const onWheel = (e) => {
-  //       if (e.deltaY === 0) return;
-  //       e.preventDefault();
-  //       el.scrollTo({
-  //         left: el.scrollLeft + (e.deltaY * 3),
-  //         behavior: 'smooth'
-  //       });
-  //     };
-
-  //     const mouseDown = (e) => {
-  //       isDown = true;
-  //       el.classList.add('cursor-grabbing');
-  //       el.classList.remove('cursor-grab');
-  //       startX = e.pageX - el.offsetLeft;
-  //       scrollLeft = el.scrollLeft;
-  //     };
-
-  //     const mouseLeave = () => {
-  //       isDown = false;
-  //       el.classList.remove('cursor-grabbing');
-  //       el.classList.add('cursor-grab');
-  //     };
-
-  //     const mouseUp = () => {
-  //       isDown = false;
-  //       el.classList.remove('cursor-grabbing');
-  //       el.classList.add('cursor-grab');
-  //     };
-
-  //     const mouseMove = (e) => {
-  //       if (!isDown) return;
-  //       e.preventDefault();
-  //       const x = e.pageX - el.offsetLeft;
-  //       const walk = (x - startX) * 2.5; 
-  //       el.scrollLeft = scrollLeft - walk;
-  //     };
-
-  //     el.addEventListener('wheel', onWheel, { passive: false });
-  //     el.addEventListener('mousedown', mouseDown);
-  //     el.addEventListener('mouseleave', mouseLeave);
-  //     el.addEventListener('mouseup', mouseUp);
-  //     el.addEventListener('mousemove', mouseMove);
-
-  //     return () => {
-  //       el.removeEventListener('wheel', onWheel);
-  //       el.removeEventListener('mousedown', mouseDown);
-  //       el.removeEventListener('mouseleave', mouseLeave);
-  //       el.removeEventListener('mouseup', mouseUp);
-  //       el.removeEventListener('mousemove', mouseMove);
-  //     };
-  //   };
-
-  //   const cleanup = setupDragScroll(scrollRef.current);
-
-  //   return () => {
-  //     if (cleanup) cleanup();
-  //   };
-  // }, []);
 
   return (
     <div className={`relative group/slider ${className}`}>

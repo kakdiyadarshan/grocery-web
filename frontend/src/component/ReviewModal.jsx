@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Star, Camera, Loader2 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { createReview } from '../redux/slice/review.slice';
@@ -13,7 +13,7 @@ const ReviewModal = ({ isOpen, onClose, product: initialProduct }) => {
     const [images, setImages] = useState([]);
     const [previews, setPreviews] = useState([]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (isOpen) {
             if (initialProduct && !Array.isArray(initialProduct)) {
                 setSelectedProduct(initialProduct);
@@ -78,13 +78,13 @@ const ReviewModal = ({ isOpen, onClose, product: initialProduct }) => {
     if (Array.isArray(initialProduct) && !selectedProduct) {
         return (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                <div 
+                <div
                     className="bg-white rounded-md w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300"
                     onClick={(e) => e.stopPropagation()}
                 >
                     <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                         <h3 className="text-xl font-semibold text-gray-900">Select Product to Rate</h3>
-                        <button 
+                        <button
                             onClick={onClose}
                             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                         >
@@ -95,15 +95,15 @@ const ReviewModal = ({ isOpen, onClose, product: initialProduct }) => {
                         {initialProduct.map((item, index) => {
                             const p = item.productId || {};
                             return (
-                                <div 
-                                    key={index} 
+                                <div
+                                    key={index}
                                     onClick={() => setSelectedProduct(p)}
                                     className="flex items-center gap-4 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-100 cursor-pointer transition-colors group"
                                 >
                                     <div className="w-14 h-14 rounded-md overflow-hidden border border-white shrink-0 shadow-sm">
-                                        <img 
-                                            src={p.images?.[0]?.url || p.image || 'https://via.placeholder.com/150'} 
-                                            alt={p.name} 
+                                        <img
+                                            src={p.images?.[0]?.url || p.image || 'https://via.placeholder.com/150'}
+                                            alt={p.name}
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                                         />
                                     </div>
@@ -129,7 +129,7 @@ const ReviewModal = ({ isOpen, onClose, product: initialProduct }) => {
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div 
+            <div
                 className="bg-white rounded-md w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300"
                 onClick={(e) => e.stopPropagation()}
             >
@@ -137,17 +137,17 @@ const ReviewModal = ({ isOpen, onClose, product: initialProduct }) => {
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         {Array.isArray(initialProduct) && initialProduct.length > 1 && (
-                            <button 
+                            <button
                                 onClick={() => setSelectedProduct(null)}
                                 className="p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 mr-1"
                                 title="Back to product list"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-left"><path d="m15 18-6-6 6-6"/></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-left"><path d="m15 18-6-6 6-6" /></svg>
                             </button>
                         )}
                         <h3 className="text-xl font-semibold text-gray-900">Write a Review</h3>
                     </div>
-                    <button 
+                    <button
                         onClick={onClose}
                         className="p-2 hover:bg-white rounded-full transition-colors"
                     >
@@ -159,9 +159,9 @@ const ReviewModal = ({ isOpen, onClose, product: initialProduct }) => {
                     {/* Product Info */}
                     <div className="flex items-center gap-4 p-3 bg-gray-100 rounded-md border border-gray-100">
                         <div className="w-16 h-16 rounded-md overflow-hidden border border-white shrink-0">
-                            <img 
-                                src={selectedProduct.images?.[0]?.url || selectedProduct.image || 'https://via.placeholder.com/150'} 
-                                alt={selectedProduct.name} 
+                            <img
+                                src={selectedProduct.images?.[0]?.url || selectedProduct.image || 'https://via.placeholder.com/150'}
+                                alt={selectedProduct.name}
                                 className="w-full h-full object-cover"
                             />
                         </div>
@@ -183,22 +183,21 @@ const ReviewModal = ({ isOpen, onClose, product: initialProduct }) => {
                                     onMouseLeave={() => setHover(0)}
                                     className="focus:outline-none transition-transform hover:scale-110 active:scale-95"
                                 >
-                                    <Star 
-                                        className={`w-10 h-10 transition-colors ${
-                                            (hover || rating) >= star 
-                                                ? 'fill-yellow-400 text-yellow-400' 
+                                    <Star
+                                        className={`w-10 h-10 transition-colors ${(hover || rating) >= star
+                                                ? 'fill-yellow-400 text-yellow-400'
                                                 : 'text-gray-200'
-                                        }`} 
+                                            }`}
                                     />
                                 </button>
                             ))}
                         </div>
                         <span className="text-sm font-semibold text-gray-600">
-                            {rating === 0 ? 'Select Rating' : 
-                             rating === 1 ? 'Terrible' :
-                             rating === 2 ? 'Poor' :
-                             rating === 3 ? 'Fair' :
-                             rating === 4 ? 'Good' : 'Excellent'}
+                            {rating === 0 ? 'Select Rating' :
+                                rating === 1 ? 'Terrible' :
+                                    rating === 2 ? 'Poor' :
+                                        rating === 3 ? 'Fair' :
+                                            rating === 4 ? 'Good' : 'Excellent'}
                         </span>
                     </div>
 
@@ -219,7 +218,7 @@ const ReviewModal = ({ isOpen, onClose, product: initialProduct }) => {
                         <label className="text-sm font-semibold text-gray-700 ml-1 flex items-center gap-2">
                             <Camera className="w-4 h-4" /> Add Photos (Optional)
                         </label>
-                        
+
                         <div className="flex flex-wrap gap-3">
                             {previews.map((preview, index) => (
                                 <div key={index} className="relative w-20 h-20 rounded-md overflow-hidden border border-gray-100 group">
@@ -233,7 +232,7 @@ const ReviewModal = ({ isOpen, onClose, product: initialProduct }) => {
                                     </button>
                                 </div>
                             ))}
-                            
+
                             {previews.length < 5 && (
                                 <label className="w-20 h-20 flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-md cursor-pointer hover:border-[var(--primary)] hover:bg-[var(--primary-light)] transition-all">
                                     <Camera className="w-6 h-6 text-gray-400" />

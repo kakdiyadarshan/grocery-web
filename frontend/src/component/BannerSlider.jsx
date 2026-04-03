@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { fetchBanners } from '../redux/slice/banner.slice';
 
 const BannerSlider = () => {
     const [currentSlide, setCurrentSlide] = useState(0);
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { banners, loading } = useSelector((state) => state.banner);
-    console.log(banners);
 
     useEffect(() => {
         dispatch(fetchBanners());
@@ -18,24 +19,21 @@ const BannerSlider = () => {
             ? banners.data
             : [];
 
-    console.log(bannerList);
-    
-
     const activeSlides = bannerList.length > 0
         ? bannerList
             .map((banner, index) => ({
-            id: banner._id || index + 1,
-            image: banner.image?.url || '',
-            title: banner.title || '',
-            subtitle: banner.subtitle || '',
-            description: banner.description || '',
-            buttonText: banner.buttonText || 'Shop Now',
-            link: banner.link || '/shop',
-            bgColor: banner.bgColor || 'bg-[#f1fcf1]',
-            titleStyle: banner.titleStyle,
-            subtitleStyle: banner.subtitleStyle,
-            textPosition: banner.textPosition || 'left'
-        }))
+                id: banner._id || index + 1,
+                image: banner.image?.url || '',
+                title: banner.title || '',
+                subtitle: banner.subtitle || '',
+                description: banner.description || '',
+                buttonText: banner.buttonText || 'Shop Now',
+                link: banner.link || '/shop',
+                bgColor: banner.bgColor || 'bg-[#f1fcf1]',
+                titleStyle: banner.titleStyle,
+                subtitleStyle: banner.subtitleStyle,
+                textPosition: banner.textPosition || 'left'
+            }))
         : [];
 
     useEffect(() => {
@@ -81,7 +79,7 @@ const BannerSlider = () => {
                             {/* Main Title */}
                             <h2
                                 className={`font-semibold mb-2 sm:mb-4 leading-tight slide-title-${index}`}
-                                style={{ 
+                                style={{
                                     color: slide.titleStyle?.color || '#1b1b1b',
                                 }}
                             >
@@ -91,7 +89,7 @@ const BannerSlider = () => {
                             {/* Subtitle */}
                             <h1
                                 className={`font-medium mb-4 md:mb-8 leading-tight slide-subtitle-${index}`}
-                                style={{ 
+                                style={{
                                     color: slide.subtitleStyle?.color || '#555555',
                                 }}
                             >
@@ -108,29 +106,32 @@ const BannerSlider = () => {
                             {/* Button */}
                             <div className={`flex ${slide.textPosition === 'center' ? 'justify-center' : slide.textPosition === 'right' ? 'justify-end' : 'justify-start'}`}>
                                 <button className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white px-6 py-2.5 rounded-lg font-bold text-sm sm:text-base transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg shadow-[#38b47e]/20 active:scale-95"
-                                    onClick={() => window.location.href = slide.link}
+                                    onClick={() => navigate(slide.link)}
                                 >
                                     {slide.buttonText}
                                 </button>
                             </div>
 
-                            {/* Responsive scaling with dynamic classes */}
-                            <style dangerouslySetInnerHTML={{ __html: `
-                                .slide-title-${index} { 
-                                    font-size: calc(${slide.titleStyle?.fontSize || '48px'} * 0.7); 
-                                }
-                                .slide-subtitle-${index} { 
-                                    font-size: calc(${slide.subtitleStyle?.fontSize || '20px'} * 0.8); 
-                                }
-                                @media (min-width: 768px) {
-                                    .slide-title-${index} { font-size: ${slide.titleStyle?.fontSize || '48px'} !important; }
-                                    .slide-subtitle-${index} { font-size: ${slide.subtitleStyle?.fontSize || '20px'} !important; }
-                                }
-                            `}} />
                         </div>
                     </div>
                 ))}
             </div>
+
+            {/* Consolidated Dynamic Styles */}
+            <style dangerouslySetInnerHTML={{
+                __html: activeSlides.map((slide, index) => `
+                    .slide-title-${index} { 
+                        font-size: calc(${slide.titleStyle?.fontSize || '48px'} * 0.7); 
+                    }
+                    .slide-subtitle-${index} { 
+                        font-size: calc(${slide.subtitleStyle?.fontSize || '20px'} * 0.8); 
+                    }
+                    @media (min-width: 768px) {
+                        .slide-title-${index} { font-size: ${slide.titleStyle?.fontSize || '48px'} !important; }
+                        .slide-subtitle-${index} { font-size: ${slide.subtitleStyle?.fontSize || '20px'} !important; }
+                    }
+                `).join('\n')
+            }} />
 
             {/* Pagination Dots */}
             {activeSlides.length > 1 && (
