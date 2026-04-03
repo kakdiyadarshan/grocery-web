@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Check, ArrowRight, Download } from "lucide-react";
 import jsPDF from "jspdf";
 import { useDispatch, useSelector } from "react-redux";
-import { getOrderById } from "../redux/slice/order.slice";
+import { getOrderById, verifyStripeSession } from "../redux/slice/order.slice";
 import { getCart, clearCart, removeCoupon } from "../redux/slice/cart.slice";
 import { BASE_URL } from "../utils/baseUrl";
 import logo from "../Image/logo.png";
@@ -24,16 +24,7 @@ const OrderCompleted = () => {
 
       if (sessionId && !orderId) {
         try {
-          const token = localStorage.getItem('token');
-          const response = await fetch(`${BASE_URL}/verifyStripeSession`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ sessionId })
-          });
-          const result = await response.json();
+          const result = await dispatch(verifyStripeSession(sessionId)).unwrap();
           if (result.success && result.data?._id) {
             currentId = result.data._id;
           }

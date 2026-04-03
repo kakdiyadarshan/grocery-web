@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import axios from 'axios';
-import { BASE_URL } from '../utils/baseUrl';
+import { useDispatch } from 'react-redux';
+import { trackOrder } from '../redux/slice/order.slice';
 import {
   Package,
   Truck,
@@ -14,6 +14,7 @@ import ReviewModal from '../component/ReviewModal';
 
 const OrderTracking = () => {
   const { id } = useParams();
+  const dispatch = useDispatch();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
@@ -22,11 +23,8 @@ const OrderTracking = () => {
   useEffect(() => {
     const fetchTracking = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get(`${BASE_URL}/trackOrder/${id}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        setData(res.data.data);
+        const res = await dispatch(trackOrder(id)).unwrap();
+        setData(res);
       } catch (err) {
         console.error(err);
       } finally {
@@ -36,7 +34,7 @@ const OrderTracking = () => {
     fetchTracking();
     const timer = setInterval(fetchTracking, 30000); // Refresh every 30s
     return () => clearInterval(timer);
-  }, [id]);
+  }, [dispatch, id]);
 
 
   if (loading || !data) {
@@ -78,8 +76,8 @@ const OrderTracking = () => {
 
   const items = data.items || [];
   const subtotal = items.reduce((acc, item) => {
-      const price = item.selectedVariant?.discountPrice ?? item.selectedVariant?.price ?? 0;
-      return acc + (price * item.quantity);
+    const price = item.selectedVariant?.discountPrice ?? item.selectedVariant?.price ?? 0;
+    return acc + (price * item.quantity);
   }, 0);
   const tax = subtotal * 0.08;
   const shipping = items.length > 0 ? (subtotal >= 50 ? 0 : 5.99) : 0;
@@ -115,14 +113,14 @@ const OrderTracking = () => {
 
           <div className="text-left md:text-right flex flex-col items-start md:items-end gap-2">
             <div className="flex flex-wrap items-center gap-2">
-               <p className="text-sm text-gray-500 font-medium">Order ID: <span className="font-bold text-gray-900">{displayId}</span></p>
+              <p className="text-sm text-gray-500 font-medium">Order ID: <span className="font-bold text-gray-900">{displayId}</span></p>
             </div>
-            
+
             <div className="flex flex-wrap items-center gap-2 md:justify-end">
-                <div className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-700 px-3 py-1 rounded-full text-xs font-bold border border-orange-100">
-                  <Truck className="w-3.5 h-3.5" />
-                  Flash Delivery
-                </div>
+              <div className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-700 px-3 py-1 rounded-full text-xs font-bold border border-orange-100">
+                <Truck className="w-3.5 h-3.5" />
+                Flash Delivery
+              </div>
             </div>
           </div>
         </div>

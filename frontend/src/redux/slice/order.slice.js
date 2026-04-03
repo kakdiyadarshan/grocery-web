@@ -177,7 +177,39 @@ export const fetchRevenueAnalytics = createAsyncThunk(
     }
 );
 
+export const verifyStripeSession = createAsyncThunk(
+    'order/verifyStripeSession',
+    async (sessionId, { dispatch, rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.post(`${BASE_URL}/verifyStripeSession`, { sessionId }, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            return response.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
 
+export const trackOrder = createAsyncThunk(
+    'order/trackOrder',
+    async (id, { dispatch, rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`${BASE_URL}/trackOrder/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            return response.data.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
 
 const orderSlice = createSlice({
 
@@ -257,7 +289,13 @@ const orderSlice = createSlice({
             })
             .addCase(fetchRevenueAnalytics.rejected, (state, action) => {
                 state.loading = false;
-            });
+            })
+            .addCase(verifyStripeSession.pending, (state) => { state.loading = true; })
+            .addCase(verifyStripeSession.fulfilled, (state) => { state.loading = false; })
+            .addCase(verifyStripeSession.rejected, (state) => { state.loading = false; })
+            .addCase(trackOrder.pending, (state) => { state.loading = true; })
+            .addCase(trackOrder.fulfilled, (state) => { state.loading = false; })
+            .addCase(trackOrder.rejected, (state) => { state.loading = false; });
 
 
     }
