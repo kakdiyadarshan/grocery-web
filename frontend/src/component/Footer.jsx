@@ -1,38 +1,15 @@
-import React, { useEffect } from 'react';
-import { ChevronUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { FaFacebookF, FaInstagram, FaYoutube, FaCcVisa, FaCcMastercard, FaCcAmex, FaCcPaypal, FaCcDiscover } from 'react-icons/fa';
-import { TiMessages } from 'react-icons/ti';
 import { FaXTwitter } from 'react-icons/fa6';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 const Footer = () => {
-    const dispatch = useDispatch();
     const { categories } = useSelector((state) => state.category);
-
-    // const scrollToTop = () => {
-    //     window.scrollTo({
-    //         top: 0,
-    //         behavior: 'smooth'
-    //     });
-    // };
 
     return (
         <footer className="bg-white border-t border-gray-100 pt-16 pb-8 relative mt-12">
             <div className="container mx-auto px-4 lg:px-6">
-
-                {/* Scroll To Top Button  */}
-                {/* <button 
-                    onClick={scrollToTop}
-                    className="absolute bottom-20 right-6 sm:right-10 w-10 h-10 bg-[var(--primary)] text-white rounded-full flex items-center justify-center hover:bg-[var(--primary-hover)] transition-colors shadow-md z-10"
-                    aria-label="Scroll to top"
-                >
-                    <ChevronUp className="w-5 h-5 stroke-[2.5]" />
-                </button> */}
-
-
                 <div className="grid grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr] gap-8 md:gap-x-4 lg:gap-8 pb-12">
-
                     {/* Column 1: Contact Us */}
                     <div className="col-span-2 md:col-span-1 order-1 lg:border-r border-gray-100 lg:pr-8">
                         <h3 className="text-[16px] sm:text-[17px] font-bold text-[var(--text-gray)] mb-6 tracking-wide">Contact Us</h3>
@@ -45,7 +22,6 @@ const Footer = () => {
                         <p className="text-[18px] sm:text-[20px] font-bold text-[var(--primary)] tracking-wider mb-6">
                             +81 520-150-001
                         </p>
-
                     </div>
 
                     {/* Column 2: Category */}
@@ -84,10 +60,9 @@ const Footer = () => {
                             <li><Link to="/privacy-policy" className="text-[14.5px] text-gray-500 hover:text-[var(--primary)] transition-colors inline-block">Privacy Policy</Link></li>
                         </ul>
                     </div>
-
                 </div>
-                <div className="border-t border-gray-100 pt-8 flex flex-col lg:flex-row items-center justify-between gap-6">
 
+                <div className="border-t border-gray-100 pt-8 flex flex-col lg:flex-row items-center justify-between gap-6">
                     {/* Social Icons */}
                     <div className="flex items-center gap-3">
                         <a href="https://www.facebook.com/" className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-[var(--primary)] hover:text-white hover:border-[var(--primary)] transition-all">
@@ -105,7 +80,7 @@ const Footer = () => {
                     </div>
 
                     <p className="text-[13.5px] text-gray-500 text-center">
-                        &copy; 2026, Gromend - Grocery Store
+                        &copy; {new Date().getFullYear()}, Gromend - Grocery Store
                     </p>
 
                     {/* Payment Icons */}
@@ -116,9 +91,7 @@ const Footer = () => {
                         <FaCcPaypal className="text-[#003087]" />
                         <FaCcDiscover className="text-[#e2531a]" />
                     </div>
-
                 </div>
-
             </div>
         </footer>
     );

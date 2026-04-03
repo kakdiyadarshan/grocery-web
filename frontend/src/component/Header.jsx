@@ -29,7 +29,6 @@ const Header = () => {
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const [recentSearches, setRecentSearches] = useState([]);
-  // const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const userMenuRef = useRef(null);
   const categoryMenuRef = useRef(null);
   const desktopSearchRef = useRef(null);
@@ -121,7 +120,6 @@ const Header = () => {
       .join('')
     : 'U';
 
-  // const handleLogout = () => {
   const handleLogoutClick = () => {
     setIsLogoutModalOpen(true);
     setIsUserMenuOpen(false);
@@ -429,16 +427,6 @@ const Header = () => {
                               My Profile
                             </Link>
                           </li>
-                          {/* <li>
-                            <Link
-                              to="/my-order"
-                              onClick={() => setIsUserMenuOpen(false)}
-                              className="flex items-center gap-3 px-5 py-2.5 text-[14px] text-[var(--text-gray)] hover:text-[var(--primary)] hover:bg-gray-50 transition-all font-medium"
-                            >
-                              <ShoppingBag size={17} className="stroke-[1.5]" />
-                              My Orders
-                            </Link>
-                          </li> */}
                           <li className="border-t border-gray-100 mt-1 pt-1">
                             <button
                               onClick={handleLogoutClick}
@@ -489,7 +477,6 @@ const Header = () => {
                       </span>
                     )
                   }
-
                 </div>
               </Link>
 
@@ -507,7 +494,6 @@ const Header = () => {
                       </span>
                     )
                   }
-
                 </div>
                 <span className="hidden md:block font-medium text-[var(--text-gray)] ml-1">My Cart</span>
               </button>
@@ -672,36 +658,6 @@ const Header = () => {
 
       {/* Logout Confirmation Modal */}
       {isLogoutModalOpen && (
-        // <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-        //   <div
-        //     className="absolute inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity"
-        //     onClick={() => setIsLogoutModalOpen(false)}
-        //   ></div>
-
-        //   <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-[450px] p-8 md:p-10 transform transition-all animate-in fade-in zoom-in duration-200">
-        //     <div className="text-center">
-        //       <h3 className="text-xl md:text-2xl font-semibold text-[#1F2937] mb-8">
-        //         Are you sure you want to signOut?
-        //       </h3>
-
-        //       <div className="flex items-center justify-center gap-4">
-        //         <button
-        //           onClick={confirmLogout}
-        //           className="flex-1 bg-[#F34E4E] hover:bg-[#E33E3E] text-white font-semibold py-3 px-6 rounded-lg transition-colors shadow-sm active:scale-95"
-        //         >
-        //           SignOut
-        //         </button>
-        //         <button
-        //           onClick={() => setIsLogoutModalOpen(false)}
-        //           className="flex-1 bg-white border border-gray-200 hover:bg-gray-50 text-[#1F2937] font-semibold py-3 px-6 rounded-lg transition-colors active:scale-95"
-        //         >
-        //           Cancel
-        //         </button>
-        //       </div>
-        //     </div>
-        //   </div>
-        // </div>
-
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
 
           <div

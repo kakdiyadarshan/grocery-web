@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { X, Minus, Plus, Trash2, ChevronDown, ShoppingBag } from 'lucide-react';
+import { X, Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { removeFromCart, updateCartQuantity } from '../redux/slice/cart.slice';
@@ -8,8 +7,6 @@ const Cart = ({ isOpen, onClose }) => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { cart } = useSelector((state) => state.cart);
-    // const [showInstructions, setShowInstructions] = useState(false);
-    const [instructions, setInstructions] = useState('');
 
     const cartItems = cart?.items?.filter(item => item?.productId && (item.productId.name || item.productId.productName)) || [];
     const subtotal = cartItems.reduce((acc, item) => {
@@ -25,7 +22,6 @@ const Cart = ({ isOpen, onClose }) => {
         return variant.stock !== undefined && (variant.stock <= 0 || item.quantity > variant.stock);
     });
 
-
     const handleUpdateQuantity = (productId, variantId, newQuantity) => {
         if (newQuantity < 1) return;
         dispatch(updateCartQuantity({ productId, variantId, quantity: newQuantity }));
@@ -34,7 +30,6 @@ const Cart = ({ isOpen, onClose }) => {
     const handleRemove = (productId, variantId) => {
         dispatch(removeFromCart({ productId, variantId }));
     };
-
 
     const handleCheckout = () => {
         onClose();
@@ -119,8 +114,6 @@ const Cart = ({ isOpen, onClose }) => {
                                                 )}
                                             </div>
 
-
-
                                             {/* Controls */}
                                             <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-3 sm:mt-4">
                                                 <div className="flex items-center border border-gray-200 rounded px-2 w-[75px] sm:w-[85px] h-8 sm:h-9 justify-between">
@@ -157,7 +150,6 @@ const Cart = ({ isOpen, onClose }) => {
                                     </div>
                                     <span className="font-bold text-[var(--primary)] text-[14px] sm:text-[16px] shrink-0 whitespace-nowrap">${(price * (Number(wish.quantity) || 0)).toFixed(2)}</span>
 
-
                                 </div>
                             );
                         })
@@ -173,26 +165,6 @@ const Cart = ({ isOpen, onClose }) => {
                 {/* Footer */}
                 {cartItems.length > 0 && (
                     <div className="px-4 sm:px-6 py-6 border-t border-gray-100 bg-white">
-                        {/* <div className="mb-6 border-b border-gray-100 pb-6">
-                            <button
-                                onClick={() => setShowInstructions(!showInstructions)}
-                                className="flex items-center justify-between w-full text-[14px] sm:text-[15px] text-[var(--text-gray)] group text-left"
-                            >
-                                <span className="truncate pr-2 font-medium group-hover:text-[var(--primary)] transition-colors">Order special instructions</span>
-                                <ChevronDown className={`w-4 h-4 text-gray-400 shrink-0 transition-transform duration-300 ${showInstructions ? 'rotate-180' : ''}`} />
-                            </button>
-                            {showInstructions && (
-                                <div className="mt-4 animate-in fade-in slide-in-from-top-1">
-                                    <textarea
-                                        className="w-full border border-gray-200 rounded p-3 text-[13.5px] text-gray-600 outline-none focus:border-[var(--primary)] transition-colors resize-none shadow-sm"
-                                        rows="3"
-                                        placeholder="Add any special instructions for your order..."
-                                        value={instructions}
-                                        onChange={(e) => setInstructions(e.target.value)}
-                                    ></textarea>
-                                </div>
-                            )}
-                        </div>  */}
 
                         <div className="flex items-center justify-between mb-2">
                             <span className="font-bold text-[var(--text-gray)] text-[15px] sm:text-[17px] tracking-wide shrink-0">Subtotal</span>

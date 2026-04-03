@@ -1,12 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronRight, Package, Calendar, ShoppingBag, X, AlertTriangle } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import { getUserOrders, cancelOrder } from '../redux/slice/order.slice';
-import { toast } from 'sonner';
+import { AlertTriangle } from 'lucide-react';
 
-// ✅ Custom confirm dialog component
-const ConfirmDialog = ({ isOpen, onConfirm, onCancel, orderId }) => {
+// Custom confirm dialog component
+const ConfirmDialog = ({ isOpen, onConfirm, onCancel }) => {
     if (!isOpen) return null;
 
     return (
