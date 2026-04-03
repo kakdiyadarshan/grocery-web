@@ -125,7 +125,7 @@ const Product = () => {
             if (values.tags && values.tags.length > 0) {
                 values.tags.forEach(tag => formData.append('tags', tag));
             } else {
-                formData.append('tags', '[]'); 
+                formData.append('tags', '[]');
             }
 
             values.images.forEach((image) => {
@@ -557,6 +557,31 @@ const Product = () => {
 
                                     {/* Right Side: Pricing & Stock */}
                                     <div className="space-y-6">
+                                        <div>
+                                            <CustomSelect
+                                                label="Seller"
+                                                className="w-full"
+                                                options={[
+                                                    {
+                                                        value: 'seller1', label: "John's Store"
+                                                    },
+                                                    { value: 'seller2', label: 'Fresh Farms' },
+                                                    { value: 'seller3', label: 'Green Mart' },
+                                                ]}
+                                                value={formik.values.seller}
+                                                onChange={(value) => formik.setFieldValue('seller', value)}
+                                                placeholder="Select Seller"
+                                                required
+                                                buttonClassName={
+                                                    formik.touched.seller && formik.errors.seller
+                                                        ? 'border-red-500'
+                                                        : 'border-gray-200'
+                                                }
+                                            />
+                                            {formik.touched.seller && formik.errors.seller && (
+                                                <p className="text-xs text-red-500">{formik.errors.seller}</p>
+                                            )}
+                                        </div>
                                         <div className="space-y-3">
                                             <div className="flex justify-between items-center">
                                                 <label className="text-sm font-semibold text-gray-700">Weights & Price</label>
