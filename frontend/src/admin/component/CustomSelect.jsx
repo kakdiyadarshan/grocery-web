@@ -14,7 +14,8 @@ const CustomSelect = ({
     required = false,
     searchable = true,
     dropdownClassName = "",
-    optionClassName = ""
+    optionClassName = "",
+    disabled = false
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -80,8 +81,9 @@ const CustomSelect = ({
             )}
             <button
                 type="button"
-                onClick={() => setIsOpen(!isOpen)}
-                className={`flex items-center justify-between gap-2 w-full px-4 py-3 bg-white border ${isOpen ? 'border-primary ring-1 ring-primary/20' : 'border-gray-200'} rounded-[4px] text-sm text-gray-700 hover:border-gray-300 transition-all outline-none ${buttonClassName}`}
+                onClick={() => !disabled && setIsOpen(!isOpen)}
+                disabled={disabled}
+                className={`flex items-center justify-between gap-2 w-full px-4 py-3 ${disabled ? 'bg-gray-50 cursor-not-allowed opacity-75' : 'bg-white'} border ${isOpen ? 'border-primary ring-1 ring-primary/20' : 'border-gray-200'} rounded-[4px] text-sm text-gray-700 hover:border-gray-300 transition-all outline-none ${buttonClassName}`}
             >
                 <div className="flex items-center gap-2 truncate">
                     {getDisplayIcon()}

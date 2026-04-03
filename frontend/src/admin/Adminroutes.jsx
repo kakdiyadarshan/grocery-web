@@ -5,7 +5,6 @@ import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
 import { useSelector } from 'react-redux'
 import PrivateRoute from './PrivateRoute'
-import DataTable from './component/DataTable'
 import Product from './pages/Product'
 import Category from './pages/Category'
 import PrivacyPolicy from './pages/PrivacyPolicy'
@@ -70,9 +69,6 @@ const Adminroutes = () => {
                     <Route path="reviews" element={<Reviews />} />
                     <Route path="users" element={<Users />} />
                     <Route path="coupons" element={<Coupon />} />
-
-                    <Route path="settings" element={<div className="p-6 h-full flex items-center justify-center text-gray-400 font-medium">Coming Soon</div>} />
-
                     <Route path="contact-us" element={<ContactUs />} />
                 </Route>
             </Route>

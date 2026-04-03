@@ -1,14 +1,11 @@
 import React, { useState } from 'react';
-import Header from '../component/Header';
-import Footer from '../component/Footer';
-import { ChevronRight, Banknote, ChevronDown } from 'lucide-react';
-import { FaCcMastercard, FaCcAmex, FaStripe } from 'react-icons/fa';
+import { ChevronRight, Banknote } from 'lucide-react';
+import {  FaStripe } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { BASE_URL } from '../utils/baseUrl';
 import { toast } from 'sonner';
 import { createOrder as triggerCreateOrder } from '../redux/slice/order.slice';
-import { clearCart, removeCoupon } from '../redux/slice/cart.slice';
+import {  removeCoupon } from '../redux/slice/cart.slice';
 import { fetchAddresses, addAddress, updateAddress, deleteAddress } from '../redux/slice/address.slice';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
@@ -18,7 +15,6 @@ import DeleteModal from '../admin/component/DeleteModal';
 
 const CheckOut = () => {
   const [paymentMethod, setPaymentMethod] = useState('cod');
-  const [isBankDropdownOpen, setIsBankDropdownOpen] = useState(false);
   const { loading: orderLoading } = useSelector(state => state.order);
   const dispatch = useDispatch();
 
@@ -41,7 +37,6 @@ const CheckOut = () => {
     }
   }, [appliedCoupon]);
 
-  console.log("items", items);
   // Calculate totals
   const subtotal = items.reduce((acc, item) => {
     const variant = item.selectedVariant;
@@ -73,7 +68,7 @@ const CheckOut = () => {
     upiId: '',
     selectedBank: ''
   });
-  const [errors, setErrors] = useState({});
+  
   const [useSavedAddress, setUseSavedAddress] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -120,13 +115,6 @@ const CheckOut = () => {
     }
   }, [useSavedAddress, selectedAddress, user]);
 
-  const banks = [
-    "State Bank of India",
-    "HDFC Bank",
-    "ICICI Bank",
-    "Axis Bank",
-    "Kotak Mahindra Bank"
-  ];
 
   const handleAddressSubmit = async (values, { resetForm, setSubmitting }) => {
     try {
@@ -158,45 +146,19 @@ const CheckOut = () => {
         setAddressToDelete(null);
       } catch (error) {
         // error toast handled by slice
+        console.error(error);
       }
     }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name === "phone") {
-      if (!/^\d*$/.test(value)) {
-        setErrors(prev => ({
-          ...prev,
-          phone: "Only numbers are allowed"
-        }));
-      } else {
-        setErrors(prev => ({
-          ...prev,
-          phone: ""
-        }));
-      }
-    }
-
-    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handlePlaceOrder = async () => {
-    const newErrors = {};
-
+    
     if (!selectedAddress) {
       toast.error("Please select a shipping address");
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
-    // Payment specific validation is no longer needed for UPI/Net Banking
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
 
     try {
       const currentUserId = user?._id || localStorage.getItem('userId');
@@ -244,9 +206,6 @@ const CheckOut = () => {
         }
       };
 
-      console.log("Placing Order with data:", orderData);
-
-
       const resultAction = await dispatch(triggerCreateOrder(orderData));
 
       if (triggerCreateOrder.fulfilled.match(resultAction)) {
@@ -274,10 +233,6 @@ const CheckOut = () => {
       console.error("Order Error:", error);
     }
   };
-
-  const handleNavigate = () => {
-    navigate('/profile?tab=Address');
-  }
 
   return (
     <div className="flex flex-col min-h-screen bg-[#fafafa]">

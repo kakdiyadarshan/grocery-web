@@ -3,14 +3,13 @@ import { useDispatch } from 'react-redux';
 import { createFAQ, updateFAQ, getAllFAQs } from '../../redux/slice/faq.slice';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
-import { Loader2, Plus, Trash2, Copy } from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
 import { FiX } from 'react-icons/fi';
 import * as Yup from 'yup';
 import { toast } from 'sonner';
 import { MdOutlineContentCopy } from 'react-icons/md';
 import { LuTrash2 } from 'react-icons/lu';
 
-// Utility to naturally strip any old HTML tags from titles/questions since we are upgrading to clean inputs
 const stripHtml = (html) => {
     if (!html) return '';
     const tmp = document.createElement("DIV");
@@ -64,7 +63,6 @@ const AddFaqs = ({ editingFaq, onClose }) => {
                     faqAnswer: f.faqAnswer || ''
                 })));
             } else if (editingFaq.question && editingFaq.answer) {
-                // Legacy support
                 setFaqs([{
                     id: Date.now().toString(),
                     faqQuestion: stripHtml(editingFaq.question),
@@ -142,7 +140,6 @@ const AddFaqs = ({ editingFaq, onClose }) => {
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
             <div className="bg-white rounded-[4px] shadow-2xl w-full max-w-[800px] overflow-hidden transform transition-all flex flex-col max-h-[92vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-5 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
 
-                {/* Header */}
                 <div className="px-5 py-4 sm:p-6 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-20 shadow-sm">
                     <div>
                         <h3 className="text-lg sm:text-[20px] font-[800] text-gray-800 tracking-tight">
@@ -154,10 +151,8 @@ const AddFaqs = ({ editingFaq, onClose }) => {
                     </button>
                 </div>
 
-                {/* Body Form Layout */}
                 <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-gray-50/50 editor-scrollbar">
 
-                    {/* Main Title Input */}
                     <div className="mb-6 sm:mb-8 p-4 sm:p-6 bg-white border border-gray-200 rounded-[4px] shadow-sm hover:shadow-md transition-shadow">
                         <label className="block text-xs sm:text-sm font-bold text-textPrimary capitalize mb-2 sm:mb-3">
                             FAQ Title <span className="text-primary">*</span>
@@ -172,7 +167,6 @@ const AddFaqs = ({ editingFaq, onClose }) => {
                         {errors.title && <p className="text-red-500 text-xs mt-2 font-medium flex items-center gap-1"><FiX size={12} />{errors.title}</p>}
                     </div>
 
-                    {/* Questions Array Container */}
                     <div className="space-y-4 sm:space-y-6">
                         {faqs.map((faq, index) => {
                             const qError = errors[`faqs[${index}].faqQuestion`];
@@ -180,8 +174,6 @@ const AddFaqs = ({ editingFaq, onClose }) => {
 
                             return (
                                 <div key={faq.id} className="relative p-4 sm:p-6 bg-white border border-gray-200 rounded-[4px] shadow-sm hover:shadow-md hover:border-gray-300 transition-all group">
-
-                                    {/* Action Buttons - Responsive Header */}
                                     <div className="flex flex-row justify-between items-center mb-4 sm:mb-5 pb-3 sm:pb-0 border-b border-gray-100 sm:border-0 relative">
                                         <div className="flex items-center gap-2 sm:gap-3">
                                             <span className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-[4px] bg-primary text-white font-bold text-xs sm:text-sm shadow-sm">
@@ -195,8 +187,6 @@ const AddFaqs = ({ editingFaq, onClose }) => {
                                             <button onClick={() => handleRemoveFaq(faq.id)} className="p-1.5 bg-gray-50 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-[4px] text-gray-500 hover:text-red-500 shadow-sm transition-colors" title="Delete"><LuTrash2 size={16} /></button>
                                         </div>
                                     </div>
-
-                                    {/* Standard Input for Question */}
                                     <div className="mb-4 sm:mb-5">
                                         <label className="block text-xs font-bold text-textPrimary capitalize tracking-wider mb-2">Question Text</label>
                                         <input
@@ -208,8 +198,6 @@ const AddFaqs = ({ editingFaq, onClose }) => {
                                         />
                                         {qError && <p className="text-red-500 text-xs mt-1.5 font-medium">{qError}</p>}
                                     </div>
-
-                                    {/* Standard Quill for Answer */}
                                     <div>
                                         <label className="block text-xs font-bold text-textPrimary capitalize tracking-wider mb-2">Answer Content</label>
                                         <div className={`rounded-[4px] border ${aError ? 'border-red-400' : 'border-gray-200 hover:border-gray-300'} focus-within:border-primary focus-within:ring-[1px] focus-within:ring-primary transition-all bg-white quill-wrapper-fix relative`}>
@@ -228,7 +216,6 @@ const AddFaqs = ({ editingFaq, onClose }) => {
                             );
                         })}
                     </div>
-
                     <button
                         onClick={handleAddFaq}
                         className="mt-6 sm:mt-8 w-full py-4 sm:py-4 border-2 border-dashed border-gray-300 rounded-[4px] text-gray-500 hover:border-primary hover:text-primary bg-white hover:bg-primary/5 transition-all flex items-center justify-center gap-3 group shadow-sm active:scale-[0.99]"
@@ -238,12 +225,9 @@ const AddFaqs = ({ editingFaq, onClose }) => {
                         </div>
                         <span className="font-bold text-xs sm:text-sm capitalize">Add Another Question</span>
                     </button>
-
-                    {/* Extra padding for mobile clear scroll */}
                     <div className="h-6 sm:hidden"></div>
                 </div>
 
-                {/* Footer Controls */}
                 <div className="flex flex-col-reverse sm:flex-row justify-end items-stretch sm:items-center gap-3 sm:gap-4 p-4 sm:px-8 sm:py-5 border-t border-gray-100 bg-white shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.02)]">
                     <button
                         type="button"
@@ -262,10 +246,8 @@ const AddFaqs = ({ editingFaq, onClose }) => {
                         {editingFaq ? 'Update FAQ' : 'Add FAQ'}
                     </button>
                 </div>
-
             </div>
 
-            {/* Global CSS injected to fix ReactQuill responsive toolbar and Link tooltip */}
             <style dangerouslySetInnerHTML={{
                 __html: `
                 .quill-wrapper-fix .ql-toolbar {

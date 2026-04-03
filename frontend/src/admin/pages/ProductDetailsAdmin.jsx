@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MdKeyboardArrowRight, MdKeyboardArrowUp, MdKeyboardArrowDown } from "react-icons/md";
-import { AiFillStar, AiOutlineStar } from "react-icons/ai";
-import { FiMinus, FiPlus, FiX, FiArrowRight, FiMessageSquare, FiShoppingCart } from "react-icons/fi";
+import { MdKeyboardArrowUp, MdKeyboardArrowDown } from "react-icons/md";
+import { AiFillStar } from "react-icons/ai";
+import { FiArrowRight, FiShoppingCart } from "react-icons/fi";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getProductById, getAllProducts } from '../../redux/slice/product.slice';
@@ -27,7 +27,6 @@ function ProductDetailsAdmin() {
 
     const images = product?.images?.map(img => img.url) || [];
     const [selectedImage, setSelectedImage] = useState(null);
-    const [quantity, setQuantity] = useState(1);
     const [selectedVariant, setSelectedVariant] = useState(null);
     const [startIndex, setStartIndex] = useState(0);
     const [activeTab, setActiveTab] = useState('description');
@@ -35,7 +34,6 @@ function ProductDetailsAdmin() {
     const tabsRef = useRef(null);
 
     useEffect(() => {
-        // Hide global browser scrollbar on this page
         document.body.classList.add('no-scrollbar');
         return () => {
             document.body.classList.remove('no-scrollbar');
@@ -43,14 +41,11 @@ function ProductDetailsAdmin() {
     }, []);
 
     useEffect(() => {
-        // Lock background scroll when drawer is open
         if (isReviewDrawerOpen) {
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = 'auto';
         }
-
-        // Cleanup on unmount
         return () => {
             document.body.style.overflow = 'auto';
         };
@@ -62,8 +57,6 @@ function ProductDetailsAdmin() {
             tabsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
     };
-
-
 
     useEffect(() => {
         if (product?.images?.length > 0) {
@@ -81,7 +74,6 @@ function ProductDetailsAdmin() {
 
     return (
         <div className="bg-white min-h-screen no-scrollbar">
-            {/* ===== Breadcrumbs ===== */}
             <div className="mx-auto md:mt-6 mt-4">
                 <div className="flex flex-col">
                     <h2 className="text-2xl font-bold text-gray-800 text-textprimary tracking-tight">{product.name}</h2>
@@ -89,7 +81,6 @@ function ProductDetailsAdmin() {
                 </div>
             </div>
 
-            {/* ===== Main Container ===== */}
             <div className="mx-auto py-8 no-scrollbar">
 
                 {/* Product Details */}
@@ -153,14 +144,12 @@ function ProductDetailsAdmin() {
 
                     {/* RIGHT: Product Details Section */}
                     <div className="lg:w-2/5 space-y-3">
-                        {/* Title */}
                         <h1 className="text-xl md:text-2xl font-semibold text-[#1F2937]">
                             {product.name}
                         </h1>
 
                         {/* Star Rating */}
                         <div className="flex items-center gap-3">
-                            {/* Stars */}
                             <div className="flex items-center gap-1">
                                 {[1, 2, 3, 4, 5].map((_, i) => (
                                     <AiFillStar
@@ -169,8 +158,6 @@ function ProductDetailsAdmin() {
                                     />
                                 ))}
                             </div>
-
-                            {/* Divider */}
                             <div className="w-px h-4 bg-gray-300"></div>
 
                             {/* Rating Count */}
@@ -182,19 +169,14 @@ function ProductDetailsAdmin() {
                         {/* Price Section */}
                         <div className="flex items-center justify-between gap-3 mt-4 flex-wrap">
                             <div className="flex items-center gap-3">
-                                {/* Discounted Price */}
                                 <span className="text-2xl md:text-3xl font-bold text-primary">
                                     ${selectedVariant?.discountPrice || selectedVariant?.price || 0}
                                 </span>
-
-                                {/* Original Price */}
                                 {selectedVariant?.discountPrice < selectedVariant?.price && (
                                     <span className="text-sm md:text-base text-gray-400 line-through">
                                         ${selectedVariant?.price}
                                     </span>
                                 )}
-
-                                {/* Discount Badge */}
                                 {product.offer && (
                                     <span className="text-xs md:text-sm font-medium text-red-500 bg-[#FFF1F1] px-2 py-1 rounded-md border border-[#FFE4E4]">
                                         {product.offer.offer_type === 'Discount'
@@ -365,7 +347,6 @@ function ProductDetailsAdmin() {
                 </div>
             </div>
 
-            {/* Review Drawer Overlay */}
             <ReviewDrawer
                 isOpen={isReviewDrawerOpen}
                 onClose={() => setIsReviewDrawerOpen(false)}

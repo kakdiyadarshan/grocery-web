@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './component/Sidebar';
 import Header from './component/Header';
-// import Breadcrumb from './component/Breadcrumb';
 
 const Layout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -29,7 +28,6 @@ const Layout = () => {
         {/* Content */}
         <main className="flex-1 px-4 md:px-8 overflow-x-hidden no-scrollbar">
           <div>
-            {/* <Breadcrumb /> */}
             <Outlet />
           </div>
         </main>

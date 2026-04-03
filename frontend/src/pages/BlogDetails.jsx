@@ -1,10 +1,9 @@
-import React, { useEffect } from 'react';
+import  { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getBlogById } from '../redux/slice/blog.slice';
-import Subscribe from './Subscribe';
 import Newsletter from '../component/Newsletter';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 
 function BlogDetails() {
     const { id } = useParams();
@@ -53,19 +52,6 @@ function BlogDetails() {
                     </div>
                 </div>
             </div>
-
-            {/* <div className=" py-12 ">
-                <div className=" mx-auto px-4 lg:px-6">
-                    <h1 className="text-[28px] sm:text-[32px] font-bold text-[#1e5066] mb-3 text-left">Blog Details</h1>
-                    <div className="flex items-center gap-1 text-[14px] text-gray-500 font-medium">
-                        <Link to="/" className="hover:text-[var(--primary)] transition-colors">Home</Link>
-                        <ChevronRight className="w-4 h-4 text-gray-400" />
-                        <Link to="/blog" className="hover:text-[var(--primary)] transition-colors">Blog</Link>
-                        <ChevronRight className="w-4 h-4 text-gray-400" />
-                        <span className="text-[var(--primary)] font-bold">Blog Details</span>
-                    </div>
-                </div>
-            </div> */}
 
             <div className="w-full container mx-auto px-4 py-4 sm:py-6 lg:py-8 mt-10 mb-20 animate-fade-in font-jost">
 

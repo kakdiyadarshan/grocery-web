@@ -5,12 +5,10 @@ import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { HexColorPicker } from 'react-colorful';
 import { TbTextSize } from "react-icons/tb";
-import {
-    MdFormatBold, MdFormatItalic, MdFormatUnderlined, MdFormatAlignLeft, MdFormatAlignCenter, MdFormatAlignRight, MdFormatAlignJustify, MdFormatListBulleted, MdFormatListNumbered, MdFormatIndentDecrease, MdFormatIndentIncrease, MdLink, MdUndo, MdRedo, MdDelete, MdOutlineFileUpload, MdOutlineContentCopy, MdMenu
-} from "react-icons/md";
+import { MdFormatBold, MdFormatItalic, MdFormatUnderlined, MdFormatAlignLeft, MdFormatAlignCenter, MdFormatAlignRight, MdFormatAlignJustify, MdFormatListBulleted, MdFormatListNumbered, MdFormatIndentDecrease, MdFormatIndentIncrease, MdLink, MdUndo, MdRedo, MdOutlineFileUpload, MdOutlineContentCopy } from "react-icons/md";
 import { CgColorPicker } from "react-icons/cg";
 import { AiOutlineBars, AiOutlineFontColors } from "react-icons/ai";
-import { FaCheck, FaRegCheckCircle, FaRegImage, FaRegImages } from "react-icons/fa";
+import { FaCheck, FaRegCheckCircle, FaRegImage } from "react-icons/fa";
 import { PiTextStrikethroughBold } from "react-icons/pi";
 import { TiArrowSortedDown } from "react-icons/ti";
 import { IoIosLink, IoMdClose, IoMdLink } from "react-icons/io";
@@ -18,7 +16,6 @@ import { Loader2 } from 'lucide-react';
 import { LuTrash2 } from 'react-icons/lu';
 import AdminLoader from '../component/AdminLoader';
 import { FiShoppingCart } from 'react-icons/fi';
-
 
 const Quill = ReactQuill.Quill;
 if (Quill) {

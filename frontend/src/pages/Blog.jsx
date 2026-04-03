@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react';
-import Subscribe from './Subscribe';
+import  { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';

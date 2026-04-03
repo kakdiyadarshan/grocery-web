@@ -5,12 +5,12 @@ import DataTable from '../component/DataTable';
 import Breadcrumb from '../component/Breadcrumb';
 import { IMAGE_URL } from '../../utils/baseUrl';
 import { deleteReview } from '../../redux/slice/review.slice';
-import { FiX, FiStar, FiShoppingCart } from 'react-icons/fi';
+import { FiX, FiShoppingCart } from 'react-icons/fi';
 import AdminLoader from '../component/AdminLoader';
 
 const Reviews = () => {
     const dispatch = useDispatch();
-    const { reviews, loading, error } = useSelector((state) => state.review);
+    const { reviews, loading } = useSelector((state) => state.review);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedReview, setSelectedReview] = useState(null);
@@ -207,7 +207,6 @@ const Reviews = () => {
                                 </div>
                             )}
                         </div>
-                        {/* Footer */}
                         <div className="lg:p-6 sm:p-4 p-3 border-t border-gray-100 bg-gray-50 flex justify-end">
                             <button
                                 onClick={onClose}

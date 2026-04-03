@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { MdKeyboardArrowRight, MdVisibility, MdKeyboardArrowUp, MdKeyboardArrowDown } from "react-icons/md";
-import { AiOutlineHeart, AiFillStar, AiOutlineStar, AiFillHeart } from "react-icons/ai";
-import { IoIosGitCompare } from "react-icons/io";
+import { useState, useEffect, useRef } from 'react';
+import { MdKeyboardArrowRight, MdKeyboardArrowUp, MdKeyboardArrowDown } from "react-icons/md";
+import { AiOutlineHeart, AiFillStar, AiFillHeart } from "react-icons/ai";
 import { FiArrowRight, FiMinus, FiPlus, FiShoppingCart } from "react-icons/fi";
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -10,8 +9,6 @@ import { addToCart } from '../redux/slice/cart.slice';
 import { addToWishlist, removeFromWishlist } from '../redux/slice/wishlist.slice';
 import Newsletter from '../component/Newsletter';
 import ProductSlider from '../component/ProductSlider';
-
-import NewsletterImage from '../Image/newsletter.png';
 import ReviewChart from '../admin/component/reviewChart';
 import ReviewDrawer from '../admin/component/ReviewDrawer';
 
@@ -36,7 +33,7 @@ function ProductDetail() {
         if (products.length === 0) {
             dispatch(getAllProducts());
         }
-    }, [id, dispatch]);
+    }, [id, dispatch,products.length]);
 
     const images = product?.images?.map(img => img.url) || [];
     const [selectedImage, setSelectedImage] = useState(null);
@@ -103,7 +100,7 @@ function ProductDetail() {
         }
     }, [product]);
 
-    const isOutOfStock = selectedVariant?.stock === 0;  
+    const isOutOfStock = selectedVariant?.stock === 0;
 
     const incrementQuantity = () => setQuantity(prev => (prev < selectedVariant?.stock ? prev + 1 : prev));
     const decrementQuantity = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
@@ -365,7 +362,7 @@ function ProductDetail() {
                                 <FiPlus className="text-xl" />
                             </button>
                         </div>
-                        
+
                         {quantity === selectedVariant?.stock && selectedVariant?.stock > 0 && (
                             <div className="mt-2 text-xs font-semibold text-red-500 animate-pulse">
                                 Only {selectedVariant?.stock} units available in stock

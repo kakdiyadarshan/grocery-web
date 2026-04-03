@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import DataTable from '../component/DataTable';
-import { FiPlus, FiX, FiPercent, FiShoppingCart } from 'react-icons/fi';
+import { FiPlus, FiX, FiShoppingCart } from 'react-icons/fi';
 import { createOffer, getAllOffers, deleteOffer, updateOffer } from '../../redux/slice/offer.slice';
 import AdminLoader from '../component/AdminLoader';
 import CustomSelect from '../component/CustomSelect';
@@ -272,7 +272,6 @@ const Offers = () => {
                                 <FiX size={20} />
                             </button>
                         </div>
-
                         <form onSubmit={handleSubmit} className="p-8 pb-6">
                             <div className="space-y-6">
                                 <div>
@@ -285,7 +284,6 @@ const Offers = () => {
                                         className="w-full"
                                     />
                                 </div>
-
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <CustomSelect
                                         label={<span>Offer Type <span className="text-primary">*</span></span>}
@@ -297,7 +295,6 @@ const Offers = () => {
                                         onChange={(val) => setFormData({ ...formData, offer_type: val })}
                                         placeholder="Select..."
                                     />
-
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-2">Offer Value</label>
                                         <input
@@ -310,7 +307,6 @@ const Offers = () => {
                                         />
                                     </div>
                                 </div>
-
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-2">Start Date</label>
@@ -322,7 +318,6 @@ const Offers = () => {
                                             className="w-full px-4 py-2 bg-white border border-gray-200 rounded-[4px] text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all text-gray-700"
                                         />
                                     </div>
-
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-2">End Date</label>
                                         <input
@@ -335,7 +330,6 @@ const Offers = () => {
                                     </div>
                                 </div>
                             </div>
-
                             <div className="flex justify-end items-center gap-4 mt-12 mb-2">
                                 <button type="button" onClick={closeModal} className="text-[#596985] font-bold text-sm px-4 py-2.5 transition-colors hover:text-[#1a1a1a]">
                                     Cancel

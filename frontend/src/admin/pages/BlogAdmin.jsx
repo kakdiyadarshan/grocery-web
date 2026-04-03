@@ -1,38 +1,22 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Table from '../component/DataTable';
-import { FiPlus, FiTrash2, FiImage, FiArrowLeft, FiRefreshCw, FiX, FiShoppingCart } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiImage, FiArrowLeft, FiX, FiShoppingCart } from 'react-icons/fi';
 import Breadcrumb from '../component/Breadcrumb';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-    getAllBlogs,
-    createBlog,
-    updateBlog,
-    deleteBlog
-} from '../../redux/slice/blog.slice';
+import { getAllBlogs, createBlog, updateBlog, deleteBlog } from '../../redux/slice/blog.slice';
 import { getAllBlogCategory } from '../../redux/slice/blogCategory.slice';
-
-import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import CustomSelect from '../component/CustomSelect';
 import AdminLoader from '../component/AdminLoader';
 
 const BlogAdmin = () => {
     const dispatch = useDispatch();
-
-    // Select state from Redux
     const { blogs, loading, submitLoading } = useSelector(state => state.blog);
     const { blogCategory: categories } = useSelector(state => state.blogCategory);
-
-    // View state: 'list' | 'form' | 'view'
     const [view, setView] = useState('list');
     const [isEditing, setIsEditing] = useState(false);
     const [currentId, setCurrentId] = useState(null);
     const [viewBlog, setViewBlog] = useState(null);
-
-    // Delete Modal state
-    const [deleteItem, setDeleteItem] = useState(null);
-
-    // Form data
     const [formData, setFormData] = useState({
         blogTitle: '',
         blogCategoryId: '',
@@ -43,8 +27,6 @@ const BlogAdmin = () => {
     const [heroPreview, setHeroPreview] = useState(null);
     const [sections, setSections] = useState([]);
     const [errors, setErrors] = useState({});
-
-    // ─── API CALLS ──────────────────────────────────────────────────────────────
 
     const fetchBlogs = () => {
         dispatch(getAllBlogs());
@@ -58,8 +40,6 @@ const BlogAdmin = () => {
         fetchBlogs();
         fetchCategories();
     }, []);
-
-    // ─── TABLE COLUMNS ──────────────────────────────────────────────────────────
 
     const columns = [
         {
@@ -106,8 +86,6 @@ const BlogAdmin = () => {
         },
     ];
 
-    // ─── SECTION HELPERS ─────────────────────────────────────────────────────────
-
     const textToArray = (text) => {
         if (!text) return [];
         return text.split('\n').map(t => t.trim()).filter(t => t);
@@ -150,8 +128,6 @@ const BlogAdmin = () => {
             return updated;
         });
     };
-
-    // ─── FORM SUBMIT ─────────────────────────────────────────────────────────────
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -209,8 +185,6 @@ const BlogAdmin = () => {
         }
     };
 
-    // ─── CRUD HANDLERS ────────────────────────────────────────────────────────────
-
     const handleEdit = (item) => {
         setFormData({
             blogTitle: item.blogTitle || '',
@@ -262,17 +236,8 @@ const BlogAdmin = () => {
         setErrors({});
     };
 
-    // ─── RENDER ───────────────────────────────────────────────────────────────────
-
-    // if (loading) {
-    //     return <AdminLoader message="Loading blogs..." icon={FiShoppingCart} />;
-    // }
-
     return (
         <div className="font-jost">
-            {/* Header */}
-
-
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 md:my-6 my-4">
                 <div className="flex flex-col">
                     <h2 className="text-2xl font-bold text-gray-800 text-textprimary tracking-tight">Blogs</h2>
@@ -280,13 +245,13 @@ const BlogAdmin = () => {
                 </div>
                 <div className='flex items-center justify-end gap-2 ms-auto'>
                     {view === 'list' && (
-                    <button
-                        onClick={() => { setIsEditing(false); setView('form'); }}
-                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-[4px] hover:bg-primaryHover transition-colors font-medium text-sm"
-                    >
-                        <FiPlus size={18} />
-                        <span>Add Blog</span> 
-                    </button> 
+                        <button
+                            onClick={() => { setIsEditing(false); setView('form'); }}
+                            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-[4px] hover:bg-primaryHover transition-colors font-medium text-sm"
+                        >
+                            <FiPlus size={18} />
+                            <span>Add Blog</span>
+                        </button>
                     )}
                     {(view === 'form' || view === 'view') && (
                         <button
@@ -299,8 +264,6 @@ const BlogAdmin = () => {
                     )}
                 </div>
             </div>
-
-            {/* ──── LIST VIEW ──── */}
             {view === 'list' && (
                 <>
                     {loading ? (
@@ -318,8 +281,6 @@ const BlogAdmin = () => {
                     )}
                 </>
             )}
-
-            {/* ──── VIEW BLOG DETAIL ──── */}
             {view === 'view' && (
                 loading || !viewBlog ? (
                     <AdminLoader message="Loading blog details..." icon={FiShoppingCart} />
@@ -384,7 +345,6 @@ const BlogAdmin = () => {
                     </h3>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Title & Category */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -419,8 +379,6 @@ const BlogAdmin = () => {
                                 {errors.blogCategoryId && <p className="text-xs text-red-500">{errors.blogCategoryId}</p>}
                             </div>
                         </div>
-
-                        {/* Description */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Blog Description <span className="text-red-500">*</span>
@@ -438,8 +396,6 @@ const BlogAdmin = () => {
                             />
                             {errors.blogDesc && <p className="text-xs text-red-500 mt-1">{errors.blogDesc}</p>}
                         </div>
-
-                        {/* Hero Image */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Hero Image <span className="text-red-500">*</span>
@@ -490,8 +446,6 @@ const BlogAdmin = () => {
                             </div>
                             {errors.heroImage && <p className="text-xs text-red-500 mt-1">{errors.heroImage}</p>}
                         </div>
-
-                        {/* Sections */}
                         <div className="pt-6 border-t border-gray-100">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                                 <div>
@@ -527,9 +481,7 @@ const BlogAdmin = () => {
                                                     <FiTrash2 size={12} /> Remove
                                                 </button>
                                             </div>
-
                                             <div className="space-y-4">
-                                                {/* Section Title */}
                                                 <div>
                                                     <label className="block text-xs font-semibold text-gray-600 mb-1">Section Title</label>
                                                     <input
@@ -540,8 +492,6 @@ const BlogAdmin = () => {
                                                         placeholder="Title for this section"
                                                     />
                                                 </div>
-
-                                                {/* Desc & Points */}
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     <div>
                                                         <label className="block text-xs font-semibold text-gray-600 mb-1">Descriptions <span className="text-gray-400">(one per line)</span></label>
@@ -564,8 +514,6 @@ const BlogAdmin = () => {
                                                         />
                                                     </div>
                                                 </div>
-
-                                                {/* Section Images */}
                                                 <div>
                                                     <label className="block text-xs font-semibold text-gray-600 mb-1">Section Images</label>
                                                     {sec.existingImages?.length > 0 && (
@@ -600,8 +548,6 @@ const BlogAdmin = () => {
                                 </div>
                             )}
                         </div>
-
-                        {/* Conclusion */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Conclusion</label>
                             <textarea
@@ -612,8 +558,6 @@ const BlogAdmin = () => {
                                 placeholder="Final takeaway for your readers..."
                             />
                         </div>
-
-                        {/* Buttons */}
                         <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
                             <button
                                 type="button" onClick={closeForm}
@@ -637,46 +581,6 @@ const BlogAdmin = () => {
                     </form>
                 </div>
             )}
-
-            {/* Delete Confirmation Modal */}
-            {/* {deleteItem && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-[4px] shadow-xl w-full max-w-sm overflow-hidden font-jost p-6 text-center">
-                        <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                            <FiTrash2 className="text-red-500 text-xl" />
-                        </div>
-                        <h3 className="text-lg font-bold text-gray-800 mb-2">Delete Blog</h3>
-                        <p className="text-sm text-gray-500 mb-6">
-                            Are you sure you want to delete <span className="font-semibold text-gray-700">"{deleteItem.blogTitle}"</span>? This will also delete all associated hero and section images.
-                        </p>
-
-                        <div className="flex justify-center gap-3">
-                            <button
-                                type="button"
-                                onClick={() => setDeleteItem(null)}
-                                disabled={submitLoading}
-                                className="px-5 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-[4px] hover:bg-gray-200 transition-colors disabled:opacity-70"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="button"
-                                onClick={confirmDelete}
-                                disabled={submitLoading}
-                                className="px-5 py-2.5 text-sm font-semibold text-white bg-red-500 rounded-[4px] hover:bg-red-600 shadow-lg shadow-red-500/30 transition-all flex items-center gap-2 disabled:opacity-70"
-                            >
-                                {submitLoading && (
-                                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                    </svg>
-                                )}
-                                Delete
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )} */}
         </div>
     );
 };

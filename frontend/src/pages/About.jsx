@@ -1,8 +1,6 @@
-import React from 'react';
 import { FaLeaf, FaHandHoldingUsd, FaRecycle, FaHandHoldingWater, FaShoppingBasket, FaPiggyBank } from 'react-icons/fa';
-import Subscribe from './Subscribe';
 import { Link } from 'react-router-dom';
-import { ChevronRight, CreditCard, Sparkles, ShieldCheck, Timer } from 'lucide-react';
+import {  CreditCard, Sparkles, ShieldCheck, Timer } from 'lucide-react';
 import Newsletter from '../component/Newsletter';
 import AboutImg1 from '../Image/about1.jpeg'
 import AboutImg2 from '../Image/about5.jpg'
@@ -25,7 +23,6 @@ export default function About() {
       </div>
 
       <main className="container mx-auto px-4 py-12">
-
 
         {/* Our Story Section */}
         <div className="w-full mb-16 ">
@@ -67,9 +64,6 @@ export default function About() {
               <p className="text-[var(--text-secondary)] text-lg leading-relaxed mb-4">
                 Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
               </p>
-              {/* <p className="text-[var(--text-secondary)] text-lg leading-relaxed">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-            </p> */}
             </div>
 
           </div>
@@ -219,11 +213,6 @@ export default function About() {
 
           </div>
         </div>
-
-
-
-        {/* Subscribe Section */}
-        {/* <Subscribe /> */}
 
         {/* Newsletter */}
         <Newsletter className="w-full pt-6 mt-8" />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiUser, FiLock, FiEye, FiEyeOff, FiUpload, FiCheckCircle, FiCamera } from 'react-icons/fi';
+import { FiUser, FiLock, FiEye, FiEyeOff, FiCheckCircle, FiCamera } from 'react-icons/fi';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserProfile, updateUserProfile, changePassword } from '../../redux/slice/auth.slice';
 import { setAlert } from '../../redux/slice/alert.slice';
@@ -15,8 +15,6 @@ const Profile = () => {
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-    // Profile form state
     const [profileData, setProfileData] = useState({
         firstname: '',
         lastname: '',
@@ -24,8 +22,6 @@ const Profile = () => {
         mobileno: '',
         gender: ''
     });
-
-    // Password change state
     const [passwordData, setPasswordData] = useState({
         oldPassword: '',
         newPassword: '',

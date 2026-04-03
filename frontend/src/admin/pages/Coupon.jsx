@@ -137,9 +137,7 @@ const Coupon = () => {
 
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2">
-                                    Coupon Code *
-                                </label>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Coupon Code *</label>
                                 <input
                                     type="text"
                                     name="code"
@@ -150,11 +148,8 @@ const Coupon = () => {
                                     disabled={editingCoupon ? true : false}
                                 />
                             </div>
-
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Discount (%) *
-                                </label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Discount (%) *</label>
                                 <input
                                     type="number"
                                     name="discount"
@@ -166,11 +161,8 @@ const Coupon = () => {
                                     className="w-full px-4 py-2 bg-white border border-gray-200 rounded-[4px] text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all text-gray-700"
                                 />
                             </div>
-
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Expiry Date *
-                                </label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Expiry Date * </label>
                                 <input
                                     type="date"
                                     name="expiryDate"
@@ -179,7 +171,6 @@ const Coupon = () => {
                                     className="w-full px-4 py-2 bg-white border border-gray-200 rounded-[4px] text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all text-gray-700"
                                 />
                             </div>
-
                             <div className="flex justify-end items-center gap-4 mt-12 mb-2">
                                 <button type="button" onClick={handleCloseModal} className="text-[#596985] font-bold text-sm px-4 py-2.5 transition-colors hover:text-[#1a1a1a]">
                                     Cancel

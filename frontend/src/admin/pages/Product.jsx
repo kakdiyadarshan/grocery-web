@@ -3,20 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFormik, FieldArray, FormikProvider } from 'formik';
 import * as Yup from 'yup';
-import {
-    getAllProducts,
-    createProduct,
-    updateProduct,
-    deleteProduct,
-    importProducts
-} from '../../redux/slice/product.slice';
+import { getAllProducts, createProduct, updateProduct, deleteProduct, importProducts } from '../../redux/slice/product.slice';
 import { getAllCategories } from '../../redux/slice/category.slice';
 import Table from '../component/DataTable';
 import Breadcrumb from '../component/Breadcrumb';
 import AdminLoader from '../component/AdminLoader';
-import { FiPlus, FiX, FiUpload, FiLoader, FiTrash2, FiPlusCircle, FiAlertTriangle, FiTag, FiCalendar, FiStar, FiAward, FiBarChart2, FiPackage, FiShoppingCart } from 'react-icons/fi';
-import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
-import DeleteModal from '../component/DeleteModal';
+import { FiPlus, FiX, FiUpload, FiLoader, FiTrash2, FiPlusCircle, FiAlertTriangle, FiStar, FiAward, FiBarChart2, FiShoppingCart } from 'react-icons/fi';
+import { FaStar, FaStarHalfAlt } from 'react-icons/fa';
 import StockChart from '../component/StockChart';
 import CategoryChart from '../component/CategoryChart';
 import CustomSelect from '../component/CustomSelect';
@@ -58,7 +51,6 @@ const Product = () => {
         ],
     };
 
-    // Debounce search term to prevent excessive API calls
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(searchTerm);
@@ -130,11 +122,10 @@ const Product = () => {
             formData.append('weighstWise', JSON.stringify(values.weighstWise));
             formData.append('sku', values.sku);
 
-            // Append tags individually for better compatibility
             if (values.tags && values.tags.length > 0) {
                 values.tags.forEach(tag => formData.append('tags', tag));
             } else {
-                formData.append('tags', '[]'); // Explicit empty array
+                formData.append('tags', '[]'); 
             }
 
             values.images.forEach((image) => {
@@ -214,13 +205,11 @@ const Product = () => {
         const imageToRemove = imagePreviews[index];
 
         if (imageToRemove.isNew) {
-            // Find the index in formik.values.images
             const newImagesIndex = imagePreviews.filter((img, i) => i < index && img.isNew).length;
             const newImages = [...formik.values.images];
             newImages.splice(newImagesIndex, 1);
             formik.setFieldValue('images', newImages);
         } else {
-            // It's an existing image, remove from existingImagesToKeep
             setExistingImagesToKeep(prev => prev.filter(pid => pid !== imageToRemove.public_id));
         }
 
@@ -298,7 +287,6 @@ const Product = () => {
         {
             header: 'Image',
             accessor: 'images',
-            // hideInExport: true,
             exportValue: (row) => `${row.images[0]?.url}`,
             render: (row) => (
                 <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-100">
@@ -383,8 +371,6 @@ const Product = () => {
         },
     ];
 
-    // Removed early loading return to prevent page "refresh" (unmount) during typing or pagination
-
     return (
         <>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 md:my-6 my-4">
@@ -416,8 +402,6 @@ const Product = () => {
                     </button>
                 </div>
             </div>
-
-
 
             {loading && products.length === 0 && !searchTerm ? (
                 <AdminLoader message="Loading products..." icon={FiShoppingCart} />

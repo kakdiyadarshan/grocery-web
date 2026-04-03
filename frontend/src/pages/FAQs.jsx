@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import  { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllFAQs } from '../redux/slice/faq.slice';
-import Subscribe from './Subscribe';
 import { Plus, Minus, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Newsletter from '../component/Newsletter';
@@ -144,8 +143,6 @@ function FAQs() {
         </div>
 
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-4 py-4 sm:py-6 md:py-8">
-          {/* <Subscribe /> */}
-
           {/* Newsletter */}
           <Newsletter className="w-full pt-6 mt-8" />
         </div>
