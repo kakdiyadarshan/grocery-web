@@ -3,14 +3,12 @@ import { Link, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { BASE_URL } from '../utils/baseUrl';
 import {
-  ChevronRight,
   Package,
   Truck,
   CheckCircle2,
   MapPin,
   Clock,
-  ArrowLeft,
-  Star
+  ArrowLeft
 } from 'lucide-react';
 import ReviewModal from '../component/ReviewModal';
 

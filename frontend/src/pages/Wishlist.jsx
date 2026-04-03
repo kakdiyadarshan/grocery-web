@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Trash2, ShoppingCart, HeartCrack, ChevronRight, Home, Eye, Check, X, Minus, Plus, ArrowLeft } from 'lucide-react';
+import  { useEffect, useState } from 'react';
+import { Trash2,  HeartCrack, ChevronRight,  Eye, Check, X, Minus, Plus, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getWishlist, removeFromWishlist } from '../redux/slice/wishlist.slice';

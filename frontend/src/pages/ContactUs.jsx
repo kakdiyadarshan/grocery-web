@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import { Home, Phone, Mail, Info, Loader2, ChevronRight } from 'lucide-react';
-import Subscribe from './Subscribe';
+import  { useState } from 'react';
+import { Home, Phone, Mail, Info, Loader2 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { createContact } from '../redux/slice/contact.slice';
 import { setAlert } from '../redux/slice/alert.slice';
@@ -195,8 +194,6 @@ function ContactUs() {
                         className=" shadow-[var(--shadow)] border border-[var(--border)]"
                     ></iframe>
                 </div>
-
-                {/* <Subscribe /> */}
 
                 {/* Newsletter */}
                 <Newsletter className="w-full pt-10 mt-8" />
