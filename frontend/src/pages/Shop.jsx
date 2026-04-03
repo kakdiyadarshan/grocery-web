@@ -8,6 +8,10 @@ import { getAllCategories } from '../redux/slice/category.slice';
 import { addToCart } from '../redux/slice/cart.slice';
 import { getWishlist, addToWishlist, removeFromWishlist } from '../redux/slice/wishlist.slice';
 import { AiFillHeart, AiOutlineEye, AiOutlineHeart, AiOutlineShoppingCart } from 'react-icons/ai';
+import CustomSelect from '../admin/component/CustomSelect';
+import { BiSortAZ, BiSortZA } from "react-icons/bi";
+import { LuArrowUpNarrowWide, LuArrowDownNarrowWide } from "react-icons/lu";
+
 
 
 const Shop = () => {
@@ -232,7 +236,7 @@ const Shop = () => {
 
     return (
         <>
-            <div className="bg-white">
+            {/* <div className="bg-white">
                 <div className="container mx-auto px-4 py-8 lg:py-12">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
@@ -245,9 +249,20 @@ const Shop = () => {
                         </nav>
                     </div>
                 </div>
-            </div>
+            </div> */}
 
-            <div className="container mx-auto px-4">
+             <div className="bg-[#f8f9fa] border-b border-gray-100 py-10 md:py-14 px-4 sm:px-6 lg:px-8">
+                            <div className="max-w-[1440px] mx-auto px-2 md:px-0 lg:px-4">
+                                <h1 className="text-3xl md:text-[40px] font-bold text-[#1a1a1a] mb-3 tracking-tight">Shop</h1>
+                                <nav className="flex items-center text-sm font-medium">
+                            <Link to="/" className="text-gray-400 hover:text-[var(--primary)] transition-colors">Home</Link>
+                            <ChevronRight size={14} className="mx-2 text-gray-300" />
+                            <span className="text-[#1a1a1a]">{selectedCategories.length === 1 ? selectedCategories[0] : 'Shop'}</span>
+                        </nav>
+                            </div>
+                        </div>
+
+            <div className="container mx-auto px-4 py-12">
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Mobile Filter Backdrop */}
                     <div
@@ -473,27 +488,28 @@ const Shop = () => {
                                     <SlidersHorizontal className="w-[18px] h-[18px] sm:w-5 sm:h-5 stroke-[2]" />
                                     <span className="tracking-wide">Filters</span>
                                 </button>
-                                <div className="hidden lg:flex items-center gap-3 text-[14px] sm:text-[15px]">
-                                    <span className="text-gray-500 font-medium whitespace-nowrap">Sort by:</span>
-                                    <div className="relative group">
-                                        <select
-                                            value={sortBy}
-                                            onChange={(e) => setSortBy(e.target.value)}
-                                            className="appearance-none bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors text-white px-5 py-2.5 pr-10 rounded font-medium outline-none cursor-pointer"
-                                        >
-                                            <option value="alphabetical-az" className="bg-white text-gray-700">Alphabetically, A-Z</option>
-                                            <option value="alphabetical-za" className="bg-white text-gray-700">Alphabetically, Z-A</option>
-                                            <option value="price-low-high" className="bg-white text-gray-700">Price, low to high</option>
-                                            <option value="price-high-low" className="bg-white text-gray-700">Price, high to low</option>
-                                        </select>
-                                        <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/80 group-hover:text-white transition-colors" />
-                                    </div>
+
+                                <div className="sm:flex hidden items-center gap-3 w-full sm:w-auto">
+
+                                    <CustomSelect
+                                        value={sortBy}
+                                        onChange={(value) => setSortBy(value)}
+                                        searchable={false}
+                                        options={[
+                                            { value: 'alphabetical-az', label: 'Alphabetically, A-Z', icon: <BiSortAZ /> },
+                                            { value: 'alphabetical-za', label: 'Alphabetically, Z-A', icon: <BiSortZA /> },
+                                            { value: 'price-low-high', label: 'Price, low to high', icon: <LuArrowUpNarrowWide /> },
+                                            { value: 'price-high-low', label: 'Price, high to low', icon: <LuArrowDownNarrowWide /> },
+                                        ]}
+                                        className="min-w-[200px] w-full sm:w-auto"
+                                    />
                                 </div>
+
                             </div>
 
                             <div className="flex items-center gap-6 lg:gap-8">
                                 <span className="text-sm font-bold text-[#1a1a1a]">{totalFiltered} {totalFiltered === 1 ? 'Product' : 'Products'}</span>
-                                <div className="flex items-center gap-1.5 border-l border-gray-100 pl-6 lg:pl-8">
+                                <div className="sm:flex hidden items-center gap-1.5 border-l border-gray-100 pl-6 lg:pl-8">
                                     <button
                                         onClick={() => setViewType('grid')}
                                         className={`p-2 rounded transition-colors ${viewType === 'grid' ? 'text-[var(--primary)] bg-[var(--primary-light)]' : 'text-gray-400 hover:text-gray-600'}`}
