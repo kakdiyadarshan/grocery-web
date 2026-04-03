@@ -82,7 +82,7 @@ const CustomMultiSelect = ({
             </div>
 
             {isOpen && (
-                <div className="absolute top-full left-0 mt-1 w-full bg-white rounded-[4px] shadow-xl border border-gray-100 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-100 flex flex-col">
+                <div className="absolute top-full left-0 mt-1 w-full bg-white rounded-[4px] shadow-xl border border-gray-100 z-50 animate-in fade-in zoom-in-95 duration-100 flex flex-col overflow-hidden">
                     {/* Search Input */}
                     <div className="p-2 border-b border-gray-100 sticky top-0 bg-white z-10">
                         <div className="relative">
@@ -108,7 +108,7 @@ const CustomMultiSelect = ({
                         </div>
                     </div>
 
-                    <div className="overflow-y-auto max-h-52 no-scrollbar py-1">
+                    <div className="overflow-y-auto max-h-64 custom-scrollbar py-1">
                         {filteredOptions.length === 0 ? (
                             <div className="px-4 py-6 text-sm text-gray-500 text-center">
                                 {options.length === 0 ? "No options available" : `No results found for "${searchTerm}"`}

@@ -6,9 +6,8 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAddresses, addAddress, updateAddress, deleteAddress, setDefaultAddress } from '../redux/slice/address.slice';
-import { fetchUserProfile as fetchAuthUserProfile } from '../redux/slice/auth.slice';
+import { fetchUserProfile, updateUserProfile, changePassword } from '../redux/slice/auth.slice';
 import { FiUser, FiSettings, FiLock, FiCheckCircle, FiCamera, FiEye, FiEyeOff, FiChevronRight, FiHome, FiMail, FiPhone, FiList, FiPlus, FiTrash2, FiEdit2, FiMapPin, FiMoreVertical } from 'react-icons/fi';
-import { BASE_URL } from '../utils/baseUrl';
 import CustomSelect from '../admin/component/CustomSelect';
 import MyOrder from './MyOrder';
 import { ArrowLeft } from 'lucide-react';
@@ -17,11 +16,10 @@ import DeleteModal from '../admin/component/DeleteModal';
 const UserProfile = () => {
     const dispatch = useDispatch();
     const { addresses, loading: addressLoading, submitLoading } = useSelector((state) => state.address);
+    const { user, loading } = useSelector((state) => state.auth);
 
     const [isEditing, setIsEditing] = useState(false);
     const [activeTab, setActiveTab] = useState('Overview');
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
 
     const genderOptions = [
         { label: 'Male', value: 'Male' },
@@ -40,7 +38,7 @@ const UserProfile = () => {
     const location = useLocation();
 
     useEffect(() => {
-        fetchUserProfile();
+        dispatch(fetchUserProfile());
         dispatch(fetchAddresses());
     }, [dispatch]);
 
@@ -52,19 +50,6 @@ const UserProfile = () => {
         }
     }, [location.search]);
 
-    const fetchUserProfile = async () => {
-        try {
-            setLoading(true);
-            const response = await axios.get(`${BASE_URL}/getusersById`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setUser(response.data.data);
-        } catch (error) {
-            toast.error(error.response?.data?.message || "Failed to fetch profile");
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const profileSchema = Yup.object().shape({
         firstname: Yup.string().required('First name is required'),
@@ -97,17 +82,8 @@ const UserProfile = () => {
             formData.append('mobileno', values.mobileno);
             formData.append('gender', values.gender);
 
-            const response = await axios.put(`${BASE_URL}/update-profile`, formData, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
-            setUser(response.data.data);
+            await dispatch(updateUserProfile(formData)).unwrap();
             setIsEditing(false);
-            toast.success("Profile updated successfully!");
-        } catch (error) {
-            toast.error(error.response?.data?.message || "Update failed");
         } finally {
             setSubmitting(false);
         }
@@ -117,23 +93,9 @@ const UserProfile = () => {
         const file = e.target.files[0];
         if (!file) return;
 
-        try {
-            const formData = new FormData();
-            formData.append('photo', file);
-
-            const response = await axios.put(`${BASE_URL}/update-profile`, formData, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
-            setUser(response.data.data);
-            // Refresh redux auth user so the header avatar updates immediately.
-            dispatch(fetchAuthUserProfile());
-            toast.success("Profile photo updated!");
-        } catch (error) {
-            toast.error(error.response?.data?.message || "Photo upload failed");
-        }
+        const formData = new FormData();
+        formData.append('photo', file);
+        dispatch(updateUserProfile(formData));
     };
 
     const handlePasswordChange = async (values, { resetForm, setSubmitting }) => {
@@ -143,13 +105,8 @@ const UserProfile = () => {
                 newPassword: values.newPassword.trim(),
                 confirmPassword: values.confirmPassword.trim(),
             };
-            const response = await axios.put(`${BASE_URL}/change-password`, trimmedValues, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            toast.success("Password changed successfully!");
+            await dispatch(changePassword(trimmedValues)).unwrap();
             resetForm();
-        } catch (error) {
-            toast.error(error.response?.data?.message || "Password change failed");
         } finally {
             setSubmitting(false);
         }
@@ -193,7 +150,8 @@ const UserProfile = () => {
         dispatch(setDefaultAddress(id));
     };
 
-    if (loading) {
+    // Only show full-page loading on initial fetch when user is null
+    if (loading && !user) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary border-b-2"></div>
@@ -201,7 +159,20 @@ const UserProfile = () => {
         );
     }
 
-    if (!user) return <div className="text-center py-20">User not found</div>;
+    if (!user && !loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="text-center py-20 px-4">
+                    <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <FiUser className="text-red-500 text-2xl" />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-900 mb-2">Profile Not Found</h2>
+                    <p className="text-gray-500 mb-6">We couldn't load your profile information. Please try logging in again.</p>
+                    <Link to="/login" className="px-6 py-2.5 bg-primary text-white rounded-[4px] font-bold text-sm">Return to Login</Link>
+                </div>
+            </div>
+        );
+    }
 
     const tabs = [
         { id: 'Overview', icon: FiUser, label: 'Overview' },
@@ -236,7 +207,7 @@ const UserProfile = () => {
                                 <div className="relative group mb-6">
                                     <div className="w-32 h-32 rounded-full border-[3px] border-primary/10 overflow-hidden bg-gray-50">
                                         {user.photo?.url ? (
-                                            <img src={user.photo.url} alt={user.name} className="w-full h-full object-cover" />
+                                            <img src={user.photo.url} alt={user.firstname || 'Profile'} className="w-full h-full object-cover" />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center bg-primary/5 text-primary">
                                                 <FiUser size={48} />
@@ -260,8 +231,10 @@ const UserProfile = () => {
                                     />
                                 </div>
 
-                                <h2 className="text-xl font-bold text-textPrimary tracking-tight">{user.firstname ? `${user.firstname} ${user.lastname}` : 'User Profile'}</h2>
-                                <p className="text-sm text-gray-400 mt-1 mb-4">{user.email || 'user@example.com'}</p>
+                                <h2 className="text-xl font-bold text-textPrimary tracking-tight">
+                                    {user.firstname || user.lastname ? `${user.firstname || ''} ${user.lastname || ''}`.trim() : 'User Profile'}
+                                </h2>
+                                <p className="text-sm text-gray-400 mt-1 mb-4">{user.email || 'Email Not Provided'}</p>
 
                                 <div className="flex items-center gap-1.5 px-3 py-1 bg-primary/5 text-primary rounded-full mb-8">
                                     <FiCheckCircle size={12} />
@@ -334,12 +307,7 @@ const UserProfile = () => {
                                             mobileno: user.mobileno || '',
                                             gender: user.gender || 'Male',
                                         }}
-                                        validationSchema={Yup.object().shape({
-                                            firstname: Yup.string().required('First name is required'),
-                                            lastname: Yup.string().required('Last name is required'),
-                                            email: Yup.string().email('Invalid email').required('Email is required'),
-                                            mobileno: Yup.string().required('Mobile number is required'),
-                                        })}
+                                        validationSchema={profileSchema}
                                         onSubmit={handleProfileUpdate}
                                         enableReinitialize
                                     >
