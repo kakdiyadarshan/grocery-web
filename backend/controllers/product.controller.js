@@ -60,7 +60,8 @@ exports.createProduct = async (req, res) => {
             weighstWise: parsedWeights,
             tags: parsedTags,
             sku: sku || "",
-            images
+            images,
+            seller: req.user._id // Assign current user as seller
         });
 
         await product.populate([
@@ -85,7 +86,7 @@ exports.createProduct = async (req, res) => {
 exports.getAllProducts = async (req, res) => {
     try {
         const today = new Date();
-        const { page = 1, limit = 10, paginate = 'false', search, category, minPrice, maxPrice, weights, availability } = req.query;
+        const { page = 1, limit = 10, paginate = 'false', search, category, minPrice, maxPrice, weights, availability, seller } = req.query;
         const skip = (parseInt(page) - 1) * parseInt(limit) || 0;
         const pageLimit = parseInt(limit);
         const paginateBool = paginate === 'true';
@@ -97,6 +98,10 @@ exports.getAllProducts = async (req, res) => {
                 { sku: { $regex: search, $options: 'i' } }
             ];
         }
+
+        // if (seller) {
+        //     matchStage.seller = new mongoose.Types.ObjectId(seller);
+        // }
 
         // Multiple categories support (comma separated)
         if (category) {
@@ -462,6 +467,11 @@ exports.updateProduct = async (req, res) => {
             return res.status(404).json({ success: false, message: "Product not found" });
         }
 
+        // Check ownership
+        if (req.user.role !== 'admin' && String(product.seller) !== String(req.user._id)) {
+            return res.status(403).json({ success: false, message: "You are not authorized to update this product" });
+        }
+
         let productsImages = [...product.images];
         let newImages = [];
 
@@ -696,6 +706,11 @@ exports.deleteProduct = async (req, res) => {
             return res.status(404).json({ success: false, message: "Product not found" });
         }
 
+        // Check ownership
+        if (req.user.role !== 'admin' && String(product.seller) !== String(req.user._id)) {
+            return res.status(403).json({ success: false, message: "You are not authorized to delete this product" });
+        }
+
         // Delete all images from S3
         if (product.images && product.images.length > 0) {
             const publicIds = product.images.map(img => img.public_id).filter(id => id);
@@ -880,7 +895,8 @@ exports.importProducts = async (req, res) => {
                     category: categoryId,
                     description: productInfo.description,
                     weighstWise: productInfo.variants,
-                    images
+                    images,
+                    seller: req.user._id // Assign current user as seller
                 };
 
                 await Product.create(productToCreate);

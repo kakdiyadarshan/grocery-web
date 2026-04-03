@@ -56,14 +56,14 @@ indexRoutes.put('/updateCategory/:id', auth, authorizeRoles('admin'), upload.sin
 indexRoutes.delete('/deleteCategory/:id', auth, authorizeRoles('admin'), deleteCategory);
 
 // Product routes
-indexRoutes.post('/createProduct', auth, authorizeRoles('admin'), upload.array('images', 10), createProduct);
+indexRoutes.post('/createProduct', auth, authorizeRoles('admin', 'seller'), upload.array('images', 10), createProduct);
 indexRoutes.get('/getAllProducts', getAllProducts);
 indexRoutes.get('/getFeaturedProducts', getFeaturedProducts);
 indexRoutes.get('/getBestSellingProducts', getBestSellingProducts);
 indexRoutes.get('/getProductById/:id', getProductById);
-indexRoutes.put('/updateProduct/:id', auth, authorizeRoles('admin'), upload.array('images', 10), updateProduct);
-indexRoutes.delete('/deleteProduct/:id', auth, authorizeRoles('admin'), deleteProduct);
-indexRoutes.post('/importProducts', auth, authorizeRoles('admin'), upload.any(), importProducts);
+indexRoutes.put('/updateProduct/:id', auth, authorizeRoles('admin', 'seller'), upload.array('images', 10), updateProduct);
+indexRoutes.delete('/deleteProduct/:id', auth, authorizeRoles('admin', 'seller'), deleteProduct);
+indexRoutes.post('/importProducts', auth, authorizeRoles('admin', 'seller'), upload.any(), importProducts);
 
 // Cart routes
 indexRoutes.get('/cart', auth, getCart);

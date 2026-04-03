@@ -50,7 +50,12 @@ const productSchema = new mongoose.Schema({
     reviews: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Review'
-    }]
+    }],
+    seller: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+    }
 }, {
     timestamps: true,
 });
