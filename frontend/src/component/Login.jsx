@@ -26,8 +26,19 @@ const Login = () => {
         }),
         onSubmit: async (values) => {
             try {
-                await dispatch(loginUser(values)).unwrap();
-                const redirectTo = location.state?.redirectTo || '/';
+                const user = await dispatch(loginUser(values)).unwrap();
+                let redirectTo = location.state?.redirectTo;
+                
+                if (!redirectTo || redirectTo === '/') {
+                    if (user?.role === 'admin') {
+                        redirectTo = '/admin/dashboard';
+                    } else if (user?.role === 'seller') {
+                        redirectTo = '/seller/sellerdashboard';
+                    } else {
+                        redirectTo = '/';
+                    }
+                }
+                
                 navigate(redirectTo);
             } catch (error) {
                 console.error("Login Error:", error);
@@ -36,19 +47,19 @@ const Login = () => {
     });
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full bg-white rounded-[4px] shadow-lg p-8 sm:p-10 border border-gray-100">
-                <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-textPrimary mb-2 flex items-center justify-center gap-2">
-                        Welcome Back <span>👋</span>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4 sm:py-12 sm:px-6 lg:px-8">
+            <div className="w-full max-w-md sm:max-w-lg lg:max-w-md bg-white rounded-[4px] shadow-xl p-6 sm:p-8 md:p-10 border border-gray-100 transform transition-all">
+                <div className="text-center mb-6 sm:mb-8">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-textPrimary mb-2 flex items-center justify-center gap-2">
+                        Welcome Back <span className="text-2xl sm:text-3xl">👋</span>
                     </h2>
-                    <p className="text-sm text-gray-500 font-medium">
+                    <p className="text-xs sm:text-sm text-gray-500 font-medium px-2">
                         Shop millions of products in one place.
                     </p>
                 </div>
-                <form onSubmit={formik.handleSubmit} className="space-y-5">
+                <form onSubmit={formik.handleSubmit} className="space-y-4 sm:space-y-5">
                     <div>
-                        <label className="text-sm font-medium text-textPrimary block mb-2">Email Address <span className="text-red-500">*</span></label>
+                        <label className="text-xs sm:text-sm font-medium text-textPrimary block mb-1.5 sm:mb-2">Email Address <span className="text-red-500">*</span></label>
                         <input
                             id="email"
                             name="email"
@@ -56,7 +67,7 @@ const Login = () => {
                             onChange={formik.handleChange}
                             onBlur={formik.handleBlur}
                             value={formik.values.email}
-                            className={`block w-full px-3 py-3 border rounded-[4px] outline-none transition-all bg-gray-50 focus:bg-white text-textPrimary placeholder-gray-400 ${formik.touched.email && formik.errors.email
+                            className={`block w-full px-3 py-2.5 sm:py-3 text-sm sm:text-base border rounded-[4px] outline-none transition-all bg-gray-50 focus:bg-white text-textPrimary placeholder-gray-400 ${formik.touched.email && formik.errors.email
                                 ? 'border-red-500 focus:ring-red-100'
                                 : 'border-gray-200 focus:ring-2 focus:ring-green-100 focus:border-primary'
                                 }`}
@@ -67,7 +78,7 @@ const Login = () => {
                         )}
                     </div>
                     <div>
-                        <label className="text-sm font-medium text-textPrimary block mb-2">
+                        <label className="text-xs sm:text-sm font-medium text-textPrimary block mb-1.5 sm:mb-2">
                             Password <span className="text-red-500">*</span>
                         </label>
                         <div className="relative">
@@ -78,7 +89,7 @@ const Login = () => {
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
                                 value={formik.values.password}
-                                className={`block w-full px-3 py-3 border rounded-[4px] outline-none transition-all bg-gray-50 focus:bg-white text-textPrimary placeholder-gray-400 ${formik.touched.password && formik.errors.password
+                                className={`block w-full px-3 py-2.5 sm:py-3 text-sm sm:text-base border rounded-[4px] outline-none transition-all bg-gray-50 focus:bg-white text-textPrimary placeholder-gray-400 pr-10 ${formik.touched.password && formik.errors.password
                                     ? 'border-red-500 focus:ring-red-100'
                                     : 'border-gray-200 focus:ring-2 focus:ring-green-100 focus:border-primary'
                                     }`}
@@ -86,13 +97,13 @@ const Login = () => {
                             />
                             <button
                                 type="button"
-                                className="absolute inset-y-0 right-0 pr-4 flex items-center text-textSecondary hover:text-textPrimary transition"
+                                className="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center text-textSecondary hover:text-textPrimary transition"
                                 onClick={() => setShowPassword(!showPassword)}
                             >
                                 {showPassword ? (
-                                    <Eye size={20} />
+                                    <Eye size={18} className="sm:w-5 sm:h-5" />
                                 ) : (
-                                    <EyeOff size={20} />
+                                    <EyeOff size={18} className="sm:w-5 sm:h-5" />
                                 )}
                             </button>
                         </div>
@@ -112,7 +123,7 @@ const Login = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-primary hover:bg-primaryHover text-white font-medium py-3 px-4 rounded-[4px] transition-all duration-300 shadow-lg shadow-primary/30 transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full bg-primary hover:bg-primaryHover text-white text-sm sm:text-base font-medium py-2.5 sm:py-3 px-4 rounded-[4px] transition-all duration-300 shadow-lg shadow-primary/30 transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-manipulation"
                     >
                         {loading ? (
                             <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -124,7 +135,7 @@ const Login = () => {
                         )}
                     </button>
                 </form>
-                <div className="mt-8 text-center text-sm font-semibold text-gray-800">
+                <div className="mt-6 sm:mt-8 text-center text-xs sm:text-sm font-semibold text-gray-800 px-4">
                     Don't have an account?{' '}
                     <Link
                         to="/register"

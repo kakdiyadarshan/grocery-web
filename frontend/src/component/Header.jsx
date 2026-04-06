@@ -9,6 +9,7 @@ import { getWishlist } from '../redux/slice/wishlist.slice';
 import { logout, fetchUserProfile } from '../redux/slice/auth.slice';
 import { getAllProducts } from '../redux/slice/product.slice';
 import { getAllCategories } from '../redux/slice/category.slice';
+import { FaUsers } from 'react-icons/fa';
 
 const Header = () => {
   const dispatch = useDispatch();
@@ -465,7 +466,7 @@ const Header = () => {
                               onClick={() => setIsUserMenuOpen(false)}
                               className="flex items-center gap-3 px-5 py-3 text-[14px] text-[var(--text-gray)] hover:text-[var(--primary)] hover:bg-gray-50 transition-all font-bold"
                             >
-                              <UserPlus size={17} className="stroke-[2]" />
+                              <FaUsers size={17} className="stroke-[2]" />
                               Become a Seller
                             </Link>
                           </li>

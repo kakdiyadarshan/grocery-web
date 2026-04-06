@@ -28,6 +28,8 @@ import Reviews from './pages/Reviews'
 import ProductDetailsAdmin from './pages/ProductDetailsAdmin'
 import Coupon from './pages/Coupon'
 import ShippingPolicy from './pages/ShippingPolicy'
+import Seller from './pages/Seller'
+import SellerView from './pages/SellerView'
 
 const Adminroutes = () => {
     const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -47,6 +49,8 @@ const Adminroutes = () => {
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="categories" element={<Category />} />
                     <Route path="products" element={<Product />} />
+                    <Route path="sellers" element={<Seller />} />
+                    <Route path="sellers/view/:id" element={<SellerView />} />
                     <Route path="products/view/:id" element={<ProductDetailsAdmin />} />
                     <Route path="privacy-policy" element={<PrivacyPolicy />} />
                     <Route path="terms-condition" element={<Termscondition />} />

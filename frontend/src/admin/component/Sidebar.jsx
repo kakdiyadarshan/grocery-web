@@ -48,10 +48,11 @@ const Sidebar = ({ isOpen, onClose }) => {
         { name: 'Transactions', icon: <LuReceiptIndianRupee />, path: '/admin/transactions' },
         { name: 'Products', icon: <FiPackage />, path: '/admin/products' },
         { name: 'Category', icon: <LuLayers3 />, path: '/admin/categories' },
+        { name: 'Sellers', icon: <LuLayers3 />, path: '/admin/sellers' },
         { name: 'Coupons', icon: <RiCoupon2Line />, path: '/admin/coupons' },
         { name: 'Offers', icon: <PiSealPercentLight />, path: '/admin/offers' },
         {
-            name: 'Banner',
+            name: 'Banners',
             icon: <FaRegImages />,
             subItems: [
                 { name: 'Main Banners', icon: <BsCardImage />, path: '/admin/banners' },

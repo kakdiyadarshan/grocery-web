@@ -19,6 +19,7 @@ const initialState = {
     pickupAddress: null,
     isOnboardingCompleted: false,
     status: null,
+    sellers: [],
 };
 
 export const verifyGst = createAsyncThunk(
@@ -112,6 +113,42 @@ export const submitAgreement = createAsyncThunk(
     }
 );
 
+export const fetchAllSellers = createAsyncThunk(
+    'seller/fetchAllSellers',
+    async (_, { dispatch, rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`${BASE_URL}/seller/all`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            console.log(response.data.data);
+            return response.data.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || error.message);
+        }
+    }
+);
+
+export const approveRejectSeller = createAsyncThunk(
+    'seller/approveReject',
+    async (data, { dispatch, rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.post(`${BASE_URL}/seller/approve-reject`, data, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            dispatch(setAlert({ text: response.data.message, type: 'success' }));
+            return response.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
 const sellerSlice = createSlice({
     name: 'seller',
     initialState,
@@ -130,7 +167,7 @@ const sellerSlice = createSlice({
                 state.gstDetails = action.payload.gstDetails;
             })
             .addCase(verifyGst.rejected, (state) => { state.loading = false; })
-            
+
             // Onboarding OTP
             .addCase(verifyOnboardingOtp.pending, (state) => { state.loading = true; })
             .addCase(verifyOnboardingOtp.fulfilled, (state, action) => {
@@ -170,7 +207,29 @@ const sellerSlice = createSlice({
                 state.onboardingStep = action.payload.onboardingStep;
                 state.isOnboardingCompleted = true;
             })
-            .addCase(submitAgreement.rejected, (state) => { state.loading = false; });
+            .addCase(submitAgreement.rejected, (state) => { state.loading = false; })
+            .addCase(fetchAllSellers.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchAllSellers.fulfilled, (state, action) => {
+                state.loading = false;
+                state.sellers = action.payload;
+            })
+            .addCase(fetchAllSellers.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            .addCase(approveRejectSeller.pending, (state) => { state.loading = true; })
+            .addCase(approveRejectSeller.fulfilled, (state, action) => {
+                state.loading = false;
+                // update local seller status
+                const index = state.sellers.findIndex(s => s._id === action.payload.user?._id);
+                if (index !== -1) {
+                    state.sellers[index] = action.payload.user;
+                }
+            })
+            .addCase(approveRejectSeller.rejected, (state) => { state.loading = false; });
     },
 });
 

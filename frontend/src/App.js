@@ -6,6 +6,7 @@ import Wishlist from './pages/Wishlist';
 import Cart from './pages/Cart';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import Adminroutes from './admin/Adminroutes';
+import Sellerroutes from './seller/Sellerroutes';
 import Login from './component/Login';
 import Register from './component/Register';
 import ForgotPassword from './component/ForgotPassword';
@@ -83,6 +84,9 @@ function App() {
 
         {/* --- ADMIN ROUTES --- */}
         <Route path="/admin/*" element={<Adminroutes />} />
+
+        {/* --- SELLER ROUTES --- */}
+        <Route path="/seller/*" element={<Sellerroutes />} />
 
         {/* Catch-all Redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />

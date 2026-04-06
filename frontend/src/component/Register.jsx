@@ -112,22 +112,22 @@ const Register = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full bg-white rounded-[4px] shadow-lg p-8 sm:p-10 border border-gray-100">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4 sm:py-12 sm:px-6 lg:px-8">
+            <div className="w-full max-w-md sm:max-w-lg lg:max-w-md bg-white rounded-[4px] shadow-xl p-6 sm:p-8 md:p-10 border border-gray-100 transform transition-all">
                 {step === 1 ? (
                     <>
-                        <div className="text-center mb-8">
-                            <h2 className="text-3xl font-bold text-textPrimary mb-2 flex items-center justify-center gap-2">
+                        <div className="text-center mb-6 sm:mb-8">
+                            <h2 className="text-2xl sm:text-3xl font-bold text-textPrimary mb-2 flex items-center justify-center gap-2">
                                 Join Grocery
                             </h2>
-                            <p className="text-sm text-gray-500 font-medium">
+                            <p className="text-xs sm:text-sm text-gray-500 font-medium px-2">
                                 Create your account and start shopping today.
                             </p>
                         </div>
-                        <form onSubmit={formik.handleSubmit} className="space-y-5">
-                            <div className="flex gap-4">
+                        <form onSubmit={formik.handleSubmit} className="space-y-4 sm:space-y-5">
+                            <div className="flex gap-3 sm:gap-4">
                                 <div className="w-1/2">
-                                    <label className="text-sm font-medium text-textPrimary block mb-2">
+                                    <label className="text-xs sm:text-sm font-medium text-textPrimary block mb-1.5 sm:mb-2">
                                         First Name <span className="text-red-500">*</span>
                                     </label>
                                     <input
@@ -137,7 +137,7 @@ const Register = () => {
                                         onChange={formik.handleChange}
                                         onBlur={formik.handleBlur}
                                         value={formik.values.firstname}
-                                        className={`block w-full px-3 py-3 border rounded-[4px] outline-none transition-all bg-gray-50 focus:bg-white text-textPrimary placeholder-gray-400 ${formik.touched.firstname && formik.errors.firstname
+                                        className={`block w-full px-3 py-2.5 sm:py-3 text-sm sm:text-base border rounded-[4px] outline-none transition-all bg-gray-50 focus:bg-white text-textPrimary placeholder-gray-400 ${formik.touched.firstname && formik.errors.firstname
                                             ? 'border-red-500 focus:ring-red-100'
                                             : 'border-gray-200 focus:ring-2 focus:ring-green-100 focus:border-primary'
                                             }`}
@@ -149,7 +149,7 @@ const Register = () => {
                                 </div>
 
                                 <div className="w-1/2">
-                                    <label className="text-sm font-medium text-textPrimary block mb-2">
+                                    <label className="text-xs sm:text-sm font-medium text-textPrimary block mb-1.5 sm:mb-2">
                                         Last Name <span className="text-red-500">*</span>
                                     </label>
                                     <input
@@ -159,7 +159,7 @@ const Register = () => {
                                         onChange={formik.handleChange}
                                         onBlur={formik.handleBlur}
                                         value={formik.values.lastname}
-                                        className={`block w-full px-3 py-3 border rounded-[4px] outline-none transition-all bg-gray-50 focus:bg-white text-textPrimary placeholder-gray-400 ${formik.touched.lastname && formik.errors.lastname
+                                        className={`block w-full px-3 py-2.5 sm:py-3 text-sm sm:text-base border rounded-[4px] outline-none transition-all bg-gray-50 focus:bg-white text-textPrimary placeholder-gray-400 ${formik.touched.lastname && formik.errors.lastname
                                             ? 'border-red-500 focus:ring-red-100'
                                             : 'border-gray-200 focus:ring-2 focus:ring-green-100 focus:border-primary'
                                             }`}
@@ -171,7 +171,7 @@ const Register = () => {
                                 </div>
                             </div>
                             <div>
-                                <label className="text-sm font-medium text-textPrimary block mb-2">Email Address <span className="text-red-500">*</span></label>
+                                <label className="text-xs sm:text-sm font-medium text-textPrimary block mb-1.5 sm:mb-2">Email Address <span className="text-red-500">*</span></label>
                                 <input
                                     id="email"
                                     name="email"
@@ -179,7 +179,7 @@ const Register = () => {
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
                                     value={formik.values.email}
-                                    className={`block w-full px-3 py-3 border rounded-[4px] outline-none transition-all bg-gray-50 focus:bg-white text-textPrimary placeholder-gray-400 ${formik.touched.email && formik.errors.email
+                                    className={`block w-full px-3 py-2.5 sm:py-3 text-sm sm:text-base border rounded-[4px] outline-none transition-all bg-gray-50 focus:bg-white text-textPrimary placeholder-gray-400 ${formik.touched.email && formik.errors.email
                                         ? 'border-red-500 focus:ring-red-100'
                                         : 'border-gray-200 focus:ring-2 focus:ring-green-100 focus:border-primary'
                                         }`}
@@ -190,7 +190,7 @@ const Register = () => {
                                 )}
                             </div>
                             <div>
-                                <label className="text-sm font-medium text-textPrimary block mb-2">
+                                <label className="text-xs sm:text-sm font-medium text-textPrimary block mb-1.5 sm:mb-2">
                                     Password <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative">
@@ -201,7 +201,7 @@ const Register = () => {
                                         onChange={formik.handleChange}
                                         onBlur={formik.handleBlur}
                                         value={formik.values.password}
-                                        className={`block w-full px-3 py-3 border rounded-[4px] outline-none transition-all bg-gray-50 focus:bg-white text-textPrimary placeholder-gray-400 ${formik.touched.password && formik.errors.password
+                                        className={`block w-full px-3 py-2.5 sm:py-3 text-sm sm:text-base border rounded-[4px] outline-none transition-all bg-gray-50 focus:bg-white text-textPrimary placeholder-gray-400 pr-10 ${formik.touched.password && formik.errors.password
                                             ? 'border-red-500 focus:ring-red-100'
                                             : 'border-gray-200 focus:ring-2 focus:ring-green-100 focus:border-primary'
                                             }`}
@@ -209,13 +209,13 @@ const Register = () => {
                                     />
                                     <button
                                         type="button"
-                                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-700 transition"
+                                        className="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center text-gray-400 hover:text-gray-700 transition"
                                         onClick={() => setShowPassword(!showPassword)}
                                     >
                                         {showPassword ? (
-                                            <Eye size={20} />
+                                            <Eye size={18} className="sm:w-5 sm:h-5" />
                                         ) : (
-                                            <EyeOff size={20} />
+                                            <EyeOff size={18} className="sm:w-5 sm:h-5" />
                                         )}
                                     </button>
                                 </div>
@@ -226,7 +226,7 @@ const Register = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full bg-primary hover:bg-primaryHover text-white font-medium py-3 px-4 rounded-[4px] transition-all duration-300 shadow-lg shadow-primary/30 transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                className="w-full bg-primary hover:bg-primaryHover text-white text-sm sm:text-base font-medium py-2.5 sm:py-3 px-4 rounded-[4px] transition-all duration-300 shadow-lg shadow-primary/30 transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-manipulation"
                             >
                                 {loading ? (
                                     <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -238,7 +238,7 @@ const Register = () => {
                                 )}
                             </button>
                         </form>
-                        <div className="mt-8 text-center text-sm font-semibold text-gray-800">
+                        <div className="mt-6 sm:mt-8 text-center text-xs sm:text-sm font-semibold text-gray-800 px-4">
                             Already have an account?{' '}
                             <Link
                                 to="/login"
@@ -251,10 +251,10 @@ const Register = () => {
                 ) : (
                     <>
                         <div className="text-center mb-6">
-                            <h2 className="text-2xl font-bold text-textPrimary mb-2">
+                            <h2 className="text-xl sm:text-2xl font-bold text-textPrimary mb-2 px-2">
                                 Please Check your Email
                             </h2>
-                            <p className="text-sm text-textSecondary">
+                            <p className="text-xs sm:text-sm text-textSecondary break-all px-2">
                                 We sent the OTP to {email.replace(/(.{2})(.*)(?=@)/,
                                     (gp1, gp2, gp3) => {
                                         return gp2 + gp3.replace(/./g, '*')
@@ -263,17 +263,17 @@ const Register = () => {
                             </p>
                         </div>
                         <div className="mb-4">
-                            <label className="text-sm font-semibold text-textPrimary block mb-3">
+                            <label className="text-xs sm:text-sm font-semibold text-textPrimary block mb-3">
                                 OTP <span className="text-red-500">*</span>
                             </label>
-                            <div className="flex justify-start gap-2 sm:gap-4">
+                            <div className="flex justify-center gap-1.5 sm:gap-3 md:gap-4">
                                 {otp.map((digit, index) => (
                                     <input
                                         key={index}
                                         ref={inputRefs[index]}
                                         type="text"
                                         maxLength="1"
-                                        className="w-10 h-10 sm:w-12 sm:h-12 border border-gray-300 rounded-[8px] text-center text-lg font-semibold text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-white shadow-sm transition-all"
+                                        className="w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 border border-gray-300 rounded-[8px] text-center text-base sm:text-lg font-semibold text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-white shadow-sm transition-all flex-shrink-0"
                                         value={digit}
                                         onChange={(e) => handleOtpChange(index, e.target.value)}
                                         onKeyDown={(e) => handleOtpKeyDown(index, e)}
@@ -282,13 +282,13 @@ const Register = () => {
                             </div>
                         </div>
 
-                        <div className="mt-4 mb-6 flex justify-between items-center text-sm font-medium">
+                        <div className="mt-4 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs sm:text-sm font-medium">
                             <span className="text-gray-500">
                                 {canResend ? (
                                     <button
                                         type="button"
                                         onClick={handleResendOtp}
-                                        className="text-primary hover:underline font-semibold"
+                                        className="text-primary hover:underline font-semibold touch-manipulation"
                                     >
                                         Resend OTP
                                     </button>
@@ -304,7 +304,7 @@ const Register = () => {
                             type="button"
                             disabled={loading || otp.join('').length !== 6}
                             onClick={handleVerifyOtp}
-                            className="w-full bg-primary hover:bg-75primaryHover text-white font-semibold py-3 px-4 rounded-[6px] transition-all duration-300 shadow-md transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+                            className="w-full bg-primary hover:bg-primaryHover text-white text-sm sm:text-base font-semibold py-2.5 sm:py-3 px-4 rounded-[4px] transition-all duration-300 shadow-md transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 touch-manipulation"
                         >
                             {loading ? (
                                 <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
