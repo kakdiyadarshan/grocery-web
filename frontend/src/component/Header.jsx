@@ -459,6 +459,16 @@ const Header = () => {
                               Register Account
                             </Link>
                           </li>
+                          <li className="border-t border-gray-100">
+                            <Link
+                              to="/register?role=seller"
+                              onClick={() => setIsUserMenuOpen(false)}
+                              className="flex items-center gap-3 px-5 py-3 text-[14px] text-[var(--text-gray)] hover:text-[var(--primary)] hover:bg-gray-50 transition-all font-bold"
+                            >
+                              <UserPlus size={17} className="stroke-[2]" />
+                              Become a Seller
+                            </Link>
+                          </li>
                         </>
                       )}
                     </ul>

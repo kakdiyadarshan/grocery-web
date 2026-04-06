@@ -34,7 +34,7 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ["user", "admin"],
+        enum: ["user", "admin","seller"],
         default: "user",
     },
     photo: {
@@ -56,6 +56,71 @@ const userSchema = new mongoose.Schema({
             createdAt: { type: Date, default: Date.now }
         }
     ],
+    gstDetails: {
+        gstin: {
+            type: String,
+            uppercase: true,
+        },
+        businessName: String,
+        panNumber: String,
+        businessType: [String],
+        address: Object,
+        isGSTVerified: {
+            type: Boolean,
+            default: false,
+        },
+
+        gstVerifiedAt: Date,
+    },
+    otpVerification: {
+        otp: String,
+        expiresAt: Date,
+        isOtpVerified: {
+            type: Boolean,
+            default: false,
+        },
+    },
+    brandDetails: {
+        storeName: {
+            type: String,
+        },
+        ownerName: String,
+        storeLogo: String,
+        storeDescription: String,
+    },
+    bankDetails: {
+        accountHolderName: String,
+        accountNumber: String,
+        ifscCode: String,
+    },
+    pickupAddress: {
+        flatHouse: String,
+        street: String,
+        landmark: String,
+        pincode: String,
+        city: String,
+        state: String,
+    },
+    agreement: {
+        isAccepted: {
+            type: Boolean,
+            default: false,
+        },
+        acceptedAt: Date,
+    },
+    status: {
+        type: String,
+        enum: ["pending", "approved", "rejected"],
+        default: "pending",
+    },
+    onboardingStep: {
+        type: Number,
+        default: 0,
+    },
+    isOnboardingCompleted: {
+        type: Boolean,
+        default: false,
+    },
 }, {
     timestamps: true,
     toJSON: {

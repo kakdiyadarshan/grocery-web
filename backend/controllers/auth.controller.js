@@ -6,7 +6,7 @@ const { emitRoleNotification } = require('../socketManager/socketManager');
 
 exports.createUser = async (req, res) => {
     try {
-        let { firstname,lastname, email, password, role, mobileno } = req.body;
+        let { firstname, lastname, email, password, role, mobileno } = req.body;
 
         if (!firstname || !lastname || !email || !password) {
             return res.status(400).json({ status: 400, message: 'Name, email and password are required.' });
@@ -114,9 +114,17 @@ exports.verifyOtp = async (req, res) => {
         user.otpExpiresAt = undefined;
         await user.save();
 
+        let accessToken = await jwt.sign(
+            { _id: user._id },
+            process.env.SECRET_KEY,
+            { expiresIn: '1d' }
+        );
+
         return res.status(200).json({
             status: 200,
             message: 'Account verified successfully.',
+            data: user,
+            token: accessToken
         });
     } catch (error) {
         return res.status(500).json({ status: 500, message: error.message });
@@ -426,3 +434,5 @@ exports.logout = async (req, res) => {
         return res.status(500).json({ status: 500, message: error.message });
     }
 };
+
+

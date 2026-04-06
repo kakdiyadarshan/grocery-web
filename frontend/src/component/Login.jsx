@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { loginUser } from '../redux/slice/auth.slice';
 import { Eye, EyeOff } from 'lucide-react';
 
@@ -10,6 +10,7 @@ const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
     const { loading } = useSelector((state) => state.auth);
 
     const formik = useFormik({
@@ -26,7 +27,8 @@ const Login = () => {
         onSubmit: async (values) => {
             try {
                 await dispatch(loginUser(values)).unwrap();
-                navigate('/');
+                const redirectTo = location.state?.redirectTo || '/';
+                navigate(redirectTo);
             } catch (error) {
                 console.error("Login Error:", error);
             }
