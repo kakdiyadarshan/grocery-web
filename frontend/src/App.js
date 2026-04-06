@@ -27,6 +27,7 @@ import OrderTracking from './pages/OrderTracking';
 import Termscondition from './pages/Termscondition';
 import UserProfile from './pages/UserProfile';
 
+import BecomeSeller from './pages/BecomeSeller';
 import PrivateRoute from './component/PrivateRoute';
 
 function App() {
@@ -61,6 +62,7 @@ function App() {
             <Route path="/my-order" element={<MyOrder />} />
             <Route path="/order-tracking/:id" element={<OrderTracking />} />
             <Route path="/order-completed" element={<OrderCompleted />} />
+            <Route path="/become-seller" element={<BecomeSeller />} />
           </Route>
 
         </Route>

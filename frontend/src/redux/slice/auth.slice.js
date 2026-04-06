@@ -112,6 +112,12 @@ export const verifyOtp = createAsyncThunk(
         try {
             const response = await axios.post(`${BASE_URL}/verify-otp`, verifyData);
             dispatch(setAlert({ text: response.data.message, type: 'success' }));
+            
+            if (response.data.token) {
+                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('userId', response.data.data._id);
+            }
+            
             return response.data;
         } catch (error) {
             return handleErrors(error, dispatch, rejectWithValue);
@@ -283,6 +289,10 @@ const authSlice = createSlice({
             })
             .addCase(verifyOtp.fulfilled, (state, action) => {
                 state.loading = false;
+                state.isAuthenticated = true;
+                state.loggedIn = true;
+                state.isLoggedOut = false;
+                state.user = action.payload?.data;
                 state.message = action.payload?.message || "Account verified successfully.";
             })
             .addCase(verifyOtp.rejected, (state, action) => {

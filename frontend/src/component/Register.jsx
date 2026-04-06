@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { registerUser, verifyOtp, resendOtp } from '../redux/slice/auth.slice';
 import { Eye, EyeOff } from 'lucide-react';
 
@@ -10,6 +10,10 @@ const Register = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [step, setStep] = useState(1);
     const [email, setEmail] = useState('');
+
+    const location = useLocation();
+    const queryParams = new URLSearchParams(location.search);
+    const role = queryParams.get('role') || 'user';
 
     const [otp, setOtp] = useState(['', '', '', '', '', '']);
     const [timer, setTimer] = useState(300);
@@ -37,7 +41,7 @@ const Register = () => {
         }),
         onSubmit: async (values) => {
             try {
-                await dispatch(registerUser(values)).unwrap();
+                await dispatch(registerUser({ ...values, role })).unwrap();
 
                 setEmail(values.email);
                 setStep(2);
@@ -86,7 +90,11 @@ const Register = () => {
 
         try {
             await dispatch(verifyOtp({ email, otp: otpValue })).unwrap();
-            navigate('/login');
+            if (role === 'seller') {
+                navigate('/become-seller', { state: { email } });
+            } else {
+                navigate('/');
+            }
         } catch (error) {
             console.error("OTP Verification Error:", error);
         }

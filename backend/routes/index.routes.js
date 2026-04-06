@@ -3,7 +3,7 @@ const indexRoutes = express.Router();
 const upload = require('../helper/imageUpload');
 const s3Service = require('../utils/s3Service');
 const { createUser, verifyOtp, resendOtp, userLogin, forgotPassword, forgotVerifyOtp, resetPassword, logout } = require('../controllers/auth.controller');
-const { getAllUsers, getUserById, updateUser, changePassword } = require('../controllers/user.controller');
+const { getAllUsers, getUserById, updateUser, changePassword, verifyGst, sendOnboardingOtp, verifyOnboardingOtp, updateBrandDetails, updateBankDetails, updatePickupAddress, submitOnboarding, approveOrRejectSeller } = require('../controllers/user.controller');
 const { createCategory, getAllCategories, getCategoryById, updateCategory, deleteCategory } = require('../controllers/category.controller');
 const { getCart, addToCart, updateCartQuantity, removeFromCart, clearCart } = require('../controllers/cart.controller');
 
@@ -47,6 +47,16 @@ indexRoutes.get('/getusersById', auth, getUserById);
 indexRoutes.put('/update-profile', auth, upload.single('photo'), updateUser);
 indexRoutes.put('/users/:id', auth, upload.single('image'), updateUser);
 indexRoutes.put('/change-password', auth, changePassword);
+
+// Sellet routes
+indexRoutes.post('/seller/verify-gst', verifyGst);
+indexRoutes.post('/seller/send-otp', sendOnboardingOtp);
+indexRoutes.post('/seller/verify-otp', verifyOnboardingOtp);
+indexRoutes.put('/seller/brand-details', updateBrandDetails);
+indexRoutes.put('/seller/bank-details', updateBankDetails);
+indexRoutes.put('/seller/pickup-address', updatePickupAddress);
+indexRoutes.post('/seller/submit-agreement', submitOnboarding);
+indexRoutes.post('/seller/approve-reject', auth, authorizeRoles('admin'), approveOrRejectSeller);
 
 // Category routes
 indexRoutes.post('/createCategory', auth, authorizeRoles('admin'), upload.single('categoryImage'), createCategory);
