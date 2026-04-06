@@ -615,4 +615,3 @@ exports.approveOrRejectSeller = async (req, res) => {
         }
     }
 };
-

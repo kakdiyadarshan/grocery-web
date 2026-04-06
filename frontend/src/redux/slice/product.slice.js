@@ -62,7 +62,7 @@ export const getAllProducts = createAsyncThunk(
     'product/getAllProducts',
     async (params = {}, { dispatch, rejectWithValue }) => {
         try {
-            const { page, limit, paginate, search, category, minPrice, maxPrice, weights, availability, sort } = params;
+            const { page, limit, paginate, search, category, minPrice, maxPrice, weights, availability, sort, seller } = params;
             let url = `${BASE_URL}/getAllProducts`;
             const queryParams = new URLSearchParams();
             if (page) queryParams.append('page', page);
@@ -75,12 +75,16 @@ export const getAllProducts = createAsyncThunk(
             if (weights) queryParams.append('weights', weights);
             if (availability) queryParams.append('availability', availability);
             if (sort) queryParams.append('sort', sort);
+            if (seller) queryParams.append('seller', seller);
 
             if (queryParams.toString()) {
                 url += `?${queryParams.toString()}`;
             }
 
-            const response = await axios.get(url);
+            const token = localStorage.getItem('token');
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+            const response = await axios.get(url, { headers });
             return response.data;
         } catch (error) {
             return handleErrors(error, dispatch, rejectWithValue);

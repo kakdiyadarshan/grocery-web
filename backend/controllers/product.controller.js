@@ -5,10 +5,9 @@ const Order = require("../models/order.model");
 const xlsx = require("xlsx");
 const { uploadToS3, uploadUrlToS3,  deleteManyFromS3 } = require("../utils/s3Service");
 
-// Create Product
 exports.createProduct = async (req, res) => {
     try {
-        const { name, category, description, weighstWise, tags, sku } = req.body;
+        const { name, category, description, weighstWise, tags, sku, sellerId } = req.body;
 
         // Check for images
         const uploadedFiles = req.files || [];
@@ -61,7 +60,7 @@ exports.createProduct = async (req, res) => {
             tags: parsedTags,
             sku: sku || "",
             images,
-            sellerId: req.user._id // Assign current user as seller
+            sellerId: req.user.role === 'admin' && sellerId ? sellerId : req.user._id
         });
 
         await product.populate([
@@ -92,6 +91,10 @@ exports.getAllProducts = async (req, res) => {
         const paginateBool = paginate === 'true';
 
         let matchStage = {};
+        if (seller) {
+            matchStage.sellerId = new mongoose.Types.ObjectId(seller);
+        }
+
         if (search) {
             matchStage.$or = [
                 { name: { $regex: search, $options: 'i' } },
@@ -458,7 +461,7 @@ exports.getProductById = async (req, res) => {
 // Update Product
 exports.updateProduct = async (req, res) => {
     try {
-        const { name, category, description, weighstWise, oldImages, tags, sku } = req.body;
+        const { name, category, description, weighstWise, oldImages, tags, sku, sellerId } = req.body;
         let product = await Product.findById(req.params.id);
 
         if (!product) {
@@ -466,7 +469,7 @@ exports.updateProduct = async (req, res) => {
         }
 
         // Check ownership
-        if (req.user.role !== 'admin' && String(product.seller) !== String(req.user._id)) {
+        if (req.user.role !== 'admin' && String(product.sellerId) !== String(req.user._id)) {
             return res.status(403).json({ success: false, message: "You are not authorized to update this product" });
         }
 
@@ -506,6 +509,9 @@ exports.updateProduct = async (req, res) => {
         product.category = category || product.category;
         product.description = description || product.description;
         product.sku = sku || product.sku;
+        if (req.user.role === 'admin' && sellerId) {
+            product.sellerId = sellerId;
+        }
         if (weighstWise) {
             try {
                 const incomingWeights = typeof weighstWise === 'string' ? JSON.parse(weighstWise) : weighstWise;
@@ -569,7 +575,9 @@ exports.getFeaturedProducts = async (req, res) => {
 
         const products = await Product.aggregate([
             {
-                $match: { tags: { $in: ['featured'] } }
+                $match: {
+                    tags: { $in: ['featured'] }
+                }
             },
             {
                 $lookup: {
@@ -705,7 +713,7 @@ exports.deleteProduct = async (req, res) => {
         }
 
         // Check ownership
-        if (req.user.role !== 'admin' && String(product.seller) !== String(req.user._id)) {
+        if (req.user.role !== 'admin' && String(product.sellerId) !== String(req.user._id)) {
             return res.status(403).json({ success: false, message: "You are not authorized to delete this product" });
         }
 
@@ -894,7 +902,7 @@ exports.importProducts = async (req, res) => {
                     description: productInfo.description,
                     weighstWise: productInfo.variants,
                     images,
-                    seller: req.user._id // Assign current user as seller
+                    sellerId: req.user._id // Assign current user as seller
                 };
 
                 await Product.create(productToCreate);
