@@ -89,6 +89,24 @@ export const getOrderById = createAsyncThunk(
     }
 );
 
+export const getOrdersByIds = createAsyncThunk(
+    'order/getOrdersByIds',
+    async (orderIds, { dispatch, rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem('token');
+            // Assuming we'll add a backend route /getOrdersByIds that accepts a comma-separated string or array
+            const response = await axios.get(`${BASE_URL}/getOrdersByIds?ids=${orderIds}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            return response.data.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
 export const cancelOrder = createAsyncThunk(
     'order/cancelOrder',
     async (orderId, { dispatch, rejectWithValue }) => {
@@ -255,6 +273,12 @@ const orderSlice = createSlice({
                 state.currentOrder = action.payload;
             })
             .addCase(getOrderById.rejected, (state) => { state.loading = false; })
+            .addCase(getOrdersByIds.pending, (state) => { state.loading = true; })
+            .addCase(getOrdersByIds.fulfilled, (state, action) => {
+                state.loading = false;
+                state.orders = action.payload; // Store multiple orders in 'orders'
+            })
+            .addCase(getOrdersByIds.rejected, (state) => { state.loading = false; })
             .addCase(cancelOrder.rejected, (state) => { state.loading = false; })
             .addCase(updateOrderStatus.pending, (state) => { 
             })

@@ -28,6 +28,11 @@ const orderSchema = new mongoose.Schema({
             discountPrice: {
                 type: Number,
                 default: null
+            },
+            sellerId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "User",
+                required: true
             }
         }
     ],
@@ -60,7 +65,19 @@ const orderSchema = new mongoose.Schema({
             timestamp: { type: Date, default: Date.now },
             description: String
         }
-    ]
+    ],
+    adminCommission: {
+        type: Number,
+        default: 10 // 10%
+    },
+    adminCommissionAmount: {
+        type: Number,
+        default: 0
+    },
+    sellerAmount: {
+        type: Number,
+        default: 0
+    }
 }, { timestamps: true });
 
 

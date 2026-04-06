@@ -1,4 +1,5 @@
 const Order = require('../models/order.model');
+const mongoose = require('mongoose');
 const Coupon = require('../models/coupon.model');
 const Payment = require('../models/payment.model');
 const Cart = require('../models/cart.model');
@@ -46,6 +47,28 @@ const adjustProductStock = async (item, delta) => {
     if (!fallback) {
         console.warn(`adjustProductStock: fallback failed for product ${productId}`);
     }
+};
+
+// Helper to group items by seller and enrich with seller information
+const groupItemsBySeller = async (items) => {
+    let subtotal = 0;
+    const enrichedItems = [];
+
+    for (const item of items) {
+        const product = await Product.findById(item.productId);
+        if (!product) continue;
+
+        // Ensure sellerId is stored at the item level
+        item.sellerId = product.sellerId.toString();
+        
+        // User pays 100% full price
+        const itemTotal = (item.discountPrice || item.price) * item.quantity;
+        subtotal += itemTotal;
+        
+        enrichedItems.push(item);
+    }
+
+    return { enrichedItems, subtotal };
 };
 
 // Helper to determine dynamic status based on time
@@ -283,17 +306,20 @@ exports.createOrder = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Required fields missing' });
         }
 
-        totalAmount = parseFloat(Number(totalAmount).toFixed(2));
+        // Use the FULL total amount from the frontend (User pays 100%)
+        const { enrichedItems } = await groupItemsBySeller(items);
+        const finalTotal = parseFloat(Number(totalAmount).toFixed(2));
 
         // IF STRIPE: Don't create order yet, just create payment and redirect
         if (paymentMethod.toLowerCase() === 'stripe') {
             const payment = await Payment.create({
                 userId,
                 paymentMethod,
-                amount: totalAmount,
+                amount: finalTotal,
                 status: 'pending',
                 pendingOrderData: {
-                    userId, items, totalAmount, couponId, paymentMethod, addressId, addressDetails
+                    userId, items: enrichedItems, totalAmount: finalTotal, couponId, paymentMethod, addressId, addressDetails,
+                    isSplitOrder: false 
                 }
             });
 
@@ -303,7 +329,7 @@ exports.createOrder = async (req, res) => {
                     price_data: {
                         currency: 'usd',
                         product_data: { name: `Order Payment (${userId})` },
-                        unit_amount: Math.round(totalAmount * 100),
+                        unit_amount: Math.round(finalTotal * 100),
                     },
                     quantity: 1,
                 }],
@@ -316,25 +342,41 @@ exports.createOrder = async (req, res) => {
             return res.status(200).json({ success: true, data: { paymentUrl: session.url } });
         }
 
-        // IF COD: Create order immediately
+        // IF COD: Create ONE SINGLE order at 100% price
+        const adminCommAmount = parseFloat((finalTotal * 0.10).toFixed(2));
+        const finalSellerAmount = parseFloat((finalTotal - adminCommAmount).toFixed(2));
+
         const order = await Order.create({
-            userId, items, totalAmount, couponId, paymentMethod, addressId,
+            userId,
+            items: enrichedItems,
+            totalAmount: finalTotal,
+            adminCommissionAmount: adminCommAmount,
+            sellerAmount: finalSellerAmount,
+            couponId,
+            paymentMethod,
+            addressId,
             trackingHistory: [{ status: 'pending', description: 'Order successfully placed' }]
         });
 
-        if (couponId) {
-            await Coupon.findByIdAndUpdate(couponId, { $addToSet: { usedBy: userId } });
-        }
-
-        await Payment.create({ userId, orderId: order._id, paymentMethod, amount: totalAmount, status: 'pending' });
+        await Payment.create({
+            userId,
+            orderId: order._id,
+            paymentMethod,
+            amount: finalTotal,
+            status: 'pending'
+        });
 
         // stock minus variant wise
-        for (const item of items) {
+        for (const item of enrichedItems) {
             await adjustProductStock(item, -item.quantity);
         }
 
         // Clear cart
         await Cart.findOneAndUpdate({ userId }, { items: [] });
+
+        if (couponId) {
+            await Coupon.findByIdAndUpdate(couponId, { $addToSet: { usedBy: userId } });
+        }
 
         // Notify Admins
         await emitRoleNotification({
@@ -342,13 +384,12 @@ exports.createOrder = async (req, res) => {
             event: 'notify',
             data: {
                 type: 'new_order',
-                message: `New Order Received: #${order._id.toString().slice(-6).toUpperCase()}`,
+                message: `New Order Received for User ${userId}`,
                 payload: { orderId: order._id }
             }
         });
 
-        const populatedOrder = await Order.findById(order._id).populate('addressId').populate('items.productId');
-        res.status(201).json({ success: true, data: populatedOrder });
+        res.status(201).json({ success: true, data: order });
     } catch (error) {
         console.error("Create Order Error:", error);
         res.status(500).json({ success: false, message: error.message });
@@ -726,6 +767,22 @@ exports.getOrderById = async (req, res) => {
         return res.status(500).json({ success: false, message: error.message });
     }
 };
+exports.getOrdersByIds = async (req, res) => {
+    try {
+        const { ids } = req.query;
+        if (!ids) return res.status(400).json({ success: false, message: 'No order IDs provided' });
+
+        const orderIdArray = ids.split(',').map(id => id.trim());
+        const orders = await Promise.all(orderIdArray.map(id => getOrderWithOffers(id)));
+
+        return res.status(200).json({
+            success: true,
+            data: orders.filter(o => o !== null)
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
 
 exports.updateOrderStatus = async (req, res) => {
     try {
@@ -921,35 +978,67 @@ exports.handleStripeWebhook = async (req, res) => {
         if (payment && !payment.orderId && payment.pendingOrderData) {
             const orderData = payment.pendingOrderData;
 
-            // Create the order finally
-            const order = await Order.create({
-                ...orderData,
-                trackingHistory: [{ status: 'pending', description: 'Order successfully placed via Stripe' }]
-            });
+            if (orderData.isSplitOrder) {
+                const { sellerGroups } = await groupItemsBySeller(orderData.items);
+                const createdOrders = [];
+
+                for (const sellerId in sellerGroups) {
+                    const group = sellerGroups[sellerId];
+                    const order = await Order.create({
+                        ...orderData,
+                        sellerId,
+                        items: group.items,
+                        totalAmount: parseFloat(group.totalAmount.toFixed(2)),
+                        adminDiscount: parseFloat(group.adminDiscount.toFixed(2)),
+                        trackingHistory: [{ status: 'pending', description: 'Order successfully placed via Stripe' }]
+                    });
+                    createdOrders.push(order);
+
+                    // Notify seller
+                    await emitUserNotification({
+                        userId: sellerId,
+                        event: 'notify',
+                        data: {
+                            type: 'new_order',
+                            message: `New Order Received via Stripe: #${order._id.toString().slice(-6).toUpperCase()}`,
+                            payload: { orderId: order._id }
+                        }
+                    });
+                }
+
+                payment.orderId = createdOrders[0]._id; // Link to first order as primary reference
+                payment.allOrderIds = createdOrders.map(o => o._id); // We might need to add this field to Payment model too
+            } else {
+                // Create the order finally (Legacy/Simple)
+                const order = await Order.create({
+                    ...orderData,
+                    trackingHistory: [{ status: 'pending', description: 'Order successfully placed via Stripe' }]
+                });
+                payment.orderId = order._id;
+            }
 
             payment.stripePaymentIntentId = paymentIntentId;
-            payment.orderId = order._id;
             payment.status = 'paid';
             payment.pendingOrderData = null;
             await payment.save();
 
             // Stocks and Cart
-            for (const item of order.items) {
+            for (const item of orderData.items) {
                 await adjustProductStock(item, -item.quantity);
             }
-            await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] });
-            if (order.couponId) {
-                await Coupon.findByIdAndUpdate(order.couponId, { $addToSet: { usedBy: order.userId } });
+            await Cart.findOneAndUpdate({ userId: orderData.userId }, { items: [] });
+            if (orderData.couponId) {
+                await Coupon.findByIdAndUpdate(orderData.couponId, { $addToSet: { usedBy: orderData.userId } });
             }
 
             // Notifications
             await emitUserNotification({
-                userId: order.userId,
+                userId: orderData.userId,
                 event: 'notify',
                 data: {
                     type: 'order_status',
-                    message: `Payment successful! Order #${order._id.toString().slice(-6).toUpperCase()} is now being processed.`,
-                    payload: { orderId: order._id, status: 'pending' }
+                    message: `Payment successful! Your order has been placed and split among ${Object.keys(orderData.sellerGroups || {}).length || 'relevant'} sellers.`,
+                    payload: { paymentId: payment._id }
                 }
             });
 
@@ -958,8 +1047,8 @@ exports.handleStripeWebhook = async (req, res) => {
                 event: 'notify',
                 data: {
                     type: 'new_order',
-                    message: `Payment received for Order #${order._id.toString().slice(-6).toUpperCase()}. (Stripe Webhook)`,
-                    payload: { orderId: order._id }
+                    message: `Payment received for split orders. (Stripe Webhook)`,
+                    payload: { paymentId: payment._id }
                 }
             });
         }
@@ -988,26 +1077,59 @@ exports.verifyStripeSession = async (req, res) => {
             } else if (payment.pendingOrderData) {
                 // Create the order now
                 const orderData = payment.pendingOrderData;
-                order = await Order.create({
-                    ...orderData,
-                    trackingHistory: [{ status: 'pending', description: 'Order successfully placed via Stripe' }]
-                });
 
-                payment.orderId = order._id;
+                if (orderData.isSplitOrder) {
+                    const { sellerGroups } = await groupItemsBySeller(orderData.items);
+                    const createdOrders = [];
+
+                    for (const sellerId in sellerGroups) {
+                        const group = sellerGroups[sellerId];
+                        const order = await Order.create({
+                            ...orderData,
+                            sellerId,
+                            items: group.items,
+                            totalAmount: parseFloat(group.totalAmount.toFixed(2)),
+                            adminDiscount: parseFloat(group.adminDiscount.toFixed(2)),
+                            trackingHistory: [{ status: 'pending', description: 'Order successfully placed via Stripe' }]
+                        });
+                        createdOrders.push(order);
+
+                        // Notify seller
+                        await emitUserNotification({
+                            userId: sellerId,
+                            event: 'notify',
+                            data: {
+                                type: 'new_order',
+                                message: `New Order Received via Stripe: #${order._id.toString().slice(-6).toUpperCase()}`,
+                                payload: { orderId: order._id }
+                            }
+                        });
+                    }
+
+                    payment.orderId = createdOrders[0]._id;
+                    order = createdOrders[0]; // Set one for the response
+                } else {
+                    order = await Order.create({
+                        ...orderData,
+                        trackingHistory: [{ status: 'pending', description: 'Order successfully placed via Stripe' }]
+                    });
+                    payment.orderId = order._id;
+                }
+
                 payment.status = 'paid';
                 payment.pendingOrderData = null;
                 payment.stripePaymentIntentId = paymentIntentId;
                 await payment.save();
 
                 // Stock update
-                for (const item of order.items) {
+                for (const item of orderData.items) {
                     await adjustProductStock(item, -item.quantity);
                 }
 
                 // Clear cart
-                await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] });
-                if (order.couponId) {
-                    await Coupon.findByIdAndUpdate(order.couponId, { $addToSet: { usedBy: order.userId } });
+                await Cart.findOneAndUpdate({ userId: orderData.userId }, { items: [] });
+                if (orderData.couponId) {
+                    await Coupon.findByIdAndUpdate(orderData.couponId, { $addToSet: { usedBy: orderData.userId } });
                 }
 
                 // Notify admin
@@ -1016,8 +1138,8 @@ exports.verifyStripeSession = async (req, res) => {
                     event: 'notify',
                     data: {
                         type: 'new_order',
-                        message: `Stripe Payment Verified: Order #${order._id.toString().slice(-6).toUpperCase()}`,
-                        payload: { orderId: order._id }
+                        message: `Stripe Payment Verified: Multiple Orders created.`,
+                        payload: { userId: orderData.userId }
                     }
                 });
             }
@@ -1032,6 +1154,89 @@ exports.verifyStripeSession = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Payment not completed' });
     } catch (error) {
         console.error("verifyStripeSession error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+exports.getSellerOrders = async (req, res) => {
+    try {
+        const sellerId = req.user._id;
+
+        const orders = await Order.aggregate([
+            { $match: { sellerId: new mongoose.Types.ObjectId(sellerId) } },
+            { $sort: { createdAt: -1 } },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'userId',
+                    foreignField: '_id',
+                    as: 'user'
+                }
+            },
+            { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+            {
+                $addFields: {
+                    address: {
+                        $arrayElemAt: [
+                            {
+                                $filter: {
+                                    input: '$user.addresses',
+                                    as: 'addr',
+                                    cond: { $eq: ['$$addr._id', '$addressId'] }
+                                }
+                            },
+                            0
+                        ]
+                    }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'payments',
+                    localField: '_id',
+                    foreignField: 'orderId',
+                    as: 'payment'
+                }
+            },
+            { $unwind: { path: '$payment', preserveNullAndEmptyArrays: true } },
+            {
+                $lookup: {
+                    from: 'products',
+                    localField: 'items.productId',
+                    foreignField: '_id',
+                    as: 'productDetails'
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    userId: {
+                        _id: '$user._id',
+                        firstname: '$user.firstname',
+                        lastname: '$user.lastname',
+                        email: '$user.email',
+                        mobileno: '$user.mobileno'
+                    },
+                    items: 1,
+                    totalAmount: 1,
+                    status: 1,
+                    paymentMethod: 1,
+                    address: 1,
+                    createdAt: 1,
+                    updatedAt: 1,
+                    payment: 1,
+                    trackingHistory: 1,
+                    adminDiscount: 1
+                }
+            }
+        ]);
+
+        res.status(200).json({
+            success: true,
+            data: orders
+        });
+    } catch (error) {
+        console.error("getSellerOrders error:", error);
         res.status(500).json({ success: false, message: error.message });
     }
 };

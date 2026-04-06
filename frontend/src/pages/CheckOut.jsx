@@ -186,7 +186,8 @@ const CheckOut = () => {
           variantId: item.variantId,
           quantity: item.quantity,
           price: item.selectedVariant?.price || 0,
-          discountPrice: item.selectedVariant?.discountPrice !== undefined ? item.selectedVariant.discountPrice : null
+          discountPrice: item.selectedVariant?.discountPrice !== undefined ? item.selectedVariant.discountPrice : null,
+          sellerId: item.productId?.sellerId || item.sellerId
         })),
         totalAmount: totalAmount,
         couponId: appliedCouponData?._id || null,
@@ -219,7 +220,11 @@ const CheckOut = () => {
           // Stripe Redirect
           window.location.href = data.paymentUrl;
         } else {
-          if (newOrderId) {
+          // data is an array of orders for COD
+          if (Array.isArray(data) && data.length > 0) {
+            const allOrderIds = data.map(o => o._id).join(',');
+            navigate(`/order-completed?order_ids=${allOrderIds}`);
+          } else if (newOrderId) {
             navigate(`/order-completed?order_id=${newOrderId}`);
           } else {
             navigate('/order-completed');
