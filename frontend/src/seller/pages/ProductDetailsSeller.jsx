@@ -5,12 +5,12 @@ import { FiArrowRight, FiShoppingCart } from "react-icons/fi";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getProductById, getAllProducts } from '../../redux/slice/product.slice';
-import ReviewChart from '../component/reviewChart';
-import Breadcrumb from '../component/Breadcrumb';
-import ReviewDrawer from '../component/ReviewDrawer';
-import AdminLoader from '../component/AdminLoader';
+import ReviewChart from '../../admin/component/reviewChart';
+import Breadcrumb from '../../admin/component/Breadcrumb';
+import ReviewDrawer from '../../admin/component/ReviewDrawer';
+import AdminLoader from '../../admin/component/AdminLoader';
 
-function ProductDetailsAdmin() {
+function ProductDetailsSeller() {
     const { id } = useParams();
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -205,18 +205,6 @@ function ProductDetailsAdmin() {
                         <div className="mt-8 space-y-3 pt-4 border-t border-gray-100">
                             <p className="text-base font-semibold text-[#333333]">SKU: <span className="font-normal text-gray-500 ml-2">AF-001-{product._id?.slice(-4)}</span></p>
                             <p className="text-base font-semibold text-[#333333]">Category: <span className="font-normal text-gray-500 ml-2">{product.category?.categoryName}</span></p>
-                            
-                            {/* Seller Details */}
-                            {product.sellerId && (
-                                <div className="pt-2 border-t border-gray-50 mt-4 space-y-2">
-                                    <p className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-2">Seller Information</p>
-                                    <div className="bg-gray-50/50 p-3 rounded-lg border border-gray-100 space-y-1">
-                                        <p className="text-sm font-semibold text-[#333333]">Store: <span className="font-normal text-gray-600 ml-2">{product.sellerId.brandDetails?.storeName || 'N/A'}</span></p>
-                                        <p className="text-sm font-semibold text-[#333333]">Vendor: <span className="font-normal text-gray-600 ml-2">{`${product.sellerId.firstname || ''} ${product.sellerId.lastname || ''}`.trim() || 'N/A'}</span></p>
-                                        <p className="text-sm font-semibold text-[#333333]">Email: <span className="font-normal text-gray-600 ml-2">{product.sellerId.email}</span></p>
-                                    </div>
-                                </div>
-                            )}
                         </div>
 
                         {/* Quantity & Stock Status - Static in Admin */}
@@ -369,6 +357,6 @@ function ProductDetailsAdmin() {
     );
 }
 
-export default ProductDetailsAdmin;
+export default ProductDetailsSeller;
 
 

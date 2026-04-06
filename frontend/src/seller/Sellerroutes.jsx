@@ -3,22 +3,24 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import PrivateRoute from '../component/PrivateRoute';
 import Layout from './pages/Layout';
-
-const SellerDashboard = () => (
-    <div className="p-8 text-center">
-        <h1 className="text-3xl font-bold text-gray-800">Welcome to Seller Dashboard</h1>
-        <p className="mt-2 text-gray-500">Your store metrics will appear here.</p>
-    </div>
-);
+import SellerDashboard from './pages/SellerDashboard';
+import Product from './pages/Product';
+import ProductDetailsSeller from './pages/ProductDetailsSeller';
+import Profile from './pages/Profile';
 
 const Sellerroutes = () => {
     return (
         <Routes>
             <Route element={<PrivateRoute allowedRoles={['seller']} />}>
-                {/* <Route path="sellerdashboard" element={<SellerDashboard />} /> */}
-                {/* Additional seller routes go here */}
                 <Route path="/" element={<Layout />} >
-                    <Route index element={<SellerDashboard />} />
+                    <Route index element={<Navigate to="sellerdashboard" replace />} />
+                    <Route path="sellerdashboard" element={<SellerDashboard />} />
+                    <Route path="orders" element={<SellerDashboard />} />
+                    <Route path="products" element={<Product />} />
+                    <Route path="profile" element={<Profile />} />
+                    <Route path="products/view/:id" element={<ProductDetailsSeller />} />
+                    <Route path="transactions" element={<SellerDashboard />} />
+                    <Route path="reviews" element={<SellerDashboard />} />
                 </Route>
             </Route>
         </Routes>

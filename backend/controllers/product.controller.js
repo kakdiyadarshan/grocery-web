@@ -60,7 +60,8 @@ exports.createProduct = async (req, res) => {
             tags: parsedTags,
             sku: sku || "",
             images,
-            sellerId: req.user.role === 'admin' && sellerId ? sellerId : req.user._id
+            sellerId: req.user.role === 'admin' && sellerId ? sellerId : req.user._id,
+            status: req.user.role === 'admin' ? 'approved' : 'pending'
         });
 
         await product.populate([
@@ -85,12 +86,25 @@ exports.createProduct = async (req, res) => {
 exports.getAllProducts = async (req, res) => {
     try {
         const today = new Date();
-        const { page = 1, limit = 10, paginate = 'false', search, category, minPrice, maxPrice, weights, availability, seller } = req.query;
+        const { page = 1, limit = 10, paginate = 'false', search, category, minPrice, maxPrice, weights, availability, seller, status } = req.query;
         const skip = (parseInt(page) - 1) * parseInt(limit) || 0;
         const pageLimit = parseInt(limit);
         const paginateBool = paginate === 'true';
 
         let matchStage = {};
+        const isStaff = req.user && (req.user.role === 'admin' || req.user.role === 'seller');
+        
+        // Default to showing only approved products for everyone.
+        // Admins and Sellers can override this by explicitly specifying a status.
+        if (isStaff && status) {
+            if (status !== 'all') {
+                matchStage.status = status;
+            }
+            // If status is 'all', we don't set a matchStage.status, thus showing everything.
+        } else {
+            matchStage.status = 'approved';
+        }
+
         if (seller) {
             matchStage.sellerId = new mongoose.Types.ObjectId(seller);
         }
@@ -187,6 +201,30 @@ exports.getAllProducts = async (req, res) => {
                         }
                     ],
                     as: 'reviews'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'sellerId',
+                    foreignField: '_id',
+                    pipeline: [
+                        {
+                            $project: {
+                                firstname: 1,
+                                lastname: 1,
+                                email: 1,
+                                brandDetails: 1
+                            }
+                        }
+                    ],
+                    as: 'sellerId'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$sellerId',
+                    preserveNullAndEmptyArrays: true
                 }
             }
         );
@@ -330,6 +368,15 @@ exports.getProductById = async (req, res) => {
                     _id: new mongoose.Types.ObjectId(req.params.id)
                 }
             },
+            // If user is not admin or seller, only show approved products
+            {
+                $match: {
+                    $or: [
+                        { status: 'approved' },
+                        { $expr: { $and: [ { $ne: [req.user?.role, undefined] }, { $in: [req.user?.role, ['admin', 'seller']] } ] } }
+                    ]
+                }
+            },
             {
                 $lookup: {
                     from: 'offers',
@@ -396,6 +443,30 @@ exports.getProductById = async (req, res) => {
                         }
                     ],
                     as: 'reviews'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'sellerId',
+                    foreignField: '_id',
+                    pipeline: [
+                        {
+                            $project: {
+                                firstname: 1,
+                                lastname: 1,
+                                email: 1,
+                                brandDetails: 1
+                            }
+                        }
+                    ],
+                    as: 'sellerId'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$sellerId',
+                    preserveNullAndEmptyArrays: true
                 }
             },
             {
@@ -578,7 +649,8 @@ exports.getFeaturedProducts = async (req, res) => {
         const products = await Product.aggregate([
             {
                 $match: {
-                    tags: { $in: ['featured'] }
+                    tags: { $in: ['featured'] },
+                    status: 'approved'
                 }
             },
             {
@@ -926,6 +998,42 @@ exports.importProducts = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+exports.approveRejectProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        if (!['approved', 'rejected'].includes(status)) {
+            return res.status(400).json({ success: false, message: "Invalid status" });
+        }
+
+        const product = await Product.findByIdAndUpdate(
+            id,
+            { status },
+            { new: true }
+        ).populate([
+            { path: "category", select: "categoryName" },
+            {
+                path: "reviews",
+                populate: { path: "userId", select: "name photo" }
+            }
+        ]);
+
+        if (!product) {
+            return res.status(404).json({ success: false, message: "Product not found" });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: `Product ${status} successfully`,
+            product
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 // Get Best Selling Products
 exports.getBestSellingProducts = async (req, res) => {
     try {
@@ -954,7 +1062,7 @@ exports.getBestSellingProducts = async (req, res) => {
 
         // Step 2: Fetch detailed product information using the same lookups as getAllProducts
         const pipeline = [
-            { $match: { _id: { $in: productIds } } },
+            { $match: { _id: { $in: productIds }, status: 'approved' } },
             {
                 $lookup: {
                     from: 'offers',
