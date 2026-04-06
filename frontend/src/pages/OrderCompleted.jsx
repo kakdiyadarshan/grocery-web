@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Check, ArrowRight, Download } from "lucide-react";
 import jsPDF from "jspdf";
 import { useDispatch, useSelector } from "react-redux";
-import { getOrderById, verifyStripeSession } from "../redux/slice/order.slice";
+import { getOrderById, getOrdersByIds, verifyStripeSession } from "../redux/slice/order.slice";
 import { getCart, clearCart, removeCoupon } from "../redux/slice/cart.slice";
 import { BASE_URL } from "../utils/baseUrl";
 import logo from "../Image/logo.png";
@@ -13,16 +13,17 @@ const OrderCompleted = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const orderId = queryParams.get("order_id");
+  const orderIds = queryParams.get("order_ids");
   const sessionId = queryParams.get("session_id");
 
-  const { currentOrder, loading } = useSelector((state) => state.order);
+  const { currentOrder, orders, loading } = useSelector((state) => state.order);
 
 
   useEffect(() => {
     const verifyAndLoadOrder = async () => {
       let currentId = orderId;
 
-      if (sessionId && !orderId) {
+      if (sessionId && !orderId && !orderIds) {
         try {
           const result = await dispatch(verifyStripeSession(sessionId)).unwrap();
           if (result.success && result.data?._id) {
@@ -33,38 +34,38 @@ const OrderCompleted = () => {
         }
       }
 
-      if (currentId) {
+      if (orderIds) {
+        dispatch(getOrdersByIds(orderIds));
+      } else if (currentId) {
         dispatch(getOrderById(currentId));
-        // Force refresh frontend and clear server-side cart
+      }
+
+      if (currentId || orderIds || sessionId) {
         dispatch(clearCart());
         dispatch(getCart());
         dispatch(removeCoupon());
         localStorage.removeItem('appliedCoupon');
-      } else if (!sessionId) {
-        console.warn("OrderCompleted: order_id query parameter missing");
       }
     };
 
     verifyAndLoadOrder();
-  }, [dispatch, orderId, sessionId]);
+  }, [dispatch, orderId, orderIds, sessionId]);
+
+  // Normalized order data for multiple or single order
+  const displayOrders = React.useMemo(() => {
+    if (orderIds && orders && orders.length > 0) return orders;
+    if (currentOrder) return [currentOrder];
+    return [];
+  }, [orders, currentOrder, orderIds]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)]"></div>
-      </div>
-    );
+// ... loading spinner remains the same ...
   }
 
-  if (!currentOrder) {
+  if (displayOrders.length === 0) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Order Not Found</h2>
-        {!orderId && (
-          <p className="text-gray-500 mb-2">
-            No order ID provided. Please complete checkout first.
-          </p>
-        )}
         <Link to="/" className="text-[var(--primary)] font-bold flex items-center gap-2">
           <ArrowRight className="rotate-180" /> Go Back to Home
         </Link>
@@ -72,14 +73,14 @@ const OrderCompleted = () => {
     );
   }
 
-  const orderItems = currentOrder.items || [];
-  const addr = currentOrder.address || {};
+  const allItems = displayOrders.flatMap(o => o.items || []);
+  const firstOrder = displayOrders[0];
+  const addr = firstOrder.address || {};
   const deliveryAddress = addr.address
     ? `${addr.address}, ${addr.city}, ${addr.state} - ${addr.zip}, ${addr.country}`
     : "Address not available";
 
-
-  const subtotal = orderItems.reduce((acc, item) => {
+  const subtotal = allItems.reduce((acc, item) => {
     const variant = item.selectedVariant;
     const price = variant?.discountPrice || variant?.price || 0;
     return acc + price * item.quantity;
@@ -88,9 +89,18 @@ const OrderCompleted = () => {
   const tax = subtotal * 0.08;
   const shipping = subtotal >= 50 ? 0 : 5.99;
   
-  // Calculate coupon discount
-  const couponDiscount = currentOrder.coupon ? (subtotal * currentOrder.coupon.discount) / 100 : 0;
-  const total = currentOrder.totalAmount || (subtotal + tax + shipping - couponDiscount);
+  // Aggregate coupon discount from all orders
+  const couponDiscount = displayOrders.reduce((acc, o) => {
+    const sub = (o.items || []).reduce((sAcc, item) => {
+      const v = item.selectedVariant;
+      const p = v?.discountPrice || v?.price || 0;
+      return sAcc + p * item.quantity;
+    }, 0);
+    return acc + (o.coupon ? (sub * o.coupon.discount) / 100 : 0);
+  }, 0);
+
+  const totalAmount = displayOrders.reduce((acc, o) => acc + (o.totalAmount || 0), 0);
+  const orderIdsLabel = displayOrders.map(o => o._id.toString().slice(-6).toUpperCase()).join(", ");
 
   const downloadInvoicePDF = async () => {
     const doc = new jsPDF();
@@ -323,7 +333,7 @@ const OrderCompleted = () => {
           <p className="text-gray-500 text-sm sm:text-[15px] mt-2 sm:mt-3 max-w-sm mx-auto px-4">
             Your order{" "}
             <span className="font-bold text-[var(--primary)] shadow-sm border border-gray-100 px-2 py-0.5 rounded ml-1 tracking-wide">
-              #{currentOrder?._id?.toString().slice(-6).toUpperCase() || "N/A"}
+              #{orderIdsLabel}
             </span>{" "}
             has been placed successfully.
           </p>
@@ -334,25 +344,27 @@ const OrderCompleted = () => {
           <div className="flex flex-col gap-0.5 sm:gap-1">
             <p className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider font-semibold">Date</p>
             <p className="font-bold text-gray-900 text-xs sm:text-sm">
-              {new Date(currentOrder.createdAt).toLocaleDateString("en-IN", {
+              {new Date(firstOrder.createdAt).toLocaleDateString("en-IN", {
                 day: "2-digit", month: "short", year: "numeric",
               })}
             </p>
           </div>
           <div className="flex flex-col gap-0.5 sm:gap-1">
             <p className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider font-semibold">Order ID</p>
-            <p className="font-bold text-gray-900 text-xs sm:text-sm truncate">
-              #{currentOrder?._id?.toString().slice(-6).toUpperCase() || "N/A"}
-            </p>
+            <div className="flex flex-col text-gray-900 text-xs sm:text-sm truncate">
+              {displayOrders.map((o, idx) => (
+                <p key={o._id} className="font-bold">#{o._id.toString().slice(-6).toUpperCase()}</p>
+              ))}
+            </div>
           </div>
           <div className="flex flex-col gap-0.5 sm:gap-1">
             <p className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider font-semibold">Payment</p>
-            <p className="font-bold text-gray-900 text-xs sm:text-sm">{currentOrder.paymentMethod || "COD"}</p>
+            <p className="font-bold text-gray-900 text-xs sm:text-sm">{firstOrder.paymentMethod || "COD"}</p>
           </div>
           <div className="flex flex-col gap-0.5 sm:gap-1">
             <p className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider font-semibold">Status</p>
             <p className="font-bold text-[var(--primary)] text-xs sm:text-[15px] capitalize">
-              {currentOrder.status}
+              {firstOrder.status}
             </p>
           </div>
         </div>
@@ -383,11 +395,11 @@ const OrderCompleted = () => {
           <h3 className="text-base sm:text-[17px] font-bold mb-4 sm:mb-6 text-gray-900 flex items-center justify-between">
             Order Summary
             <span className="text-[10px] sm:text-xs font-medium bg-gray-100 text-gray-500 px-2 py-1 rounded-md">
-              {orderItems.length} items
+              {allItems.length} items
             </span>
           </h3>
           <div className="space-y-3">
-            {orderItems.map((item, i) => {
+            {allItems.map((item, i) => {
               const product = item.productId || {};
               const variant = item.selectedVariant;
               const originalPrice = variant?.price || 0;
@@ -464,7 +476,7 @@ const OrderCompleted = () => {
           </div>
           {couponDiscount > 0 && (
             <div className="flex justify-between items-center text-green-600 font-medium">
-              <span>Coupon Discount ({currentOrder.coupon?.code})</span>
+              <span>Coupon Discount ({displayOrders[0]?.coupon?.code})</span>
               <span className="text-green-600 font-bold">-${couponDiscount.toFixed(2)}</span>
             </div>
           )}
@@ -473,7 +485,7 @@ const OrderCompleted = () => {
               Total Amount
             </span>
             <span className="text-[24px] sm:text-[28px] md:text-[32px] font-black text-[var(--primary)] leading-none tracking-tight">
-              ${total.toFixed(2)}
+              ${totalAmount.toFixed(2)}
             </span>
           </div>
         </div>
