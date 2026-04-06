@@ -3,7 +3,7 @@ const Product = require("../models/product.model");
 const Category = require("../models/category.model");
 const Order = require("../models/order.model");
 const xlsx = require("xlsx");
-const { uploadToS3, uploadUrlToS3, updateS3, deleteFromS3, deleteManyFromS3 } = require("../utils/s3Service");
+const { uploadToS3, uploadUrlToS3,  deleteManyFromS3 } = require("../utils/s3Service");
 
 // Create Product
 exports.createProduct = async (req, res) => {
@@ -61,7 +61,7 @@ exports.createProduct = async (req, res) => {
             tags: parsedTags,
             sku: sku || "",
             images,
-            seller: req.user._id // Assign current user as seller
+            sellerId: req.user._id // Assign current user as seller
         });
 
         await product.populate([
@@ -99,9 +99,7 @@ exports.getAllProducts = async (req, res) => {
             ];
         }
 
-        // if (seller) {
-        //     matchStage.seller = new mongoose.Types.ObjectId(seller);
-        // }
+       
 
         // Multiple categories support (comma separated)
         if (category) {
