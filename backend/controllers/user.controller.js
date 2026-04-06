@@ -578,7 +578,7 @@ exports.approveOrRejectSeller = async (req, res) => {
         const nameParts = [user.firstName, user.lastName].filter(Boolean);
         const sellerName = nameParts.length > 0 ? nameParts.join(' ') : "Seller";
 
-        const subject = status === "approved" ? "🎉 FastCart Seller Account Approved" : "⚠️ FastCart Seller Account Update";
+        const subject = status === "approved" ? "🎉 GroceryWeb Seller Account Approved" : "⚠️ GroceryWeb Seller Account Update";
 
         let htmlContent = "";
         if (status === "approved") {
@@ -587,7 +587,7 @@ exports.approveOrRejectSeller = async (req, res) => {
                 <p>Congratulations! Your seller account request has been <b>APPROVED</b>.</p>
                 <p>You can now log in to your dashboard and start listing your products.</p>
                 <br/>
-                <p>Welcome to FastCart!</p>
+                <p>Welcome to Groceryweb!</p>
             `;
         } else {
             htmlContent = `
@@ -615,4 +615,19 @@ exports.approveOrRejectSeller = async (req, res) => {
         }
     }
 };
+
+exports.getAllSellers = async (req, res) => {
+    try {
+        const sellers = await User.find({ role: "seller" }).sort({ createdAt: -1 }).select("-password");
+        res.status(200).json({
+            status: 200,
+            message: "Sellers fetched successfully..!!",
+            data: sellers
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+}
 

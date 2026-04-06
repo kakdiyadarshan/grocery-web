@@ -196,20 +196,20 @@ const BecomeSeller = () => {
         }
     };
 
-    const inputClasses = "block w-full px-4 py-3 border border-gray-200 rounded-[4px] outline-none transition-all bg-gray-50 focus:bg-white text-textPrimary placeholder-gray-400 focus:border-primary disabled:bg-gray-100 disabled:text-gray-500";
-    const labelClasses = "text-sm font-medium text-textPrimary block mb-2";
-    const buttonClasses = "px-6 py-3 rounded-[4px] font-medium text-sm bg-primary text-white shadow-lg shadow-primary/30 hover:bg-primaryHover transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed";
+    const inputClasses = "block w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-200 rounded-[4px] outline-none transition-all bg-gray-50 focus:bg-white text-textPrimary placeholder-gray-400 focus:border-primary disabled:bg-gray-100 disabled:text-gray-500";
+    const labelClasses = "text-xs sm:text-sm font-medium text-textPrimary block mb-1.5 sm:mb-2";
+    const buttonClasses = "px-4 sm:px-6 py-2.5 sm:py-3 rounded-[4px] font-medium text-xs sm:text-sm bg-primary text-white shadow-lg shadow-primary/30 hover:bg-primaryHover transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed touch-manipulation";
 
     const renderStepContent = () => {
         switch (activeStep) {
             case 1:
                 return (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 rounded-[4px] bg-primary/10 text-primary flex items-center justify-center">
-                                <Building2 size={24} />
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 sm:space-y-6">
+                        <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-[4px] bg-primary/10 text-primary flex items-center justify-center">
+                                <Building2 size={18} className="sm:w-6 sm:h-6" />
                             </div>
-                            <h2 className="text-xl font-bold text-gray-800">GST Verification</h2>
+                            <h2 className="text-lg sm:text-xl font-bold text-gray-800">GST Verification</h2>
                         </div>
                         <Formik
                             initialValues={{
@@ -285,13 +285,13 @@ const BecomeSeller = () => {
                                         <ErrorMessage name="businessAddress" component="div" className="text-red-500 text-[10px] font-bold mt-1" />
                                     </div>
 
-                                    <div className="md:col-span-2 pt-4">
+                                    <div className="md:col-span-2 pt-2 sm:pt-4">
                                         <button
                                             type="submit"
                                             disabled={isSubmitting || loading}
-                                            className={`${buttonClasses} w-full py-4 text-base`}
+                                            className={`${buttonClasses} w-full py-3 sm:py-4 text-sm sm:text-base`}
                                         >
-                                            {(isSubmitting || loading) ? <Loader2 className="animate-spin" size={20} /> : <Check size={20} />}
+                                            {(isSubmitting || loading) ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
                                             Verify & Next
                                         </button>
                                     </div>
@@ -302,12 +302,12 @@ const BecomeSeller = () => {
                 );
             case 2:
                 return (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-md mx-auto text-center py-4">
-                        <div className="w-16 h-16 bg-primary/10 text-primary rounded-[4px] flex items-center justify-center mx-auto mb-5">
-                            <Smartphone size={32} />
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-md mx-auto text-center py-2 sm:py-4 px-2">
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 bg-primary/10 text-primary rounded-[4px] flex items-center justify-center mx-auto mb-4 sm:mb-5">
+                            <Smartphone size={28} className="sm:w-8 sm:h-8" />
                         </div>
-                        <h2 className="text-xl font-bold text-gray-800 mb-2">Confirm Mobile Number</h2>
-                        <p className="text-gray-500 text-sm mb-8">
+                        <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-2">Confirm Mobile Number</h2>
+                        <p className="text-xs sm:text-sm text-gray-500 mb-6 sm:mb-8 break-all px-2">
                             A verification code will be sent to <span className="text-gray-900 font-bold">{user?.mobileno}</span>
                         </p>
 
@@ -315,9 +315,9 @@ const BecomeSeller = () => {
                             <button
                                 onClick={handleSendOtp}
                                 disabled={loading}
-                                className={`${buttonClasses} w-full py-4`}
+                                className={`${buttonClasses} w-full py-3 sm:py-4`}
                             >
-                                {loading && <Loader2 className="animate-spin" size={18} />}
+                                {loading && <Loader2 className="animate-spin" size={16} />}
                                 Send Verification OTP
                             </button>
                         ) : (
@@ -329,26 +329,26 @@ const BecomeSeller = () => {
                                         value={otp}
                                         onChange={(e) => setOtp(e.target.value)}
                                         placeholder="000000"
-                                        className={`${inputClasses} text-center text-2xl tracking-[0.5em] font-bold`}
+                                        className={`${inputClasses} text-center text-xl sm:text-2xl tracking-[0.3em] sm:tracking-[0.5em] font-bold`}
                                         maxLength={6}
                                     />
                                 </div>
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className={`${buttonClasses} w-full py-4 text-base`}
+                                    className={`${buttonClasses} w-full py-3 sm:py-4 text-sm sm:text-base`}
                                 >
-                                    {loading && <Loader2 className="animate-spin" size={20} />}
+                                    {loading && <Loader2 className="animate-spin" size={18} />}
                                     Verify Code
                                 </button>
                                 
-                                <div className="flex justify-between items-center text-xs mt-4 font-medium px-1">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs mt-4 font-medium px-1">
                                     <span className="text-gray-500">Didn't receive it?</span>
                                     {canResend ? (
                                         <button 
                                             type="button" 
                                             onClick={handleSendOtp} 
-                                            className="text-primary font-bold hover:underline"
+                                            className="text-primary font-bold hover:underline touch-manipulation"
                                             disabled={loading}
                                         >
                                             Resend Now
@@ -365,12 +365,12 @@ const BecomeSeller = () => {
                 );
             case 3:
                 return (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 rounded-[4px] bg-primary/10 text-primary flex items-center justify-center">
-                                <Store size={24} />
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 sm:space-y-6">
+                        <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-[4px] bg-primary/10 text-primary flex items-center justify-center">
+                                <Store size={18} className="sm:w-6 sm:h-6" />
                             </div>
-                            <h2 className="text-xl font-bold text-gray-800">Store Branding</h2>
+                            <h2 className="text-lg sm:text-xl font-bold text-gray-800">Store Branding</h2>
                         </div>
                         <form onSubmit={handleBrandSubmit} className="space-y-5 p-3">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -408,9 +408,9 @@ const BecomeSeller = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className={`${buttonClasses} w-full py-4 mt-4`}
+                                className={`${buttonClasses} w-full py-3 sm:py-4 mt-2 sm:mt-4`}
                             >
-                                {loading && <Loader2 className="animate-spin" size={20} />}
+                                {loading && <Loader2 className="animate-spin" size={18} />}
                                 Save & Continue
                             </button>
                         </form>
@@ -418,12 +418,12 @@ const BecomeSeller = () => {
                 );
             case 4:
                 return (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 rounded-[4px] bg-primary/10 text-primary flex items-center justify-center">
-                                <CreditCard size={24} />
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 sm:space-y-6">
+                        <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-[4px] bg-primary/10 text-primary flex items-center justify-center">
+                                <CreditCard size={18} className="sm:w-6 sm:h-6" />
                             </div>
-                            <h2 className="text-xl font-bold text-gray-800">Bank Settlement Account</h2>
+                            <h2 className="text-lg sm:text-xl font-bold text-gray-800">Bank Settlement Account</h2>
                         </div>
                         <form onSubmit={handleBankSubmit} className="space-y-5 p-3">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -461,9 +461,9 @@ const BecomeSeller = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className={`${buttonClasses} w-full py-4 mt-4`}
+                                className={`${buttonClasses} w-full py-3 sm:py-4 mt-2 sm:mt-4`}
                             >
-                                {loading && <Loader2 className="animate-spin" size={20} />}
+                                {loading && <Loader2 className="animate-spin" size={18} />}
                                 Save Bank Details
                             </button>
                         </form>
@@ -471,12 +471,12 @@ const BecomeSeller = () => {
                 );
             case 5:
                 return (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 rounded-[4px] bg-primary/10 text-primary flex items-center justify-center">
-                                <MapPin size={24} />
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 sm:space-y-6">
+                        <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-[4px] bg-primary/10 text-primary flex items-center justify-center">
+                                <MapPin size={18} className="sm:w-6 sm:h-6" />
                             </div>
-                            <h2 className="text-xl font-bold text-gray-800">Pickup & Logistics Address</h2>
+                            <h2 className="text-lg sm:text-xl font-bold text-gray-800">Pickup & Logistics Address</h2>
                         </div>
                         <form onSubmit={handleAddressSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-5 p-3">
                             <div className="md:col-span-2">
@@ -538,14 +538,14 @@ const BecomeSeller = () => {
                                     className={inputClasses}
                                 />
                             </div>
-                            <div className="md:col-span-2 pt-4">
+                            <div className="md:col-span-2 pt-2 sm:pt-4">
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className={`${buttonClasses} w-full py-4`}
+                                    className={`${buttonClasses} w-full py-3 sm:py-4`}
                                 >
-                                    {loading && <Loader2 className="animate-spin" size={20} />}
-                                    Verify Address & Proced
+                                    {loading && <Loader2 className="animate-spin" size={18} />}
+                                    Verify Address & Proceed
                                 </button>
                             </div>
                         </form>
@@ -553,16 +553,16 @@ const BecomeSeller = () => {
                 );
             case 6:
                 return (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 p-2">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 rounded-[4px] bg-primary/10 text-primary flex items-center justify-center">
-                                <FileText size={24} />
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 sm:space-y-6 p-2">
+                        <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-[4px] bg-primary/10 text-primary flex items-center justify-center">
+                                <FileText size={18} className="sm:w-6 sm:h-6" />
                             </div>
-                            <h2 className="text-xl font-bold text-gray-800">Review Policies</h2>
+                            <h2 className="text-lg sm:text-xl font-bold text-gray-800">Review Policies</h2>
                         </div>
-                        <div className="bg-gray-50 rounded-[4px] border border-gray-200 p-3 max-h-[300px] overflow-y-auto no-scrollbar prose prose-primary prose-sm">
-                            <p className="font-bold text-gray-800 mb-2 underline tracking-tight">Standard Terms of Service:</p>
-                            <ul className="list-disc list-inside space-y-2 text-gray-600 font-medium leading-relaxed">
+                        <div className="bg-gray-50 rounded-[4px] border border-gray-200 p-3 sm:p-4 max-h-[250px] sm:max-h-[300px] overflow-y-auto no-scrollbar prose prose-primary prose-sm">
+                            <p className="font-bold text-gray-800 mb-2 underline tracking-tight text-sm sm:text-base">Standard Terms of Service:</p>
+                            <ul className="list-disc list-inside space-y-1.5 sm:space-y-2 text-gray-600 font-medium leading-relaxed text-xs sm:text-sm">
                                 <li><strong>Listing Policy:</strong> All products must be authentic and accurately described.</li>
                                 <li><strong>Shipping:</strong> Orders must be handled as per logistics guidelines.</li>
                                 <li><strong>Service Fees:</strong> Commissions are automatically deducted from settlements.</li>
@@ -570,14 +570,14 @@ const BecomeSeller = () => {
                             </ul>
                         </div>
 
-                        <label className="flex items-center gap-3 p-4 bg-primary/5 rounded-[4px] cursor-pointer group hover:bg-primary/10 transition-colors">
+                        <label className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 bg-primary/5 rounded-[4px] cursor-pointer group hover:bg-primary/10 transition-colors">
                             <input
                                 type="checkbox"
                                 checked={isAccepted}
                                 onChange={(e) => setIsAccepted(e.target.checked)}
-                                className="mt-1 w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary accent-primary"
+                                className="mt-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded border-gray-300 text-primary focus:ring-primary accent-primary flex-shrink-0"
                             />
-                            <span className="text-sm font-semibold text-gray-700 leading-snug">
+                            <span className="text-xs sm:text-sm font-semibold text-gray-700 leading-snug">
                                 I confirm all details are correct and I accept Grocery's <span className="text-primary underline decoration-primary/30 underline-offset-4">Merchant Service Agreement</span>.
                             </span>
                         </label>
@@ -585,32 +585,32 @@ const BecomeSeller = () => {
                         <button
                             onClick={handleSubmitAgreement}
                             disabled={!isAccepted || loading}
-                            className={`${buttonClasses} w-full text-base`}
+                            className={`${buttonClasses} w-full text-sm sm:text-base`}
                         >
-                            {loading ? <Loader2 className="animate-spin" size={22} /> : <Check size={22} strokeWidth={3} />}
+                            {loading ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} strokeWidth={3} />}
                             Submit Registration
                         </button>
                     </motion.div>
                 );
             case 7:
                 return (
-                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md mx-auto text-center px-3 py-4">
-                        <div className="relative inline-block mb-10">
-                            <div className="w-24 h-24 bg-primary/20 text-primary rounded-[4px] flex items-center justify-center shadow-lg shadow-primary/20 relative z-10">
-                                <Check size={48} strokeWidth={3} />
+                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-md mx-auto text-center px-2 sm:px-3 py-3 sm:py-4">
+                        <div className="relative inline-block mb-8 sm:mb-10">
+                            <div className="w-20 h-20 sm:w-24 sm:h-24 bg-primary/20 text-primary rounded-[4px] flex items-center justify-center shadow-lg shadow-primary/20 relative z-10">
+                                <Check size={36} className="sm:w-12 sm:h-12" strokeWidth={3} />
                             </div>
-                            <div className="absolute -inset-3 bg-primary/10 rounded-[4px] animate-pulse -z-0"></div>
+                            <div className="absolute -inset-2 sm:-inset-3 bg-primary/10 rounded-[4px] animate-pulse -z-0"></div>
                         </div>
-                        <h2 className="text-3xl font-bold text-gray-900 mb-3">Registration Successful!</h2>
-                        <p className="text-gray-500 font-medium px-4 mb-10 leading-relaxed">
+                        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">Registration Successful!</h2>
+                        <p className="text-xs sm:text-sm text-gray-500 font-medium px-2 sm:px-4 mb-8 sm:mb-10 leading-relaxed">
                             Your application is being reviewed. Our onboarding team will contact you within <span className="text-gray-900 font-bold">24-48 business hours</span>.
                         </p>
                         <button
                             onClick={() => navigate('/')}
-                            className="w-full bg-gray-900 text-white py-4 rounded-[4px] font-bold flex items-center justify-center gap-3 hover:bg-black transition-all shadow-md"
+                            className="w-full bg-gray-900 text-white py-3 sm:py-4 rounded-[4px] font-bold flex items-center justify-center gap-2 sm:gap-3 hover:bg-black transition-all shadow-md text-sm sm:text-base touch-manipulation"
                         >
                             Back to Dashboard
-                            <ArrowRight size={18} />
+                            <ArrowRight size={16} className="sm:w-5 sm:h-5" />
                         </button>
                     </motion.div>
                 );
@@ -632,19 +632,19 @@ const BecomeSeller = () => {
 
     return (
         <div className="bg-[#F8F9FA] pb-10">
-            <div className="container mx-auto px-4 pt-10">
+            <div className="container mx-auto px-3 sm:px-4 pt-6 sm:pt-10">
                 <div className="max-w-6xl mx-auto">
 
                     {/* Unified Dashboard Container */}
                     <div className="bg-white rounded-[4px] shadow-lg border border-gray-100 overflow-hidden">
                         {/* 2. Focused Stepper Area */}
-                        <div className="pt-5  bg-gray-50/50 border-b border-gray-100">
+                        <div className="pt-3 sm:pt-5 bg-gray-50/50 border-b border-gray-100">
                             <CustomStepper steps={steps} activeStep={activeStep} />
                         </div>
 
                         {/* 3. Main Content Area */}
                         <div className="">
-                            <div className="max-w-3xl mx-auto my-5">
+                            <div className="max-w-3xl mx-auto my-3 sm:my-5 px-2 sm:px-0">
                                 <AnimatePresence mode="wait">
                                     <motion.div
                                         key={activeStep}

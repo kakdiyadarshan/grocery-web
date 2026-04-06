@@ -99,7 +99,9 @@ exports.getAllProducts = async (req, res) => {
             ];
         }
 
-       
+        if (seller) {
+            matchStage.sellerId = new mongoose.Types.ObjectId(seller);
+        }
 
         // Multiple categories support (comma separated)
         if (category) {

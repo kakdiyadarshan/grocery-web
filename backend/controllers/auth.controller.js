@@ -203,6 +203,15 @@ exports.userLogin = async (req, res) => {
             return res.status(404).json({ status: 404, message: "Password Not Match" });
         }
 
+        if (checkEmailIsExist.role === 'seller') {
+            if (checkEmailIsExist.status === 'pending') {
+                return res.status(403).json({ status: 403, message: "Your seller account is currently pending approval. Please wait for admin confirmation." });
+            }
+            if (checkEmailIsExist.status === 'rejected') {
+                return res.status(403).json({ status: 403, message: "Your seller account application was rejected. Please contact support." });
+            }
+        }
+
         // Access Token
         let accessToken = await jwt.sign(
             { _id: checkEmailIsExist._id },
