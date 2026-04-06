@@ -3,17 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFormik, FieldArray, FormikProvider } from 'formik';
 import * as Yup from 'yup';
-import { getAllProducts, createProduct, updateProduct, deleteProduct, importProducts, approveRejectProduct } from '../../redux/slice/product.slice';
+import { getAllProducts, createProduct, updateProduct, deleteProduct, importProducts } from '../../redux/slice/product.slice';
 import { getAllCategories } from '../../redux/slice/category.slice';
 import { fetchAllSellers } from '../../redux/slice/seller.slice';
-import Table from '../component/DataTable';
-import Breadcrumb from '../component/Breadcrumb';
-import AdminLoader from '../component/AdminLoader';
-import { FiPlus, FiX, FiUpload, FiLoader, FiTrash2, FiPlusCircle, FiAlertTriangle, FiStar, FiAward, FiBarChart2, FiShoppingCart, FiCheckCircle } from 'react-icons/fi';
+import Table from '../../admin/component/DataTable';
+import Breadcrumb from '../../admin/component/Breadcrumb';
+import AdminLoader from '../../admin/component/AdminLoader';
+import { FiPlus, FiX, FiUpload, FiLoader, FiTrash2, FiPlusCircle, FiAlertTriangle, FiStar, FiAward, FiBarChart2, FiShoppingCart } from 'react-icons/fi';
 import { FaStar, FaStarHalfAlt } from 'react-icons/fa';
-import StockChart from '../component/StockChart';
-import CategoryChart from '../component/CategoryChart';
-import CustomSelect from '../component/CustomSelect';
+import StockChart from '../../admin/component/StockChart';
+import CategoryChart from '../../admin/component/CategoryChart';
+import CustomSelect from '../../admin/component/CustomSelect';
 import ReactQuill from 'react-quill-new';
 
 const Product = () => {
@@ -21,7 +21,7 @@ const Product = () => {
     const navigate = useNavigate();
     const { products, allProducts, totalProducts, loading } = useSelector((state) => state.product);
     const { categories } = useSelector((state) => state.category);
-    const { sellers } = useSelector((state) => state.seller);
+    const { user } = useSelector((state) => state.auth);
 
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -67,6 +67,7 @@ const Product = () => {
             limit: itemsPerPage,
             paginate: true,
             search: debouncedSearch,
+            seller: user?._id,
             status: 'all'
         };
         dispatch(getAllProducts(params));
@@ -74,13 +75,12 @@ const Product = () => {
 
     useEffect(() => {
         if (isChartModalOpen) {
-            dispatch(getAllProducts({ paginate: false, status: 'all' }));
+            dispatch(getAllProducts({ paginate: false, seller: user?._id, status: 'all' }));
         }
-    }, [dispatch, isChartModalOpen]);
+    }, [dispatch, isChartModalOpen, user]);
 
     useEffect(() => {
         dispatch(getAllCategories());
-        dispatch(fetchAllSellers());
     }, [dispatch]);
 
     useEffect(() => {
@@ -106,7 +106,6 @@ const Product = () => {
                 stock: Yup.number().required('Required').min(0),
             })
         ).min(1, 'At least one price variation is required'),
-        sellerId: Yup.string().required('Seller is required'),
         images: Yup.array().test('imageRequirement', 'Please upload at least 4 images', function (value) {
             const { isEditMode } = this.options.context || { isEditMode: false };
             const totalImages = (value?.length || 0) + (existingImagesToKeep?.length || 0);
@@ -123,7 +122,7 @@ const Product = () => {
             images: [],
             tags: [],
             sku: '',
-            sellerId: '',
+            sellerId: user?._id || '',
         },
         validationSchema,
         onSubmit: async (values) => {
@@ -182,6 +181,7 @@ const Product = () => {
             setIsEditMode(false);
             setSelectedProduct(null);
             formik.resetForm();
+            formik.setFieldValue('sellerId', user?._id || '');
             setImagePreviews([]);
             setExistingImagesToKeep([]);
         }
@@ -198,7 +198,7 @@ const Product = () => {
     };
 
     const handleView = (product) => {
-        navigate(`view/${product._id}`);
+        navigate(`/seller/products/view/${product._id}`);
     };
 
     const handleImageChange = (e) => {
@@ -236,14 +236,6 @@ const Product = () => {
         if (product && product._id) {
             await dispatch(deleteProduct(product._id));
         }
-    };
-
-    const handleApprove = async (id) => {
-        await dispatch(approveRejectProduct({ id, status: 'approved' }));
-    };
-
-    const handleReject = async (id) => {
-        await dispatch(approveRejectProduct({ id, status: 'rejected' }));
     };
 
     const handleCloseImportModal = () => {
@@ -327,22 +319,6 @@ const Product = () => {
             render: (row) => <span className="text-[10px] font-bold text-gray-500 bg-gray-50 px-2 py-1 rounded border border-gray-100 uppercase">{row.sku || '-'}</span>,
             sortable: true
         },
-        {
-            header: 'Seller Name',
-            accessor: 'sellerName',
-            exportValue: (row) => `${row.sellerId.brandDetails?.storeName}`,
-            render: (row) => (
-                <div className="flex items-center gap-3">
-                    <div>
-                        <span className="font-semibold text-gray-800 tracking-wide block">
-                            {`${row?.sellerId?.firstname || ''} ${row?.sellerId?.lastname || ''}`.trim() || row?.sellerId?.name || 'N/A'}
-                        </span>
-                        <p className="text-xs text-gray-500">{row?.sellerId?.brandDetails?.storeName || 'Store Pending'}</p>
-                    </div>
-                </div>
-            ),
-            searchKey: (sellers) => `${sellers?.firstname || ''} ${sellers?.lastname || ''}`.trim() || sellers?.name
-        },
         { header: 'Category', accessor: 'category.categoryName', exportValue: (row) => `${row.category?.categoryName}` || '-', render: (row) => row.category?.categoryName || '-', searchKey: (row) => `${row.category?.categoryName}`.trim() },
         {
             header: 'Price Range',
@@ -423,35 +399,6 @@ const Product = () => {
                 );
             }
         },
-        {
-            header: 'Approval',
-            accessor: '_id',
-            hideInExport: true,
-            render: (row) => row.status === 'pending' && (
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleApprove(row._id);
-                        }}
-                        className="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-all title='Approve'"
-                        title="Approve"
-                    >
-                        <FiCheckCircle size={16} />
-                    </button>
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleReject(row._id);
-                        }}
-                        className="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg transition-all title='Reject'"
-                        title="Reject"
-                    >
-                        <FiX size={16} />
-                    </button>
-                </div>
-            )
-        }
     ];
 
     return (
@@ -469,7 +416,7 @@ const Product = () => {
                         <FiBarChart2 size={18} />
                         <span className='hidden xl:block'>Stock Analytics</span>
                     </button>
-                    {/* <button
+                    <button
                         onClick={() => setIsImportModalOpen(true)}
                         className=" gap-2 flex items-center justify-center w-full sm:w-auto sm:px-5 px-3 py-2.5 bg-primary text-white rounded-[4px] hover:bg-primaryHover transition-all shadow-md active:scale-95 font-medium text-sm  tracking-wider whitespace-nowrap"
                     >
@@ -482,7 +429,7 @@ const Product = () => {
                     >
                         <FiPlus size={18} />
                         <span className='hidden xl:block'>Add Product</span>
-                    </button> */}
+                    </button>
                 </div>
             </div>
 
@@ -640,28 +587,7 @@ const Product = () => {
 
                                     {/* Right Side: Pricing & Stock */}
                                     <div className="space-y-6">
-                                        <div>
-                                            <CustomSelect
-                                                label="Seller"
-                                                className="w-full"
-                                                options={sellers ? sellers.map(s => ({
-                                                    value: s._id,
-                                                    label: s.brandDetails?.storeName || `${s.firstname} ${s.lastname}`
-                                                })) : []}
-                                                value={formik.values.sellerId}
-                                                onChange={(value) => formik.setFieldValue('sellerId', value)}
-                                                placeholder="Select Seller"
-                                                required
-                                                buttonClassName={
-                                                    formik.touched.sellerId && formik.errors.sellerId
-                                                        ? 'border-red-500'
-                                                        : 'border-gray-200'
-                                                }
-                                            />
-                                            {formik.touched.sellerId && formik.errors.sellerId && (
-                                                <p className="text-xs text-red-500">{formik.errors.sellerId}</p>
-                                            )}
-                                        </div>
+
                                         <div className="space-y-3">
                                             <div className="flex justify-between items-center">
                                                 <label className="text-sm font-semibold text-gray-700">Weights & Price</label>

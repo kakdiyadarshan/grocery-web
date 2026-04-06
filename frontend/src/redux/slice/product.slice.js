@@ -62,7 +62,7 @@ export const getAllProducts = createAsyncThunk(
     'product/getAllProducts',
     async (params = {}, { dispatch, rejectWithValue }) => {
         try {
-            const { page, limit, paginate, search, category, minPrice, maxPrice, weights, availability, sort, seller } = params;
+            const { page, limit, paginate, search, category, minPrice, maxPrice, weights, availability, sort, seller, status } = params;
             let url = `${BASE_URL}/getAllProducts`;
             const queryParams = new URLSearchParams();
             if (page) queryParams.append('page', page);
@@ -76,6 +76,7 @@ export const getAllProducts = createAsyncThunk(
             if (availability) queryParams.append('availability', availability);
             if (sort) queryParams.append('sort', sort);
             if (seller) queryParams.append('seller', seller);
+            if (status) queryParams.append('status', status);
 
             if (queryParams.toString()) {
                 url += `?${queryParams.toString()}`;
@@ -91,8 +92,6 @@ export const getAllProducts = createAsyncThunk(
         }
     }
 );
-
-
 
 export const getProductById = createAsyncThunk(
     'product/getProductById',
@@ -167,6 +166,24 @@ export const getBestSellingProducts = createAsyncThunk(
     }
 );
 
+export const approveRejectProduct = createAsyncThunk(
+    'product/approveRejectProduct',
+    async ({ id, status }, { dispatch, rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.post(`${BASE_URL}/product/approve-reject/${id}`, { status }, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            dispatch(setAlert({ text: response.data.message, type: 'success' }));
+            return response.data.product;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
 const productSlice = createSlice({
     name: 'product',
     initialState,
@@ -232,7 +249,16 @@ const productSlice = createSlice({
                 state.loading = false;
                 state.bestSellingProducts = action.payload;
             })
-            .addCase(getBestSellingProducts.rejected, (state) => { state.loading = false; });
+            .addCase(getBestSellingProducts.rejected, (state) => { state.loading = false; })
+            .addCase(approveRejectProduct.pending, (state) => { state.loading = true; })
+            .addCase(approveRejectProduct.fulfilled, (state, action) => {
+                state.loading = false;
+                const index = state.products.findIndex(p => p._id === action.payload._id);
+                if (index !== -1) {
+                    state.products[index] = action.payload;
+                }
+            })
+            .addCase(approveRejectProduct.rejected, (state) => { state.loading = false; });
     }
 });
 

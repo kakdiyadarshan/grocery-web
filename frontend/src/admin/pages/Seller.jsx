@@ -22,7 +22,9 @@ const Seller = () => {
     const columns = [
         {
             header: 'Name',
-            accessor: 'name',
+            accessor: 'sellername',
+            searchKey: (sellers) => `${sellers?.firstname || ''} ${sellers?.lastname || ''} ${sellers?.name || ''} ${sellers?.brandDetails?.storeName || ''}`.toLowerCase(),
+            exportValue: (sellers) => `${sellers.brandDetails?.storeName}`,
             render: (sellers) => (
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600 font-bold overflow-hidden shadow-sm border border-emerald-500/20 shrink-0">
@@ -40,13 +42,12 @@ const Seller = () => {
                     </div>
                 </div>
             ),
-            searchKey: (sellers) => `${sellers?.firstname || ''} ${sellers?.lastname || ''}`.trim() || sellers?.name
         },
         {
             header: 'Email',
             accessor: 'email',
             render: (sellers) => <span className="text-textPrimary">{sellers.email || 'N/A'}</span>,
-            searchKey: (sellers) => sellers.email
+            searchKey: (sellers) => sellers.email,
         },
         {
             header: 'Mobile',

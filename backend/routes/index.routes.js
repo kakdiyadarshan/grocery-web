@@ -8,7 +8,7 @@ const { createCategory, getAllCategories, getCategoryById, updateCategory, delet
 const { getCart, addToCart, updateCartQuantity, removeFromCart, clearCart } = require('../controllers/cart.controller');
 
 const { getWishlist, addToWishlist, removeFromWishlist } = require('../controllers/wishlist.controller');
-const { createProduct, getAllProducts, getProductById, updateProduct, deleteProduct, getFeaturedProducts, importProducts, getBestSellingProducts } = require('../controllers/product.controller');
+const { createProduct, getAllProducts, getProductById, updateProduct, deleteProduct, getFeaturedProducts, importProducts, getBestSellingProducts, approveRejectProduct } = require('../controllers/product.controller');
 const { auth, authorizeRoles } = require('../middleware/auth.middleware');
 const { uploadPrivacyImage, saveAllPrivacyPolicies, getAllPrivacyPolicies, getPrivacyPolicyById } = require('../controllers/privacy.controller');
 const { addNewBlogCategoryController, getAllBlogCategoryController, getBlogCategoryByIdController, updateBlogCategoryController, deleteBlogCategoryController } = require('../controllers/blog.category.controller');
@@ -75,6 +75,7 @@ indexRoutes.get('/getProductById/:id',  getProductById);
 indexRoutes.put('/updateProduct/:id', auth, authorizeRoles('admin', 'seller'), upload.array('images', 10), updateProduct);
 indexRoutes.delete('/deleteProduct/:id', auth, authorizeRoles('admin', 'seller'), deleteProduct);
 indexRoutes.post('/importProducts', auth, authorizeRoles('admin', 'seller'), upload.any(), importProducts);
+indexRoutes.post('/product/approve-reject/:id', auth, authorizeRoles('admin'), approveRejectProduct);
 
 // Cart routes
 indexRoutes.get('/cart', auth, getCart);

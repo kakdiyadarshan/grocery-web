@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../redux/slice/auth.slice';
 import LogoutModal from './LogoutModal';
 import { FiHome, FiUsers, FiPackage, FiLogOut, FiX, FiChevronDown, FiShoppingCart, FiGrid, } from 'react-icons/fi';
@@ -22,6 +22,7 @@ import { TbTruckDelivery } from "react-icons/tb";
 const Sidebar = ({ isOpen, onClose }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const { user } = useSelector(state => state.auth);
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [openDropdown, setOpenDropdown] = useState('');
@@ -35,14 +36,14 @@ const Sidebar = ({ isOpen, onClose }) => {
         dispatch(logout());
         setIsLoading(false);
         setIsLogoutModalOpen(false);
-        navigate('/admin');
+        navigate('/login');
     };
 
     const toggleDropdown = (name) => {
         setOpenDropdown(prev => prev === name ? '' : name);
     };
 
-    const menuItems = [
+    const adminMenuItems = [
         { name: 'Dashboard', icon: <FiHome />, path: '/admin/dashboard' },
         { name: 'Orders', icon: <FiShoppingCart />, path: '/admin/orders' },
         { name: 'Transactions', icon: <LuReceiptIndianRupee />, path: '/admin/transactions' },
@@ -100,7 +101,9 @@ const Sidebar = ({ isOpen, onClose }) => {
                 {/* Brand Logo & Close Button - */}
                 <div className="h-20 flex items-center justify-between px-8 border-b border-gray-50">
                     <div className="flex items-center gap-2">
-                        <h1 className="text-2xl font-bold text-textPrimary tracking-tight">Admin <span className="text-primary">Panel.</span></h1>
+                        <h1 className="text-2xl font-bold text-textPrimary tracking-tight">
+                            Admin <span className="text-primary">Panel.</span>
+                        </h1>
                     </div>
                     {/* Close button for mobile */}
                     <button onClick={onClose} className="lg:hidden text-gray-500 hover:text-primary transition-colors">
@@ -111,7 +114,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 {/* Navigation Menu */}
                 <nav className="flex-1 overflow-y-auto py-4 px-4 no-scrollbar">
                     <ul className="space-y-2">
-                        {menuItems.map((item, index) => (
+                        {adminMenuItems.map((item, index) => (
                             <li key={index}>
                                 {item.subItems ? (
                                     <div className="flex flex-col">

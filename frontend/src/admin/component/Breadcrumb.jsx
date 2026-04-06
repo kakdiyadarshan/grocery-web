@@ -8,7 +8,10 @@ const Breadcrumb = () => {
     if (
         location.pathname === '/admin/dashboard' ||
         location.pathname === '/admin' ||
-        location.pathname === '/admin/'
+        location.pathname === '/admin/' ||
+        location.pathname === '/seller/dashboard' ||
+        location.pathname === '/seller' ||
+        location.pathname === '/seller/'
     ) {
         return null;
     }
@@ -17,6 +20,7 @@ const Breadcrumb = () => {
 
     const routeNameMap = {
         admin: 'Home',
+        seller: 'Home',
         dashboard: 'Dashboard',
         users: 'Users',
         products: 'Products',
@@ -78,6 +82,19 @@ const Breadcrumb = () => {
                             <li key={to} className="inline-flex items-center">
                                 <Link
                                     to="/admin/dashboard"
+                                    className="inline-flex items-center text-sm font-medium text-textPrimary hover:text-primaryHover transition-colors"
+                                >
+                                    <FiHome className="mr-2" size={16} />
+                                    <span className="hidden sm:inline">Dashboard</span>
+                                </Link>
+                            </li>
+                        );
+                    }
+                    if (value === 'seller') {
+                        return (
+                            <li key={to} className="inline-flex items-center">
+                                <Link
+                                    to="/seller/dashboard"
                                     className="inline-flex items-center text-sm font-medium text-textPrimary hover:text-primaryHover transition-colors"
                                 >
                                     <FiHome className="mr-2" size={16} />

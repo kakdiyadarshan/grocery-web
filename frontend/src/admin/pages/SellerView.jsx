@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAllSellers, approveRejectSeller } from '../../redux/slice/seller.slice';
-import { getAllProducts } from '../../redux/slice/product.slice';
-import { Package, Building2, CreditCard, User, AlertCircle, X, Store, MapPin, Loader2, ArrowLeft } from 'lucide-react';
+import { getAllProducts, approveRejectProduct } from '../../redux/slice/product.slice';
+import { Package, Building2, CreditCard, User, AlertCircle, X, Store, MapPin, Loader2, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Breadcrumb from '../component/Breadcrumb';
 import DataTable from '../component/DataTable';
@@ -19,8 +19,6 @@ const SellerView = () => {
     const { allProducts, loading: productLoading } = useSelector((state) => state.product);
 
     const [activeTab, setActiveTab] = useState('profile');
-    const [rejectionReason, setRejectionReason] = useState("");
-    const [showRejectInput, setShowRejectInput] = useState(false);
 
     useEffect(() => {
         if (!sellers || sellers.length === 0) {
@@ -43,9 +41,15 @@ const SellerView = () => {
 
     const handleReject = () => {
         if (!viewSeller) return;
-        if (!rejectionReason) return alert("Please enter a rejection reason");
-        dispatch(approveRejectSeller({ userId: viewSeller._id, status: 'rejected', rejectionReason }));
-        setShowRejectInput(false);
+        dispatch(approveRejectSeller({ userId: viewSeller._id, status: 'rejected' }));
+    };
+
+    const handleProductApprove = (id) => {
+        dispatch(approveRejectProduct({ id, status: 'approved' }));
+    };
+
+    const handleProductReject = (id) => {
+        dispatch(approveRejectProduct({ id, status: 'rejected' }));
     };
 
     const renderStars = (reviews) => {
@@ -166,6 +170,44 @@ const SellerView = () => {
             hideInTable: true,
             exportValue: (row) => row.weighstWise.reduce((acc, v) => acc + (Number(v.stock) || 0), 0)
         },
+        {
+            header: 'Status',
+            accessor: 'status',
+            render: (row) => {
+                const statusStyles = {
+                    pending: 'bg-amber-50 text-amber-600 border-amber-200',
+                    approved: 'bg-emerald-50 text-emerald-600 border-emerald-200',
+                    rejected: 'bg-rose-50 text-rose-600 border-rose-200'
+                };
+                return (
+                    <span className={`px-2.5 py-1 rounded-[4px] text-[12px] font-bold border ${statusStyles[row.status] || 'bg-gray-50 text-gray-600'}`}>
+                        {row.status}
+                    </span>
+                );
+            }
+        },
+        {
+            header: 'Approval',
+            accessor: '_id',
+            render: (row) => row.status === 'pending' && (
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => handleProductApprove(row._id)}
+                        className="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-all"
+                        title="Approve"
+                    >
+                        <CheckCircle size={16} />
+                    </button>
+                    <button
+                        onClick={() => handleProductReject(row._id)}
+                        className="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg transition-all"
+                        title="Reject"
+                    >
+                        <X size={16} />
+                    </button>
+                </div>
+            )
+        }
     ];
 
     const getStatusBadge = (status) => {
@@ -258,25 +300,8 @@ const SellerView = () => {
                                         <span className="font-medium text-xs sm:text-sm md:text-base leading-snug">This seller has completed onboarding and is awaiting your approval.</span>
                                     </div>
                                     <div className="flex gap-2 w-full md:w-auto">
-                                        {!showRejectInput ? (
-                                            <>
-                                                <button onClick={() => setShowRejectInput(true)} className="flex-1 md:flex-none px-3 sm:px-4 py-2 border border-red-200 text-red-600 bg-white hover:bg-red-50 font-bold rounded-[4px] text-xs sm:text-sm transition-colors touch-manipulation">Reject</button>
-                                                <button onClick={handleApprove} className="flex-1 md:flex-none px-3 sm:px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-[4px] text-xs sm:text-sm transition-colors shadow-sm touch-manipulation">Approve Account</button>
-                                            </>
-                                        ) : (
-                                            <div className="flex items-center gap-2 w-full">
-                                                <input
-                                                    type="text"
-                                                    placeholder="Reason for rejection..."
-                                                    value={rejectionReason}
-                                                    onChange={(e) => setRejectionReason(e.target.value)}
-                                                    className="flex-1 px-2 sm:px-3 py-2 border border-red-300 rounded-[4px] outline-none text-xs sm:text-sm focus:border-red-500 shadow-sm"
-                                                    autoFocus
-                                                />
-                                                <button onClick={handleReject} className="px-3 sm:px-4 py-2 bg-red-600 text-white font-bold rounded-[4px] text-xs sm:text-sm hover:bg-red-700 shadow-sm touch-manipulation">Confirm</button>
-                                                <button onClick={() => setShowRejectInput(false)} className="px-2 sm:px-3 py-2 text-gray-500 hover:bg-gray-200 bg-white border border-gray-200 rounded-[4px] shadow-sm touch-manipulation"><X size={14} className="sm:w-4 sm:h-4" /></button>
-                                            </div>
-                                        )}
+                                        <button onClick={handleReject} className="flex-1 md:flex-none px-3 sm:px-4 py-2 border border-red-200 text-red-600 bg-white hover:bg-red-50 font-bold rounded-[4px] text-xs sm:text-sm transition-colors touch-manipulation">Reject</button>
+                                        <button onClick={handleApprove} className="flex-1 md:flex-none px-3 sm:px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-[4px] text-xs sm:text-sm transition-colors shadow-sm touch-manipulation">Approve Account</button>
                                     </div>
                                 </div>
                             )}
