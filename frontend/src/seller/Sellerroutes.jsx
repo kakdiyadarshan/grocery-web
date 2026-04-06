@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import PrivateRoute from '../component/PrivateRoute';
+import Layout from './pages/Layout';
 
 const SellerDashboard = () => (
     <div className="p-8 text-center">
@@ -14,8 +15,11 @@ const Sellerroutes = () => {
     return (
         <Routes>
             <Route element={<PrivateRoute allowedRoles={['seller']} />}>
-                <Route path="sellerdashboard" element={<SellerDashboard />} />
+                {/* <Route path="sellerdashboard" element={<SellerDashboard />} /> */}
                 {/* Additional seller routes go here */}
+                <Route path="/" element={<Layout />} >
+                    <Route index element={<SellerDashboard />} />
+                </Route>
             </Route>
         </Routes>
     );
