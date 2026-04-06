@@ -5,6 +5,7 @@ import { useFormik, FieldArray, FormikProvider } from 'formik';
 import * as Yup from 'yup';
 import { getAllProducts, createProduct, updateProduct, deleteProduct, importProducts } from '../../redux/slice/product.slice';
 import { getAllCategories } from '../../redux/slice/category.slice';
+import { fetchAllSellers } from '../../redux/slice/seller.slice';
 import Table from '../component/DataTable';
 import Breadcrumb from '../component/Breadcrumb';
 import AdminLoader from '../component/AdminLoader';
@@ -20,6 +21,7 @@ const Product = () => {
     const navigate = useNavigate();
     const { products, totalProducts, loading } = useSelector((state) => state.product);
     const { categories } = useSelector((state) => state.category);
+    const { sellers } = useSelector((state) => state.seller);
 
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -71,6 +73,7 @@ const Product = () => {
 
     useEffect(() => {
         dispatch(getAllCategories());
+        dispatch(fetchAllSellers());
     }, [dispatch]);
 
     useEffect(() => {
@@ -96,6 +99,7 @@ const Product = () => {
                 stock: Yup.number().required('Required').min(0),
             })
         ).min(1, 'At least one price variation is required'),
+        sellerId: Yup.string().required('Seller is required'),
         images: Yup.array().test('imageRequirement', 'Please upload at least 4 images', function (value) {
             const { isEditMode } = this.options.context || { isEditMode: false };
             const totalImages = (value?.length || 0) + (existingImagesToKeep?.length || 0);
@@ -112,6 +116,7 @@ const Product = () => {
             images: [],
             tags: [],
             sku: '',
+            sellerId: '',
         },
         validationSchema,
         onSubmit: async (values) => {
@@ -121,6 +126,7 @@ const Product = () => {
             formData.append('description', values.description);
             formData.append('weighstWise', JSON.stringify(values.weighstWise));
             formData.append('sku', values.sku);
+            formData.append('sellerId', values.sellerId);
 
             if (values.tags && values.tags.length > 0) {
                 values.tags.forEach(tag => formData.append('tags', tag));
@@ -161,6 +167,7 @@ const Product = () => {
                 images: [],
                 tags: product.tags || [],
                 sku: product.sku || '',
+                sellerId: product.sellerId?._id || product.sellerId || '',
             });
             setExistingImagesToKeep(product.images.map(img => img.public_id));
             setImagePreviews(product.images.map(img => ({ url: img.url, public_id: img.public_id })));
@@ -561,25 +568,22 @@ const Product = () => {
                                             <CustomSelect
                                                 label="Seller"
                                                 className="w-full"
-                                                options={[
-                                                    {
-                                                        value: 'seller1', label: "John's Store"
-                                                    },
-                                                    { value: 'seller2', label: 'Fresh Farms' },
-                                                    { value: 'seller3', label: 'Green Mart' },
-                                                ]}
-                                                value={formik.values.seller}
-                                                onChange={(value) => formik.setFieldValue('seller', value)}
+                                                options={sellers ? sellers.map(s => ({
+                                                    value: s._id,
+                                                    label: s.brandDetails?.storeName || `${s.firstname} ${s.lastname}`
+                                                })) : []}
+                                                value={formik.values.sellerId}
+                                                onChange={(value) => formik.setFieldValue('sellerId', value)}
                                                 placeholder="Select Seller"
                                                 required
                                                 buttonClassName={
-                                                    formik.touched.seller && formik.errors.seller
+                                                    formik.touched.sellerId && formik.errors.sellerId
                                                         ? 'border-red-500'
                                                         : 'border-gray-200'
                                                 }
                                             />
-                                            {formik.touched.seller && formik.errors.seller && (
-                                                <p className="text-xs text-red-500">{formik.errors.seller}</p>
+                                            {formik.touched.sellerId && formik.errors.sellerId && (
+                                                <p className="text-xs text-red-500">{formik.errors.sellerId}</p>
                                             )}
                                         </div>
                                         <div className="space-y-3">
