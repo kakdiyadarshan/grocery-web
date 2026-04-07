@@ -53,22 +53,64 @@ const adjustProductStock = async (item, delta) => {
 const groupItemsBySeller = async (items) => {
     let subtotal = 0;
     const enrichedItems = [];
+    const sellerGroups = {};
 
     for (const item of items) {
         const product = await Product.findById(item.productId);
         if (!product) continue;
 
-        // Ensure sellerId is stored at the item level
-        item.sellerId = product.sellerId.toString();
+        const sellerId = product.sellerId.toString();
+        item.sellerId = sellerId;
         
-        // User pays 100% full price
         const itemTotal = (item.discountPrice || item.price) * item.quantity;
         subtotal += itemTotal;
         
         enrichedItems.push(item);
+
+        if (!sellerGroups[sellerId]) {
+            sellerGroups[sellerId] = {
+                items: [],
+                totalAmount: 0,
+                adminDiscount: 0 // Admin fee/commission can be calculated here if needed
+            };
+        }
+        sellerGroups[sellerId].items.push(item);
+        sellerGroups[sellerId].totalAmount += itemTotal;
     }
 
-    return { enrichedItems, subtotal };
+    return { enrichedItems, subtotal, sellerGroups };
+};
+
+// Helper to transfer funds to sellers using Stripe Connect
+const transferToSellers = async (sellerGroups, paymentIntentId) => {
+    for (const sellerId in sellerGroups) {
+        const group = sellerGroups[sellerId];
+        const seller = await User.findById(sellerId);
+        
+        if (seller && seller.stripeAccountId) {
+            // Calculate seller's share (Total - Admin Commission)
+            const adminCommPercent = 10; // Default 10%, should ideally come from seller settings
+            const sellerAmount = group.totalAmount * (1 - (adminCommPercent / 100));
+            const amountInCents = Math.round(sellerAmount * 100);
+
+            if (amountInCents > 0) {
+                try {
+                    await stripe.transfers.create({
+                        amount: amountInCents,
+                        currency: 'usd', // Adjust if needed
+                        destination: seller.stripeAccountId,
+                        // source_transaction: paymentIntentId, // Optional: links transfer to the original charge
+                        metadata: { sellerId: sellerId.toString() }
+                    });
+                    console.log(`Successfully transferred ${amountInCents} cents to seller ${sellerId}`);
+                } catch (err) {
+                    console.error(`Stripe transfer failed for seller ${sellerId}:`, err);
+                }
+            }
+        } else {
+            console.warn(`Seller ${sellerId} does not have a Stripe account linked. Manual settlement required.`);
+        }
+    }
 };
 
 // Helper to determine dynamic status based on time
@@ -312,6 +354,9 @@ exports.createOrder = async (req, res) => {
 
         // IF STRIPE: Don't create order yet, just create payment and redirect
         if (paymentMethod.toLowerCase() === 'stripe') {
+            const { enrichedItems, sellerGroups } = await groupItemsBySeller(items);
+            const isSplitOrder = Object.keys(sellerGroups).length > 1;
+
             const payment = await Payment.create({
                 userId,
                 paymentMethod,
@@ -319,7 +364,7 @@ exports.createOrder = async (req, res) => {
                 status: 'pending',
                 pendingOrderData: {
                     userId, items: enrichedItems, totalAmount: finalTotal, couponId, paymentMethod, addressId, addressDetails,
-                    isSplitOrder: false 
+                    isSplitOrder 
                 }
             });
 
@@ -1041,6 +1086,12 @@ exports.handleStripeWebhook = async (req, res) => {
                     payload: { paymentId: payment._id }
                 }
             });
+
+            // Perform Seller-Wise Stripe Transfers
+            if (paymentIntentId) {
+                const { sellerGroups } = await groupItemsBySeller(orderData.items);
+                await transferToSellers(sellerGroups, paymentIntentId);
+            }
 
             await emitRoleNotification({
                 designations: ['admin'],

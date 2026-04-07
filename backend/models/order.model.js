@@ -77,6 +77,11 @@ const orderSchema = new mongoose.Schema({
     sellerAmount: {
         type: Number,
         default: 0
+    },
+    sellerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: false // Should be present for split orders
     }
 }, { timestamps: true });
 

@@ -3,10 +3,11 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const sendEmail = require('../utils/sendEmail');
 const { emitRoleNotification } = require('../socketManager/socketManager');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 exports.createUser = async (req, res) => {
     try {
-        let { firstname, lastname, email, password, role, mobileno } = req.body;
+        let { firstname, lastname, email, password, role, mobileno, businessName } = req.body;
 
         if (!firstname || !lastname || !email || !password) {
             return res.status(400).json({ status: 400, message: 'Name, email and password are required.' });
@@ -19,6 +20,24 @@ exports.createUser = async (req, res) => {
 
         let salt = await bcrypt.genSalt(10);
         let hashPassword = await bcrypt.hash(password, salt);
+
+        // Optional: Create Stripe Connect Account for Sellers
+        let currentStripeAccountId = null;
+        if (role === 'seller') {
+            try {
+                const stripeAccount = await stripe.accounts.create({
+                    type: 'standard',
+                    email: email,
+                    business_profile: {
+                        name: businessName || `${firstname} ${lastname}`
+                    }
+                });
+                currentStripeAccountId = stripeAccount.id;
+            } catch (stripeErr) {
+                console.error("Error creating Stripe Connect Account during registration:", stripeErr);
+                // Optionally handle error (you might not want to block registration if Stripe fails)
+            }
+        }
 
         // Generate 6 digit OTP
         const otp = Math.floor(100000 + Math.random() * 900000);
@@ -33,7 +52,8 @@ exports.createUser = async (req, res) => {
             role: role || "user",
             otp: role === "admin" ? undefined : otp,
             otpExpiresAt: role === "admin" ? undefined : otpExpiresAt,
-            isVerified: role === "admin" ? true : false
+            isVerified: role === "admin" ? true : false,
+            stripeAccountId: currentStripeAccountId
         });
 
         // Notify admins about new user registration
