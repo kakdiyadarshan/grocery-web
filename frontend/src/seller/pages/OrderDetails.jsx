@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useMemo, memo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getOrderById, updateOrderStatus } from '../../redux/slice/order.slice';
+import { fetchSellerOrderById, updateOrderStatus } from '../../redux/slice/order.slice';
 import { FiArrowLeft, FiBox, FiCreditCard, FiMapPin, FiTruck, FiCheckCircle, FiClock, FiXCircle, FiShoppingCart } from 'react-icons/fi';
-import CustomSelect from '../component/CustomSelect';
-import AdminLoader from '../component/AdminLoader';
+import CustomSelect from '../../admin/component/CustomSelect';
+import AdminLoader from '../../admin/component/AdminLoader';
 
 const TrackingNode = memo(({ title, time, time1, desc, isCompleted, isActive, isLast }) => {
     return (
@@ -70,10 +70,11 @@ const OrderDetails = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { currentOrder, loading } = useSelector((state) => state.order);
+    const { user } = useSelector((state) => state.auth);
 
     useEffect(() => {
         if (id) {
-            dispatch(getOrderById(id));
+            dispatch(fetchSellerOrderById(id));
         }
     }, [dispatch, id]);
 
@@ -193,7 +194,7 @@ const OrderDetails = () => {
             <div className="text-center py-20 bg-card rounded-xl border border-borderColor shadow-sm">
                 <p className="text-lg text-textSecondary font-medium">Order not found.</p>
                 <button
-                    onClick={() => navigate('/admin/orders')}
+                    onClick={() => navigate('/seller/orders')}
                     className="mt-6 px-6 py-2.5 bg-primary text-white rounded-[4px] hover:bg-primaryHover transition-all shadow-sm font-medium"
                 >
                     Back to Orders
@@ -202,15 +203,15 @@ const OrderDetails = () => {
         );
     }
 
-    // Destructure after checking currentOrder exists
     const { userId, items, totalAmount, address, paymentMethod, payment, status, createdAt, couponId } = currentOrder;
 
     const subtotal = items.reduce((acc, item) => {
-        const price = item.selectedVariant?.discountPrice ?? item.selectedVariant?.price ?? 0;
+        const price = item.price ?? 0;
         return acc + (price * item.quantity);
     }, 0);
 
     const tax = subtotal * 0.08;
+    const sellerTotal = totalAmount;
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500 md:my-6 my-4">
@@ -315,9 +316,9 @@ const OrderDetails = () => {
                                                     </span>
                                                 )}
                                             </div>
-
+                                            
                                             <p className="hidden sm:block text-xs text-textSecondary font-medium sm:mt-0.5">Quantity: {item?.quantity}</p>
-
+                                            
                                             <div className="flex flex-col items-end">
                                                 <span className="sm:hidden text-[9px] uppercase tracking-widest font-bold text-textSecondary mb-0.5">Total</span>
                                                 <p className="font-black text-primary text-[15px] sm:text-base sm:mt-2 leading-tight">
@@ -353,7 +354,7 @@ const OrderDetails = () => {
                                 )}
                                 <div className="flex justify-between text-xl font-black text-textPrimary border-t border-borderColor pt-4 mt-2">
                                     <span>Total Amount</span>
-                                    <span className="text-primary">${totalAmount.toFixed(2)}</span>
+                                    <span className="text-primary">${sellerTotal.toFixed(2)}</span>
                                 </div>
                             </div>
                         </div>
@@ -419,12 +420,12 @@ const OrderDetails = () => {
                             </div>
                             <div className="flex justify-between items-center rounded-[4px]">
                                 <span className="text-xs font-bold text-textSecondary capitalize">Status</span>
-                                <span className={`text-[10px] font-[600] capitalize tracking-widest px-2.5 py-1 rounded-[4px] border shadow-sm ${payment[0]?.status === 'completed' || payment[0]?.status === 'paid' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
-                                    payment[0]?.status === 'failed' ? 'bg-rose-50 text-rose-600 border-rose-200' :
-                                        payment[0]?.status === 'refunded' ? 'bg-indigo-50 text-indigo-600 border-indigo-200' :
-                                            'bg-amber-50 text-amber-600 border-amber-200'
+                                <span className={`text-[10px] font-[600] capitalize tracking-widest px-2.5 py-1 rounded-[4px] border shadow-sm ${payment?.status === 'completed' || payment?.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                    payment?.status === 'failed' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                                        payment?.status === 'refunded' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                                            'bg-amber-50 text-amber-700 border-amber-200'
                                     }`}>
-                                    {payment[0]?.status}
+                                    {payment?.status || 'N/A'}
                                 </span>
                             </div>
                         </div>

@@ -19,10 +19,10 @@ const { getTermConditionById, getAllTermConditions, saveAllTermConditions, uploa
 const { uploadShippingImage, saveAllShippingPolicies, getAllShippingPolicies, getShippingPolicyById } = require('../controllers/shippingpolicy.controller');
 const { createOffer, getAllOffers, getOfferById, updateOffer, deleteOffer } = require('../controllers/offerController');
 const { createFAQ, getAllFAQs, getFAQById, updateFAQ, deleteFAQ } = require('../controllers/faq.controller');
-const { createReview, getReviewById, getAllReviews, deleteReview } = require('../controllers/review.controller');
+const { createReview, getReviewById, getAllReviews, deleteReview, getSellerReviews } = require('../controllers/review.controller');
 
 const { createCoupon, getAllCoupons, deleteCoupon, getCouponById, updateCoupon, applyCoupon } = require('../controllers/coupon.controller');
-const { createOrder, getAllOrders, getOrderById, getOrdersByIds, updateOrderStatus, deleteOrder, getUserOrders, cancelOrder, trackOrder, handleStripeWebhook, verifyStripeSession } = require('../controllers/order.controller');
+const { createOrder, getAllOrders, getOrderById, getOrdersByIds, updateOrderStatus, deleteOrder, getUserOrders, cancelOrder, trackOrder, handleStripeWebhook, verifyStripeSession, getSellerOrders, getSellerOrderById } = require('../controllers/order.controller');
 const { getOrderMonthlyAnalytics, getRevenueAnalytics } = require('../controllers/dashboard.controller');
 const { createPayment, getPaymentById, getAllPayments, updatePaymentStatus, deletePayment, getPaymentByUserId, getPaymentByOrderId } = require('../controllers/payment.controller');
 const { addAddress, getAddresses, updateAddress, deleteAddress, setDefaultAddress } = require('../controllers/address.controller');
@@ -152,6 +152,7 @@ indexRoutes.post('/send-offer-email', auth, authorizeRoles('admin'), sendOfferEm
 indexRoutes.post('/addReview', auth, upload.array('images', 5), createReview);
 indexRoutes.get('/getReview/:id', getReviewById);
 indexRoutes.get('/getAllReviews', getAllReviews); // Can take productId as query param
+indexRoutes.get('/getSellerReviews', auth, authorizeRoles('seller'), getSellerReviews);
 indexRoutes.delete('/deleteReview/:id', auth, deleteReview);
 
 // Banner routes
@@ -199,6 +200,8 @@ indexRoutes.get('/getOrdersByIds', auth, authorizeRoles('admin', 'user'), getOrd
 indexRoutes.put('/updateOrderStatus/:id', auth, authorizeRoles('admin'), updateOrderStatus);
 indexRoutes.delete('/deleteOrder/:id', auth, authorizeRoles('admin'), deleteOrder);
 indexRoutes.get('/getUserOrders', auth, getUserOrders);
+indexRoutes.get('/getSellerOrders', auth, authorizeRoles('seller'), getSellerOrders);
+indexRoutes.get('/getSellerOrderById/:id', auth, authorizeRoles('seller'), getSellerOrderById);
 indexRoutes.put('/cancelOrder/:id', auth, cancelOrder);
 indexRoutes.get('/trackOrder/:id', auth, trackOrder);
 indexRoutes.get('/order-monthly-analytics', auth, authorizeRoles('admin'), getOrderMonthlyAnalytics);

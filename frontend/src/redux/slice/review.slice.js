@@ -18,6 +18,21 @@ export const fetchReviews = createAsyncThunk(
     }
 );
 
+export const fetchSellerReviews = createAsyncThunk(
+    'review/fetchSellerReviews',
+    async (_, { rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`${BASE_URL}/getSellerReviews`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return response.data.reviews;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to fetch reviews');
+        }
+    }
+);
+
 export const deleteReview = createAsyncThunk(
     'review/deleteReview',
     async (id, { rejectWithValue }) => {
@@ -61,6 +76,7 @@ const reviewSlice = createSlice({
         reviews: [],
         userreviews: [],
         productReviews: [],
+        productWiseReviews: [],
         loading: false,
         error: null
     },
@@ -77,6 +93,19 @@ const reviewSlice = createSlice({
                 state.reviews = action.payload;
             })
             .addCase(fetchReviews.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            // Fetch Seller Reviews
+            .addCase(fetchSellerReviews.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchSellerReviews.fulfilled, (state, action) => {
+                state.loading = false;
+                state.reviews = action.payload;
+            })
+            .addCase(fetchSellerReviews.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             })

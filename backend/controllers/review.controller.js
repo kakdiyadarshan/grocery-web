@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Review = require('../models/review.model');
 const Product = require('../models/product.model');
 const { uploadToS3, deleteManyFromS3 } = require('../utils/s3Service');
@@ -69,15 +70,65 @@ exports.createReview = async (req, res) => {
 // Get Single Review
 exports.getReviewById = async (req, res) => {
     try {
-        const review = await Review.findById(req.params.id)
-            .populate("userId", "firstname lastname photo email")
-            .populate("productId", "name images");
+        const review = await Review.aggregate([
+            { $match: { _id: new mongoose.Types.ObjectId(req.params.id) } },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "userId"
+                }
+            },
+            { $unwind: { path: "$userId", preserveNullAndEmptyArrays: true } },
+            {
+                $lookup: {
+                    from: "products",
+                    localField: "productId",
+                    foreignField: "_id",
+                    as: "productId"
+                }
+            },
+            { $unwind: { path: "$productId", preserveNullAndEmptyArrays: true } },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "productId.sellerId",
+                    foreignField: "_id",
+                    as: "sellerId"
+                }
+            },
+            { $unwind: { path: "$sellerId", preserveNullAndEmptyArrays: true } },
+            {
+                $project: {
+                    _id: 1,
+                    rating: 1,
+                    comment: 1,
+                    images: 1,
+                    createdAt: 1,
+                    "userId._id": 1,
+                    "userId.firstname": 1,
+                    "userId.lastname": 1,
+                    "userId.email": 1,
+                    "userId.photo": 1,
+                    "productId._id": 1,
+                    "productId.name": 1,
+                    "productId.images": 1,
+                    "productId.sellerId": 1,
+                    "sellerId._id": 1,
+                    "sellerId.firstname": 1,
+                    "sellerId.lastname": 1,
+                    "sellerId.email": 1,
+                    "sellerId.brandDetails": 1,
+                }
+            }
+        ]);
 
-        if (!review) {
+        if (!review || review.length === 0) {
             return res.status(404).json({ success: false, message: "Review not found" });
         }
 
-        res.status(200).json({ success: true, review });
+        res.status(200).json({ success: true, review: review[0] });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -87,12 +138,138 @@ exports.getReviewById = async (req, res) => {
 exports.getAllReviews = async (req, res) => {
     try {
         const { productId } = req.query;
-        const query = productId ? { product: productId } : {};
+        let matchQuery = {};
+        if (productId) {
+            matchQuery.productId = new mongoose.Types.ObjectId(productId);
+        }
 
-        const reviews = await Review.find(query)
-            .populate("userId", "firstname lastname photo email")
-            .populate("productId", "name images")
-            .sort({ createdAt: -1 });
+        const reviews = await Review.aggregate([
+            { $match: matchQuery },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "userId"
+                }
+            },
+            { $unwind: { path: "$userId", preserveNullAndEmptyArrays: true } },
+            {
+                $lookup: {
+                    from: "products",
+                    localField: "productId",
+                    foreignField: "_id",
+                    as: "productId"
+                }
+            },
+            { $unwind: { path: "$productId", preserveNullAndEmptyArrays: true } },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "productId.sellerId",
+                    foreignField: "_id",
+                    as: "sellerId"
+                }
+            },
+            { $unwind: { path: "$sellerId", preserveNullAndEmptyArrays: true } },
+            {
+                $project: {
+                    _id: 1,
+                    rating: 1,
+                    comment: 1,
+                    images: 1,
+                    createdAt: 1,
+                    "userId._id": 1,
+                    "userId.firstname": 1,
+                    "userId.lastname": 1,
+                    "userId.email": 1,
+                    "userId.photo": 1,
+                    "productId._id": 1,
+                    "productId.name": 1,
+                    "productId.images": 1,
+                    "productId.sellerId": 1,
+                    "sellerId._id": 1,
+                    "sellerId.firstname": 1,
+                    "sellerId.lastname": 1,
+                    "sellerId.email": 1,
+                    "sellerId.brandDetails": 1,
+                }
+            },
+            { $sort: { createdAt: -1 } }
+        ]);
+
+        res.status(200).json({
+            success: true,
+            count: reviews.length,
+            reviews
+        });
+    } catch (error) {
+        console.error("Get All Reviews Error:", error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Get All Reviews for Seller's Products
+exports.getSellerReviews = async (req, res) => {
+    try {
+        const sellerId = req.user._id;
+
+        const reviews = await Review.aggregate([
+            {
+                $lookup: {
+                    from: "products",
+                    localField: "productId",
+                    foreignField: "_id",
+                    as: "productId"
+                }
+            },
+            { $unwind: { path: "$productId", preserveNullAndEmptyArrays: true } },
+            {
+                $match: { "productId.sellerId": new mongoose.Types.ObjectId(sellerId) }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "userId"
+                }
+            },
+            { $unwind: { path: "$userId", preserveNullAndEmptyArrays: true } },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "productId.sellerId",
+                    foreignField: "_id",
+                    as: "sellerId"
+                }
+            },
+            { $unwind: { path: "$sellerId", preserveNullAndEmptyArrays: true } },
+            {
+                $project: {
+                    _id: 1,
+                    rating: 1,
+                    comment: 1,
+                    images: 1,
+                    createdAt: 1,
+                    "userId._id": 1,
+                    "userId.firstname": 1,
+                    "userId.lastname": 1,
+                    "userId.email": 1,
+                    "userId.photo": 1,
+                    "productId._id": 1,
+                    "productId.name": 1,
+                    "productId.images": 1,
+                    "productId.sellerId": 1,
+                    "sellerId._id": 1,
+                    "sellerId.firstname": 1,
+                    "sellerId.lastname": 1,
+                    "sellerId.email": 1,
+                    "sellerId.brandDetails": 1,
+                }
+            },
+            { $sort: { createdAt: -1 } }
+        ]);
 
         res.status(200).json({
             success: true,

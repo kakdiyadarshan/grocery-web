@@ -275,7 +275,7 @@ const Header = () => {
                     <span className="block text-[12px] text-gray-400 font-medium truncate mt-0.5">{highlightMatch(product.category?.categoryName || 'General', debouncedSearchTerm)}</span>
                   </div>
                   <div className="text-[14px] font-bold text-[var(--primary)] whitespace-nowrap">
-                    ₹{product.weighstWise?.[0]?.price || 0}
+                    ${product.weighstWise?.[0]?.price || 0}
                   </div>
                 </button>
               </li>

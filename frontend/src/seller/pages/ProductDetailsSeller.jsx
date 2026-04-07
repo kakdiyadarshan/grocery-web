@@ -154,7 +154,7 @@ function ProductDetailsSeller() {
                                 {[1, 2, 3, 4, 5].map((_, i) => (
                                     <AiFillStar
                                         key={i}
-                                        className={`text-base sm:text-lg ${i < (product.reviews?.length > 0 ? product.reviews.reduce((acc, r) => acc + r.rating, 0) / product.reviews.length : 4) ? "text-[#FFB81C]" : "text-[#D3D3D3]"}`}
+                                        className={`text-base sm:text-lg ${i < (product.reviews?.length > 0 ? product.reviews.reduce((acc, r) => acc + r.rating, 0) / product.reviews.length : 0) ? "text-[#FFB81C]" : "text-[#D3D3D3]"}`}
                                     />
                                 ))}
                             </div>

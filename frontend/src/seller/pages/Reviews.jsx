@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchReviews } from '../../redux/slice/review.slice';
-import DataTable from '../component/DataTable';
-import Breadcrumb from '../component/Breadcrumb';
+import { fetchSellerReviews } from '../../redux/slice/review.slice';
+import DataTable from '../../admin/component/DataTable';
+import Breadcrumb from '../../admin/component/Breadcrumb';
 import { IMAGE_URL } from '../../utils/baseUrl';
 import { deleteReview } from '../../redux/slice/review.slice';
 import { FiX, FiShoppingCart } from 'react-icons/fi';
-import AdminLoader from '../component/AdminLoader';
+import AdminLoader from '../../admin/component/AdminLoader';
 
 const Reviews = () => {
     const dispatch = useDispatch();
@@ -16,7 +16,7 @@ const Reviews = () => {
     const [selectedReview, setSelectedReview] = useState(null);
 
     useEffect(() => {
-        dispatch(fetchReviews());
+        dispatch(fetchSellerReviews());
     }, [dispatch]);
 
     const handleView = useCallback((review) => {
@@ -109,22 +109,6 @@ const Reviews = () => {
                 </div>
             )
         },
-        {
-            header: 'Seller Name',
-            accessor: 'sellerName',
-            exportValue: (row) => `${row.sellerId.brandDetails?.storeName}`,
-            render: (row) => (
-                <div className="flex items-center gap-3">
-                    <div>
-                        <span className="font-semibold text-gray-800 tracking-wide block">
-                            {`${row?.sellerId?.firstname || ''} ${row?.sellerId?.lastname || ''}`.trim() || row?.sellerId?.name || 'N/A'}
-                        </span>
-                        <p className="text-xs text-gray-500">{row?.sellerId?.brandDetails?.storeName || 'Store Pending'}</p>
-                    </div>
-                </div>
-            ),
-            searchKey: (sellers) => `${sellers?.firstname || ''} ${sellers?.lastname || ''}`.trim() || sellers?.name
-        },
     ], []);
 
     if (loading) {
@@ -159,7 +143,6 @@ const Reviews = () => {
                     >
                         <div className="flex items-center justify-between lg:p-6 sm:p-4 p-3 border-b border-gray-100">
                             <h3 className="text-lg font-bold text-gray-800">Review Details</h3>
-
                             <button
                                 onClick={onClose}
                                 className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
@@ -167,7 +150,6 @@ const Reviews = () => {
                                 <FiX size={20} />
                             </button>
                         </div>
-
 
                         <div className="lg:p-6 sm:p-4 p-3 overflow-y-auto max-h-[70vh] space-y-4">
                             <div className="flex flex-col gap-1">
@@ -224,46 +206,6 @@ const Reviews = () => {
                                     </div>
                                 </div>
                             )}
-                        </div>
-                        <div className="lg:p-6 sm:p-4 p-3 overflow-y-auto max-h-[70vh] space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="flex flex-col gap-1">
-                                    <span className="text-xs font-semibold text-textSecondary tracking-wider">
-                                        Seller Name
-                                    </span>
-                                    <div className="text-sm font-medium text-textPrimary break-words">
-                                        {selectedReview?.sellerId?.firstname + " " + selectedReview?.sellerId?.lastname}
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-col gap-1">
-                                    <span className="text-xs font-semibold text-textSecondary tracking-wider">
-                                        Email
-                                    </span>
-                                    <div className="text-sm font-medium text-textPrimary break-words">
-                                        {selectedReview?.sellerId?.email}
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-col gap-1">
-                                    <span className="text-xs font-semibold text-textSecondary tracking-wider">
-                                        Brand Name
-                                    </span>
-                                    <div className="text-sm font-medium text-textPrimary break-words">
-                                        {selectedReview?.sellerId?.brandDetails?.storeName}
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-col gap-1">
-                                    <span className="text-xs font-semibold text-textSecondary tracking-wider">
-                                        Owner Name
-                                    </span>
-                                    <div className="text-sm font-medium text-textPrimary break-words">
-                                        {selectedReview?.sellerId?.brandDetails?.ownerName}
-                                    </div>
-                                </div>
-
-                            </div>
                         </div>
                         <div className="lg:p-6 sm:p-4 p-3 border-t border-gray-100 bg-gray-50 flex justify-end">
                             <button
