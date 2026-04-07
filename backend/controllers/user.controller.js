@@ -2,11 +2,8 @@ const User = require('../models/user.model');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const { deleteFromS3, uploadToS3 } = require('../utils/s3Service');
-<<<<<<< HEAD
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-=======
 const { emitRoleNotification, emitUserNotification } = require('../socketManager/socketManager');
->>>>>>> cf1f05e0e35f3833fb9fc8a73ae9bfb4d3b92256
 
 exports.getAllUsers = async (req, res) => {
     try {
