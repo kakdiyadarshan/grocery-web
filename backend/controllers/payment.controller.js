@@ -1,5 +1,7 @@
 const Payment = require('../models/payment.model');
-const User = require('../models/user.model'); // Import User to register the model
+const Order = require('../models/order.model');
+const User = require('../models/user.model');
+const mongoose = require('mongoose');
 
 exports.createPayment = async (req, res) => {
     try {
@@ -34,7 +36,7 @@ exports.getPaymentById = async (req, res) => {
     try {
         const { id } = req.params;
         const payment = await Payment.findById(id).populate("userId", "firstname lastname email");
-        res.status(200).json({ success: true, message: 'Payment found successfully', data: payment });  
+        res.status(200).json({ success: true, message: 'Payment found successfully', data: payment });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -47,7 +49,7 @@ exports.getAllPayments = async (req, res) => {
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
-}   
+}
 
 exports.deletePayment = async (req, res) => {
     try {
@@ -78,4 +80,49 @@ exports.getPaymentByOrderId = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 }
-    
+
+exports.getSellerPayments = async (req, res) => {
+    try {
+        const sellerId = req.user._id;
+
+        const payments = await Order.aggregate([
+            { $match: { sellerId: new mongoose.Types.ObjectId(sellerId) } },
+            {
+                $lookup: {
+                    from: "payments",
+                    localField: "_id",
+                    foreignField: "orderIds",
+                    as: "paymentInfo"
+                }
+            },
+            { $unwind: { path: "$paymentInfo", preserveNullAndEmptyArrays: true } },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "userInfo"
+                }
+            },
+            { $unwind: { path: "$userInfo", preserveNullAndEmptyArrays: true } },
+            {
+                $project: {
+                    _id: { $ifNull: ["$paymentInfo._id", "$_id"] }, // Fallback to order ID if payment record is missing
+                    orderId: "$_id",
+                    paymentMethod: { $ifNull: ["$paymentInfo.paymentMethod", "$paymentMethod"] }, // Try payment model then order model
+                    amount: "$sellerAmount",
+                    status: { $ifNull: ["$paymentInfo.status", "pending"] },
+                    createdAt: { $ifNull: ["$paymentInfo.createdAt", "$createdAt"] },
+                    userName: { $concat: ["$userInfo.firstname", " ", "$userInfo.lastname"] },
+                    email: "$userInfo.email"
+                }
+            },
+            { $sort: { createdAt: -1 } }
+        ]);
+
+        res.status(200).json({ success: true, count: payments.length, data: payments });
+    } catch (error) {
+        console.error("getSellerPayments error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};

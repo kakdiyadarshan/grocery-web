@@ -83,18 +83,36 @@ const Transactions = () => {
             accessor: 'paymentMethod',
         },
         {
-            header: 'Amount',
+            header: 'Total Amount',
             accessor: 'amount',
             render: (row) => (
                 <span className="font-bold">
-                    ${Number(row.amount).toFixed(2)}
+                    ${Number(row.amount || 0).toFixed(2)}
+                </span>
+            )
+        },
+        {
+            header: 'Seller Amount',
+            accessor: 'sellerAmount',
+            render: (row) => (
+                <span className="text-gray-700">
+                    ${Number(row.sellerAmount || 0).toFixed(2)}
+                </span>
+            )
+        },
+        {
+            header: 'Admin Comm.',
+            accessor: 'adminCommission',
+            render: (row) => (
+                <span className="text-gray-700">
+                    ${Number(row.adminCommission || 0).toFixed(2)}
                 </span>
             )
         },
         {
             header: 'Status',
             accessor: 'status',
-            render: (row) => (
+      render: (row) => (
                 <CustomSelect
                     value={row.status}
                     onChange={(val) => handleStatusChange(row._id, val)}

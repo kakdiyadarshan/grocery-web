@@ -1,6 +1,7 @@
 const User = require('../models/user.model');
 const bcrypt = require('bcryptjs');
 const { deleteFromS3, uploadToS3 } = require('../utils/s3Service');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 exports.getAllUsers = async (req, res) => {
     try {
@@ -630,4 +631,27 @@ exports.getAllSellers = async (req, res) => {
         });
     }
 }
+
+exports.createStripeOnboardingLink = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const user = await User.findById(userId);
+
+        if (!user || !user.stripeAccountId) {
+            return res.status(404).json({ success: false, message: "Stripe account not found for this seller." });
+        }
+
+        const accountLink = await stripe.accountLinks.create({
+            account: user.stripeAccountId,
+            refresh_url: `${process.env.CLIENT_URL}/seller/stripe-onboarding`,
+            return_url: `${process.env.CLIENT_URL}/seller/dashboard`,
+            type: 'account_onboarding',
+        });
+
+        res.status(200).json({ success: true, url: accountLink.url });
+    } catch (error) {
+        console.error("Stripe Onboarding error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
 

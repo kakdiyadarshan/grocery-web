@@ -10,6 +10,7 @@ import Profile from './pages/Profile';
 import Reviews from './pages/Reviews';
 import Orders from './pages/Orders';
 import OrderDetails from './pages/OrderDetails';
+import Transactions from './pages/Transactions';
 
 const Sellerroutes = () => {
     return (
@@ -23,7 +24,7 @@ const Sellerroutes = () => {
                     <Route path="products" element={<Product />} />
                     <Route path="profile" element={<Profile />} />
                     <Route path="products/view/:id" element={<ProductDetailsSeller />} />
-                    <Route path="transactions" element={<SellerDashboard />} />
+                    <Route path="transactions" element={<Transactions />} />
                     <Route path="reviews" element={<Reviews />} />
                 </Route>
             </Route>

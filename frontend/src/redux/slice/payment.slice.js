@@ -32,6 +32,22 @@ export const fetchPayments = createAsyncThunk(
     }
 );
 
+// Fetch seller payments
+export const fetchSellerPayments = createAsyncThunk(
+    'payment/fetchSellerPayments',
+    async (_, { dispatch, rejectWithValue }) => {
+        try {
+            const response = await axios.get(`${BASE_URL}/getSellerPayments`, {
+                headers: { Authorization: `Bearer ${getToken()}` },
+            });
+            return response.data.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
+
 // Update payment status (for admin)
 export const updatePaymentStatus = createAsyncThunk(
     'payment/updatePaymentStatus',
@@ -63,6 +79,18 @@ const paymentSlice = createSlice({
                 state.payments = action.payload;
             })
             .addCase(fetchPayments.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            .addCase(fetchSellerPayments.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchSellerPayments.fulfilled, (state, action) => {
+                state.loading = false;
+                state.payments = action.payload;
+            })
+            .addCase(fetchSellerPayments.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             })

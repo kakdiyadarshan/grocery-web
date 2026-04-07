@@ -349,18 +349,22 @@ exports.createOrder = async (req, res) => {
         }
 
         // Use the FULL total amount from the frontend (User pays 100%)
-        const { enrichedItems } = await groupItemsBySeller(items);
+        const { enrichedItems, sellerGroups } = await groupItemsBySeller(items);
         const finalTotal = parseFloat(Number(totalAmount).toFixed(2));
 
         // IF STRIPE: Don't create order yet, just create payment and redirect
+        const adminCommAmount = parseFloat((finalTotal * 0.10).toFixed(2));
+        const finalSellerAmount = parseFloat((finalTotal - adminCommAmount).toFixed(2));
+
         if (paymentMethod.toLowerCase() === 'stripe') {
-            const { enrichedItems, sellerGroups } = await groupItemsBySeller(items);
             const isSplitOrder = Object.keys(sellerGroups).length > 1;
 
             const payment = await Payment.create({
                 userId,
                 paymentMethod,
                 amount: finalTotal,
+                sellerAmount: finalSellerAmount,
+                adminCommission: adminCommAmount,
                 status: 'pending',
                 pendingOrderData: {
                     userId, items: enrichedItems, totalAmount: finalTotal, couponId, paymentMethod, addressId, addressDetails,
@@ -387,28 +391,52 @@ exports.createOrder = async (req, res) => {
             return res.status(200).json({ success: true, data: { paymentUrl: session.url } });
         }
 
-        // IF COD: Create ONE SINGLE order at 100% price
-        const adminCommAmount = parseFloat((finalTotal * 0.10).toFixed(2));
-        const finalSellerAmount = parseFloat((finalTotal - adminCommAmount).toFixed(2));
 
-        const order = await Order.create({
-            userId,
-            items: enrichedItems,
-            totalAmount: finalTotal,
-            adminCommissionAmount: adminCommAmount,
-            sellerAmount: finalSellerAmount,
-            couponId,
-            paymentMethod,
-            addressId,
-            trackingHistory: [{ status: 'pending', description: 'Order successfully placed' }]
-        });
+        // IF COD: Create orders split by seller
+        const createdOrders = [];
 
+        for (const sellerId in sellerGroups) {
+            const group = sellerGroups[sellerId];
+            const sellerGroupAmount = group.totalAmount;
+            const sellerGroupAdminComm = parseFloat((sellerGroupAmount * 0.10).toFixed(2));
+            const sellerGroupFinalAmount = parseFloat((sellerGroupAmount - sellerGroupAdminComm).toFixed(2));
+
+            const order = await Order.create({
+                userId,
+                sellerId,
+                items: group.items,
+                totalAmount: parseFloat(sellerGroupAmount.toFixed(2)),
+                adminCommissionAmount: sellerGroupAdminComm,
+                sellerAmount: sellerGroupFinalAmount,
+                couponId,
+                paymentMethod,
+                addressId,
+                trackingHistory: [{ status: 'pending', description: 'Order successfully placed via COD' }]
+            });
+            createdOrders.push(order);
+
+            // Notify each seller
+            await emitUserNotification({
+                userId: sellerId,
+                event: 'notify',
+                data: {
+                    type: 'new_order',
+                    message: `New Order Received: #${order._id.toString().slice(-6).toUpperCase()}`,
+                    payload: { orderId: order._id }
+                }
+            });
+        }
+
+        // Create a single payment record for the COD cluster
         await Payment.create({
             userId,
-            orderId: order._id,
+            orderId: createdOrders[0]._id, // First order reference
+            orderIds: createdOrders.map(o => o._id),
             paymentMethod,
             amount: finalTotal,
-            status: 'pending'
+            sellerAmount: finalSellerAmount,
+            adminCommission: adminCommAmount,
+            status: 'pending' // For COD, we can leave status as pending until delivered
         });
 
         // stock minus variant wise
@@ -429,12 +457,12 @@ exports.createOrder = async (req, res) => {
             event: 'notify',
             data: {
                 type: 'new_order',
-                message: `New Order Received for User ${userId}`,
-                payload: { orderId: order._id }
+                message: `New COD Order Received for User ${userId}`,
+                payload: { orderIds: createdOrders.map(o => o._id) }
             }
         });
 
-        res.status(201).json({ success: true, data: order });
+        res.status(201).json({ success: true, data: createdOrders[0] });
     } catch (error) {
         console.error("Create Order Error:", error);
         res.status(500).json({ success: false, message: error.message });
@@ -1029,12 +1057,17 @@ exports.handleStripeWebhook = async (req, res) => {
 
                 for (const sellerId in sellerGroups) {
                     const group = sellerGroups[sellerId];
+                    const sellerGroupAmount = group.totalAmount;
+                    const sellerGroupAdminComm = parseFloat((sellerGroupAmount * 0.10).toFixed(2));
+                    const sellerGroupFinalAmount = parseFloat((sellerGroupAmount - sellerGroupAdminComm).toFixed(2));
+
                     const order = await Order.create({
                         ...orderData,
                         sellerId,
                         items: group.items,
-                        totalAmount: parseFloat(group.totalAmount.toFixed(2)),
-                        adminDiscount: parseFloat(group.adminDiscount.toFixed(2)),
+                        totalAmount: parseFloat(sellerGroupAmount.toFixed(2)),
+                        adminCommissionAmount: sellerGroupAdminComm,
+                        sellerAmount: sellerGroupFinalAmount,
                         trackingHistory: [{ status: 'pending', description: 'Order successfully placed via Stripe' }]
                     });
                     createdOrders.push(order);
@@ -1052,14 +1085,19 @@ exports.handleStripeWebhook = async (req, res) => {
                 }
 
                 payment.orderId = createdOrders[0]._id; // Link to first order as primary reference
-                payment.allOrderIds = createdOrders.map(o => o._id); // We might need to add this field to Payment model too
+                payment.orderIds = createdOrders.map(o => o._id); 
             } else {
                 // Create the order finally (Legacy/Simple)
+                const sellerId = orderData.items[0].sellerId;
                 const order = await Order.create({
                     ...orderData,
+                    sellerId,
+                    adminCommissionAmount: payment.adminCommission,
+                    sellerAmount: payment.sellerAmount,
                     trackingHistory: [{ status: 'pending', description: 'Order successfully placed via Stripe' }]
                 });
                 payment.orderId = order._id;
+                payment.orderIds = [order._id];
             }
 
             payment.stripePaymentIntentId = paymentIntentId;
@@ -1135,12 +1173,17 @@ exports.verifyStripeSession = async (req, res) => {
 
                     for (const sellerId in sellerGroups) {
                         const group = sellerGroups[sellerId];
+                        const sellerGroupAmount = group.totalAmount;
+                        const sellerGroupAdminComm = parseFloat((sellerGroupAmount * 0.10).toFixed(2));
+                        const sellerGroupFinalAmount = parseFloat((sellerGroupAmount - sellerGroupAdminComm).toFixed(2));
+
                         const order = await Order.create({
                             ...orderData,
                             sellerId,
                             items: group.items,
-                            totalAmount: parseFloat(group.totalAmount.toFixed(2)),
-                            adminDiscount: parseFloat(group.adminDiscount.toFixed(2)),
+                            totalAmount: parseFloat(sellerGroupAmount.toFixed(2)),
+                            adminCommissionAmount: sellerGroupAdminComm,
+                            sellerAmount: sellerGroupFinalAmount,
                             trackingHistory: [{ status: 'pending', description: 'Order successfully placed via Stripe' }]
                         });
                         createdOrders.push(order);
@@ -1158,13 +1201,19 @@ exports.verifyStripeSession = async (req, res) => {
                     }
 
                     payment.orderId = createdOrders[0]._id;
+                    payment.orderIds = createdOrders.map(o => o._id);
                     order = createdOrders[0]; // Set one for the response
                 } else {
+                    const sellerId = orderData.items[0].sellerId;
                     order = await Order.create({
                         ...orderData,
+                        sellerId,
+                        adminCommissionAmount: payment.adminCommission,
+                        sellerAmount: payment.sellerAmount,
                         trackingHistory: [{ status: 'pending', description: 'Order successfully placed via Stripe' }]
                     });
                     payment.orderId = order._id;
+                    payment.orderIds = [order._id];
                 }
 
                 payment.status = 'paid';

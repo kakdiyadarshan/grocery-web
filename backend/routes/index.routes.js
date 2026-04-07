@@ -3,7 +3,7 @@ const indexRoutes = express.Router();
 const upload = require('../helper/imageUpload');
 const s3Service = require('../utils/s3Service');
 const { createUser, verifyOtp, resendOtp, userLogin, forgotPassword, forgotVerifyOtp, resetPassword, logout } = require('../controllers/auth.controller');
-const { getAllUsers, getUserById, updateUser, changePassword, verifyGst, sendOnboardingOtp, verifyOnboardingOtp, updateBrandDetails, updateBankDetails, updatePickupAddress, submitOnboarding, approveOrRejectSeller, getAllSellers } = require('../controllers/user.controller');
+const { getAllUsers, getUserById, updateUser, changePassword, verifyGst, sendOnboardingOtp, verifyOnboardingOtp, updateBrandDetails, updateBankDetails, updatePickupAddress, submitOnboarding, approveOrRejectSeller, getAllSellers, createStripeOnboardingLink } = require('../controllers/user.controller');
 const { createCategory, getAllCategories, getCategoryById, updateCategory, deleteCategory } = require('../controllers/category.controller');
 const { getCart, addToCart, updateCartQuantity, removeFromCart, clearCart } = require('../controllers/cart.controller');
 
@@ -24,7 +24,7 @@ const { createReview, getReviewById, getAllReviews, deleteReview, getSellerRevie
 const { createCoupon, getAllCoupons, deleteCoupon, getCouponById, updateCoupon, applyCoupon } = require('../controllers/coupon.controller');
 const { createOrder, getAllOrders, getOrderById, getOrdersByIds, updateOrderStatus, deleteOrder, getUserOrders, cancelOrder, trackOrder, handleStripeWebhook, verifyStripeSession, getSellerOrders, getSellerOrderById } = require('../controllers/order.controller');
 const { getOrderMonthlyAnalytics, getRevenueAnalytics } = require('../controllers/dashboard.controller');
-const { createPayment, getPaymentById, getAllPayments, updatePaymentStatus, deletePayment, getPaymentByUserId, getPaymentByOrderId } = require('../controllers/payment.controller');
+const { createPayment, getPaymentById, getAllPayments, updatePaymentStatus, deletePayment, getPaymentByUserId, getPaymentByOrderId, getSellerPayments } = require('../controllers/payment.controller');
 const { addAddress, getAddresses, updateAddress, deleteAddress, setDefaultAddress } = require('../controllers/address.controller');
 const { createOfferBanner, getAllOfferBanners, updateOfferBanner, deleteOfferBanner } = require('../controllers/offerbanner.controller');
 const { createBanner, getAllBanners, updateBanner, deleteBanner } = require('../controllers/banner.controller');
@@ -58,6 +58,7 @@ indexRoutes.put('/seller/pickup-address', updatePickupAddress);
 indexRoutes.post('/seller/submit-agreement', submitOnboarding);
 indexRoutes.post('/seller/approve-reject', auth, authorizeRoles('admin'), approveOrRejectSeller);
 indexRoutes.get('/seller/all', auth, authorizeRoles('admin'), getAllSellers);
+indexRoutes.get('/seller/stripe-onboarding-link', auth, authorizeRoles('seller'), createStripeOnboardingLink);
 
 // Category routes
 indexRoutes.post('/createCategory', auth, authorizeRoles('admin'), upload.single('categoryImage'), createCategory);
@@ -211,10 +212,11 @@ indexRoutes.get('/revenue-analytics', auth, authorizeRoles('admin'), getRevenueA
 indexRoutes.post('/createPayment', auth, createPayment);
 indexRoutes.get('/getPayment/:id', auth, authorizeRoles('admin'), getPaymentById);
 indexRoutes.get('/getAllPayments', auth, authorizeRoles('admin'), getAllPayments);
-indexRoutes.put('/updatePaymentStatus/:id', auth, authorizeRoles('admin'), updatePaymentStatus);
+indexRoutes.put('/updatePaymentStatus/:id', auth, authorizeRoles('admin', 'seller'), updatePaymentStatus);
 indexRoutes.delete('/deletePayment/:id', auth, authorizeRoles('admin'), deletePayment);
 indexRoutes.get('/getPaymentByUserId/:userId', auth, authorizeRoles('admin'), getPaymentByUserId);
 indexRoutes.get('/getPaymentByOrderId/:orderId', auth, authorizeRoles('admin'), getPaymentByOrderId);
+indexRoutes.get('/getSellerPayments', auth, authorizeRoles('seller'), getSellerPayments);
 
 // Address Management
 indexRoutes.post('/address', auth, addAddress);
