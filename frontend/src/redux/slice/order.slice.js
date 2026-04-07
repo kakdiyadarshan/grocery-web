@@ -54,6 +54,23 @@ export const fetchOrders = createAsyncThunk(
     }
 );
 
+export const fetchSellerOrders = createAsyncThunk(
+    'order/fetchSellerOrders',
+    async (_, { dispatch, rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`${BASE_URL}/getSellerOrders`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            return response.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
 export const getUserOrders = createAsyncThunk(
     'order/getUserOrders',
     async (_, { dispatch, rejectWithValue }) => {
@@ -84,6 +101,23 @@ export const getOrderById = createAsyncThunk(
             return response.data.data;
         } catch (error) {
 
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
+export const fetchSellerOrderById = createAsyncThunk(
+    'order/fetchSellerOrderById',
+    async (orderId, { dispatch, rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`${BASE_URL}/getSellerOrderById/${orderId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            return response.data.data;
+        } catch (error) {
             return handleErrors(error, dispatch, rejectWithValue);
         }
     }
@@ -252,6 +286,19 @@ const orderSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
             })
+            // Fetch Seller Orders
+            .addCase(fetchSellerOrders.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchSellerOrders.fulfilled, (state, action) => {
+                state.loading = false;
+                state.allorders = action.payload.data;
+            })
+            .addCase(fetchSellerOrders.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
             .addCase(createOrder.pending, (state) => { state.loading = true; })
             .addCase(createOrder.fulfilled, (state, action) => {
                 state.loading = false;
@@ -319,7 +366,13 @@ const orderSlice = createSlice({
             .addCase(verifyStripeSession.rejected, (state) => { state.loading = false; })
             .addCase(trackOrder.pending, (state) => { state.loading = true; })
             .addCase(trackOrder.fulfilled, (state) => { state.loading = false; })
-            .addCase(trackOrder.rejected, (state) => { state.loading = false; });
+            .addCase(trackOrder.rejected, (state) => { state.loading = false; })
+            .addCase(fetchSellerOrderById.pending, (state) => { state.loading = true; })
+            .addCase(fetchSellerOrderById.fulfilled, (state, action) => {
+                state.loading = false;
+                state.currentOrder = action.payload;
+            })
+            .addCase(fetchSellerOrderById.rejected, (state) => { state.loading = false; });
 
 
     }

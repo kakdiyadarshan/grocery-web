@@ -45,7 +45,7 @@ const CheckOut = () => {
   }, 0);
 
 
-  const shipping = items.length > 0 ? (subtotal >= 50 ? 0 : 5.99) : 0;
+  const shipping = 0;
   const tax = items.length > 0 ? (subtotal * 0.08) : 0;
   const couponDiscount = appliedCouponData ? (subtotal * appliedCouponData.discount) / 100 : 0;
   const totalAmount = parseFloat(Math.max(0, subtotal + shipping + tax - couponDiscount).toFixed(2));

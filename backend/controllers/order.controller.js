@@ -1209,31 +1209,51 @@ exports.verifyStripeSession = async (req, res) => {
     }
 };
 
-exports.getSellerOrders = async (req, res) => {
+exports.getSellerOrderById = async (req, res) => {
     try {
         const sellerId = req.user._id;
+        const orderId = req.params.id;
 
         const orders = await Order.aggregate([
-            { $match: { sellerId: new mongoose.Types.ObjectId(sellerId) } },
-            { $sort: { createdAt: -1 } },
+            { $match: { _id: new mongoose.Types.ObjectId(orderId) } },
+            { $unwind: "$items" },
+            { $match: { "items.sellerId": new mongoose.Types.ObjectId(sellerId) } },
             {
                 $lookup: {
-                    from: 'users',
-                    localField: 'userId',
-                    foreignField: '_id',
-                    as: 'user'
+                    from: "users",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "user"
                 }
             },
-            { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+            { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
+            {
+                $lookup: {
+                    from: "payments",
+                    localField: "_id",
+                    foreignField: "orderId",
+                    as: "payment"
+                }
+            },
+            { $unwind: { path: "$payment", preserveNullAndEmptyArrays: true } },
+            {
+                $lookup: {
+                    from: "products",
+                    localField: "items.productId",
+                    foreignField: "_id",
+                    as: "items.productId"
+                }
+            },
+            { $unwind: { path: "$items.productId", preserveNullAndEmptyArrays: true } },
             {
                 $addFields: {
-                    address: {
+                    "items.selectedVariant": {
                         $arrayElemAt: [
                             {
                                 $filter: {
-                                    input: '$user.addresses',
-                                    as: 'addr',
-                                    cond: { $eq: ['$$addr._id', '$addressId'] }
+                                    input: "$items.productId.weighstWise",
+                                    as: "w",
+                                    cond: { $eq: ["$$w._id", "$items.variantId"] }
                                 }
                             },
                             0
@@ -1242,49 +1262,223 @@ exports.getSellerOrders = async (req, res) => {
                 }
             },
             {
-                $lookup: {
-                    from: 'payments',
-                    localField: '_id',
-                    foreignField: 'orderId',
-                    as: 'payment'
-                }
-            },
-            { $unwind: { path: '$payment', preserveNullAndEmptyArrays: true } },
-            {
-                $lookup: {
-                    from: 'products',
-                    localField: 'items.productId',
-                    foreignField: '_id',
-                    as: 'productDetails'
-                }
-            },
-            {
-                $project: {
-                    _id: 1,
+                $group: {
+                    _id: "$_id",
                     userId: {
-                        _id: '$user._id',
-                        firstname: '$user.firstname',
-                        lastname: '$user.lastname',
-                        email: '$user.email',
-                        mobileno: '$user.mobileno'
+                        $first: {
+                            _id: "$user._id",
+                            firstname: "$user.firstname",
+                            lastname: "$user.lastname",
+                            email: "$user.email",
+                            mobileno: "$user.mobileno",
+                            addresses: "$user.addresses"
+                        }
                     },
-                    items: 1,
-                    totalAmount: 1,
-                    status: 1,
-                    paymentMethod: 1,
-                    address: 1,
-                    createdAt: 1,
-                    updatedAt: 1,
-                    payment: 1,
-                    trackingHistory: 1,
-                    adminDiscount: 1
+                    items: { $push: "$items" },
+                    totalAmount: { $sum: { $multiply: ["$items.price", "$items.quantity"] } },
+                    status: { $first: "$status" },
+                    paymentMethod: { $first: "$paymentMethod" },
+                    addressId: { $first: "$addressId" },
+                    createdAt: { $first: "$createdAt" },
+                    updatedAt: { $first: "$updatedAt" },
+                    payment: { $first: "$payment" },
+                    trackingHistory: { $first: "$trackingHistory" }
+                }
+            },
+            {
+                $addFields: {
+                    address: {
+                        $arrayElemAt: [
+                            {
+                                $filter: {
+                                    input: "$userId.addresses",
+                                    as: "addr",
+                                    cond: { $eq: ["$$addr._id", "$addressId"] }
+                                }
+                            },
+                            0
+                        ]
+                    }
                 }
             }
         ]);
 
+        if (!orders || orders.length === 0) {
+            return res.status(404).json({ success: false, message: "Order not found for this seller" });
+        }
+
+        const order = orders[0];
+        order.items = order.items.map(item => {
+            const product = item.productId;
+            if (item.price !== undefined && item.price !== null) {
+                item.selectedVariant = {
+                    price: item.price,
+                    discountPrice: item.discountPrice,
+                    ...(product?.weighstWise?.[0] || {})
+                };
+                if (product?.weighstWise && item.variantId) {
+                    const found = product.weighstWise.find(v => (v._id || v).toString() === item.variantId.toString());
+                    if (found) {
+                        item.selectedVariant.weight = found.weight;
+                        item.selectedVariant.unit = found.unit;
+                        item.selectedVariant.stock = found.stock;
+                        item.selectedVariant._id = found._id;
+                    }
+                }
+            } else if (product && product.weighstWise) {
+                let foundVariant = null;
+                if (item.variantId) {
+                    foundVariant = product.weighstWise.find(v => (v._id || v).toString() === item.variantId.toString());
+                }
+                item.selectedVariant = foundVariant || product.weighstWise[0];
+            }
+
+            const { weighstWise, ...productWithoutVariants } = product || {};
+            item.productId = productWithoutVariants;
+            return item;
+        });
+
         res.status(200).json({
             success: true,
-            data: orders
+            data: order
+        });
+    } catch (error) {
+        console.error("getSellerOrderById error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+exports.getSellerOrders = async (req, res) => {
+    try {
+        const sellerId = req.user._id;
+
+        const orders = await Order.aggregate([
+            { $unwind: "$items" },
+            { $match: { "items.sellerId": new mongoose.Types.ObjectId(sellerId) } },
+            { $sort: { createdAt: -1 } },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "user"
+                }
+            },
+            { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
+            {
+                $lookup: {
+                    from: "payments",
+                    localField: "_id",
+                    foreignField: "orderId",
+                    as: "payment"
+                }
+            },
+            { $unwind: { path: "$payment", preserveNullAndEmptyArrays: true } },
+            {
+                $lookup: {
+                    from: "products",
+                    localField: "items.productId",
+                    foreignField: "_id",
+                    as: "items.productId"
+                }
+            },
+            { $unwind: { path: "$items.productId", preserveNullAndEmptyArrays: true } },
+            {
+                $addFields: {
+                    "items.selectedVariant": {
+                        $arrayElemAt: [
+                            {
+                                $filter: {
+                                    input: "$items.productId.weighstWise",
+                                    as: "w",
+                                    cond: { $eq: ["$$w._id", "$items.variantId"] }
+                                }
+                            },
+                            0
+                        ]
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: "$_id",
+                    userId: {
+                        $first: {
+                            _id: "$user._id",
+                            firstname: "$user.firstname",
+                            lastname: "$user.lastname",
+                            email: "$user.email",
+                            mobileno: "$user.mobileno",
+                            addresses: "$user.addresses"
+                        }
+                    },
+                    items: { $push: "$items" },
+                    totalAmount: { $sum: { $multiply: ["$items.price", "$items.quantity"] } },
+                    status: { $first: "$status" },
+                    paymentMethod: { $first: "$paymentMethod" },
+                    addressId: { $first: "$addressId" },
+                    createdAt: { $first: "$createdAt" },
+                    updatedAt: { $first: "$updatedAt" },
+                    payment: { $first: "$payment" },
+                    trackingHistory: { $first: "$trackingHistory" }
+                }
+            },
+            {
+                $addFields: {
+                    address: {
+                        $arrayElemAt: [
+                            {
+                                $filter: {
+                                    input: "$userId.addresses",
+                                    as: "addr",
+                                    cond: { $eq: ["$$addr._id", "$addressId"] }
+                                }
+                            },
+                            0
+                        ]
+                    }
+                }
+            },
+            { $sort: { createdAt: -1 } }
+        ]);
+
+        const ordersWithPayments = orders.map(order => {
+            order.items = order.items.map(item => {
+                const product = item.productId;
+                if (item.price !== undefined && item.price !== null) {
+                    item.selectedVariant = {
+                        price: item.price,
+                        discountPrice: item.discountPrice,
+                        ...(product?.weighstWise?.[0] || {})
+                    };
+                    if (product?.weighstWise && item.variantId) {
+                        const found = product.weighstWise.find(v => (v._id || v).toString() === item.variantId.toString());
+                        if (found) {
+                            item.selectedVariant.weight = found.weight;
+                            item.selectedVariant.unit = found.unit;
+                            item.selectedVariant.stock = found.stock;
+                            item.selectedVariant._id = found._id;
+                        }
+                    }
+                } else if (product && product.weighstWise) {
+                    let foundVariant = null;
+                    if (item.variantId) {
+                        foundVariant = product.weighstWise.find(v => (v._id || v).toString() === item.variantId.toString());
+                    }
+                    item.selectedVariant = foundVariant || product.weighstWise[0];
+                }
+
+                const { weighstWise, ...productWithoutVariants } = product || {};
+                item.productId = productWithoutVariants;
+                return item;
+            });
+
+            return order;
+        });
+
+        res.status(200).json({
+            success: true,
+            data: ordersWithPayments
         });
     } catch (error) {
         console.error("getSellerOrders error:", error);

@@ -80,7 +80,6 @@ const OrderTracking = () => {
     return acc + (price * item.quantity);
   }, 0);
   const tax = subtotal * 0.08;
-  const shipping = items.length > 0 ? (subtotal >= 50 ? 0 : 5.99) : 0;
   const couponId = data.couponId;
 
   return (
@@ -215,11 +214,7 @@ const OrderTracking = () => {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500 font-medium">Shipping Fee</span>
-                {shipping === 0 ? (
-                  <span className="text-green-600 font-bold uppercase text-[11px] tracking-wider bg-green-50 px-2 py-0.5 rounded-md">Free</span>
-                ) : (
-                  <span className="text-gray-900 font-bold">${shipping.toFixed(2)}</span>
-                )}
+                <span className="text-green-600 font-bold uppercase text-[11px] tracking-wider bg-green-50 px-2 py-0.5 rounded-md">Free</span>
               </div>
               {couponId && couponId.code && (
                 <div className="flex justify-between text-[var(--primary)] text-sm">

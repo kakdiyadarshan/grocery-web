@@ -1,5 +1,5 @@
-import  { useState, useEffect } from 'react';
-import {  ShoppingBag, ArrowRight, Minus, Plus,  ChevronRight, ShieldCheck, Truck, ArrowLeft, Tag, X, CheckCircle2, Ticket } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ShoppingBag, ArrowRight, Minus, Plus, ChevronRight, ShieldCheck, Truck, ArrowLeft, Tag, X, CheckCircle2, Ticket } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getCart, removeFromCart, updateCartQuantity, applyCoupon, removeCoupon, applyCouponFromServer } from '../redux/slice/cart.slice';
@@ -104,7 +104,7 @@ const Cart = () => {
     }, 0);
 
     const shippingBase = cartItems.length > 0 ? (subtotal >= 50 ? 0 : 5.99) : 0;
-    const shipping = shippingBase;
+    const shipping = 0;
     const tax = cartItems.length > 0 ? (subtotal * 0.08) : 0; // 8% tax
     const couponDiscount = appliedCoupon ? (subtotal * appliedCoupon.discount) / 100 : 0;
     const total = Math.max(0, subtotal + shipping + tax - couponDiscount);
@@ -381,11 +381,7 @@ const Cart = () => {
                                     </div>
                                     <div className="flex justify-between text-[var(--text-secondary)]">
                                         <span>Shipping</span>
-                                        {shipping === 0 ? (
-                                            <span className="text-[var(--primary)] font-bold">Free</span>
-                                        ) : (
-                                            <span className="text-[var(--text-primary)]">${shipping.toFixed(2)}</span>
-                                        )}
+                                        <span className="text-[var(--primary)] font-bold">Free</span>
                                     </div>
                                     {couponDiscount > 0 && (
                                         <div className="flex justify-between text-green-600">

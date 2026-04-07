@@ -87,7 +87,7 @@ const OrderCompleted = () => {
   }, 0);
 
   const tax = subtotal * 0.08;
-  const shipping = subtotal >= 50 ? 0 : 5.99;
+  const shipping = 0;
   
   // Aggregate coupon discount from all orders
   const couponDiscount = displayOrders.reduce((acc, o) => {
@@ -254,7 +254,7 @@ const OrderCompleted = () => {
     }, 0);
 
     const tax = subtotal * 0.08;
-    const shipping = subtotal >= 50 ? 0 : 5.99;
+    const shipping = 0;
     const couponDiscount = currentOrder.coupon ? (subtotal * currentOrder.coupon.discount) / 100 : 0;
     const total = currentOrder.totalAmount || subtotal + tax + shipping - couponDiscount;
 
