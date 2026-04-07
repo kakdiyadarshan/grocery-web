@@ -4,6 +4,8 @@ const Category = require("../models/category.model");
 const Order = require("../models/order.model");
 const xlsx = require("xlsx");
 const { uploadToS3, uploadUrlToS3,  deleteManyFromS3 } = require("../utils/s3Service");
+const { emitRoleNotification, emitUserNotification } = require('../socketManager/socketManager');
+
 
 exports.createProduct = async (req, res) => {
     try {
@@ -71,6 +73,18 @@ exports.createProduct = async (req, res) => {
                 populate: { path: "userId", select: "name photo" }
             }
         ]);
+
+        if (req.user.role === 'seller') {
+            await emitRoleNotification({
+                designations: ['admin'],
+                event: 'notify',
+                data: {
+                    type: 'new_product_added',
+                    message: `New Product added by seller: ${name}`,
+                    payload: { productId: product._id }
+                }
+            });
+        }
 
         res.status(201).json({
             success: true,
@@ -1022,6 +1036,29 @@ exports.approveRejectProduct = async (req, res) => {
 
         if (!product) {
             return res.status(404).json({ success: false, message: "Product not found" });
+        }
+
+        if (status === 'approved' && product.sellerId) {
+            await emitUserNotification({
+                userId: product.sellerId,
+                event: 'notify',
+                data: {
+                    type: 'product_approved',
+                    message: `Your product '${product.name}' has been approved by admin.`,
+                    payload: { productId: product._id }
+                }
+            });
+        }
+        if (status === 'rejected' && product.sellerId) {
+            await emitUserNotification({
+                userId: product.sellerId,
+                event: 'notify',
+                data: {
+                    type: 'product_rejected',
+                    message: `Your product '${product.name}' has been rejected by admin.`,
+                    payload: { productId: product._id }
+                }
+            });
         }
 
         res.status(200).json({

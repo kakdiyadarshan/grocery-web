@@ -85,11 +85,25 @@ const Orders = () => {
         {
             header: 'Total',
             accessor: 'totalAmount',
-            render: (data) => (
-                <div className="text-sm font-medium text-textPrimary">
-                    ${data.totalAmount.toFixed(2)}
-                </div>
-            )
+            render: (data) => {
+                const subtotal = data.items?.reduce((acc, item) => {
+                    const price =
+                        item.selectedVariant?.discountPrice ??
+                        item.selectedVariant?.price ??
+                        0;
+
+                    return acc + (price * item.quantity);
+                }, 0);
+
+                const tax = subtotal * 0.08;
+                const total = subtotal + tax;
+
+                return (
+                    <div className="text-sm font-medium text-textPrimary">
+                        ${total.toFixed(2)}
+                    </div>
+                );
+            }
         },
         {
             header: 'Payment Method',

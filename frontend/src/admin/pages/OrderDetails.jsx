@@ -292,6 +292,9 @@ const OrderDetails = () => {
                                                 <div className='text-textSecondary text-xs font-[600]'>
                                                     {item?.selectedVariant?.weight} {item?.selectedVariant?.unit}
                                                 </div>
+                                                <div className='text-textSecondary text-xs font-[600]'>
+                                                    Seller: {item?.productId?.sellerId?.brandDetails?.storeName || 'Unknown Seller'}
+                                                </div>
                                                 <div className="text-textSecondary text-xs font-[600] mt-1 pt-1 border-t border-borderColor/50 inline-block w-fit">
                                                     Qty: {item?.quantity}
                                                 </div>
@@ -301,6 +304,9 @@ const OrderDetails = () => {
                                             <h4 className="font-bold text-textPrimary text-base mb-1 group-hover:text-primary transition-colors truncate">{item.productId?.name || 'Unknown Product'}</h4>
                                             <div className='text-textSecondary text-sm font-medium mt-1'>
                                                 {item?.selectedVariant?.weight} {item?.selectedVariant?.unit}
+                                            </div>
+                                            <div className='text-textSecondary text-xs font-[600]'>
+                                                <span className='font-bold text-textPrimary'>Store Name:</span> {item?.productId?.sellerId?.brandDetails?.storeName || 'Unknown Seller'}
                                             </div>
                                         </div>
 

@@ -1,6 +1,8 @@
 const User = require('../models/user.model');
 const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer');
 const { deleteFromS3, uploadToS3 } = require('../utils/s3Service');
+const { emitRoleNotification, emitUserNotification } = require('../socketManager/socketManager');
 
 exports.getAllUsers = async (req, res) => {
     try {
@@ -558,6 +560,17 @@ exports.approveOrRejectSeller = async (req, res) => {
         }
 
         await user.save();
+
+        if (status === "approved") {
+            await emitUserNotification({
+                userId: user._id,
+                event: 'notify',
+                data: {
+                    type: 'seller_account_approved',
+                    message: `Congratulations! Your seller account request has been APPROVED.`
+                }
+            });
+        }
 
         // 4. Send Response immediately
         res.status(200).json({

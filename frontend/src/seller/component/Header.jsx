@@ -5,11 +5,11 @@ import { fetchUserProfile } from '../../redux/slice/auth.slice';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchNotifications, markNotificationSeen, clearAllNotifications } from '../../redux/slice/notifications.slice';
 import { IMAGE_URL } from '../../utils/baseUrl';
-import { FiBell, FiUser, FiX, FiShoppingCart, FiTrash2, FiCheck, FiStar } from 'react-icons/fi';
+import { FiBell, FiUser, FiX, FiShoppingCart, FiTrash2, FiCheck, FiStar, FiPackage } from 'react-icons/fi';
 import { FaUserCheck } from "react-icons/fa";
 import { RiShoppingBag4Line } from "react-icons/ri";
 import { FaStar } from "react-icons/fa6";
-import SearchModal from '../../admin/component/SearchModal';
+import SellerSearchModal from './SellerSearchModal';
 import { initSocketConnection, disconnectSocket } from '../../utils/socketService';
 
 const Header = ({ onToggleSidebar }) => {
@@ -88,26 +88,28 @@ const Header = ({ onToggleSidebar }) => {
   const handleNotificationClick = (n) => {
     dispatch(markNotificationSeen(n._id));
     setIsNotificationOpen(false);
-    if (n.payload?.orderId || n.type === 'new_order' || n.type === 'order_status' || n.type === 'order_completed') {
-      navigate(`/admin/orders/${n.payload?.orderId}`);
+    if (n.payload?.orderId || n.type === 'new_seller_order' || n.type === 'order_delivered' || n.type === 'order_completed') {
+      navigate(`/seller/orders/${n.payload?.orderId}`);
     }
     if (n.type === 'new_review') {
-      navigate(`/admin/reviews`);
+      navigate(`/seller/reviews`);
     }
-    if (n.type === 'user_register') {
-      navigate(`/admin/users`);
+    if (n.type === 'product_approved') {
+      navigate(`/seller/products/view/${n.payload?.productId}`);
     }
   };
 
   const getNotificationStyle = (type) => {
     switch (type?.toLowerCase()) {
-      case 'new_order':
+      case 'new_seller_order':
       case 'order':
-      case 'order_status':
+      case 'order_delivered':
       case 'order_completed':
         return { bg: 'bg-emerald-50', text: 'text-emerald-600', icon: RiShoppingBag4Line };
-      case 'user_register':
-        return { bg: 'bg-blue-50', text: 'text-blue-600', icon: FaUserCheck };
+      case 'product_rejected':
+        return { bg: 'bg-red-50', text: 'text-red-600', icon: FiPackage };
+      case 'product_approved':
+        return { bg: 'bg-yellow-50', text: 'text-yellow-600', icon: FiPackage };
       case 'new_review':
         return { bg: 'bg-amber-50', text: 'text-amber-600', icon: FaStar };
       default:
@@ -250,7 +252,7 @@ const Header = ({ onToggleSidebar }) => {
         </div>
       </header>
 
-      <SearchModal
+      <SellerSearchModal
         isOpen={isSearchModalOpen}
         onClose={() => setIsSearchModalOpen(false)}
       />
