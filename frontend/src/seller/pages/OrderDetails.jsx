@@ -206,12 +206,13 @@ const OrderDetails = () => {
     const { userId, items, totalAmount, address, paymentMethod, payment, status, createdAt, couponId } = currentOrder;
 
     const subtotal = items.reduce((acc, item) => {
-        const price = item.price ?? 0;
+        const price = item.selectedVariant?.discountPrice ?? item.selectedVariant?.price ?? 0;
         return acc + (price * item.quantity);
     }, 0);
 
     const tax = subtotal * 0.08;
-    const sellerTotal = totalAmount;
+
+    const sellerTotal = subtotal + tax;
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500 md:my-6 my-4">
@@ -316,9 +317,9 @@ const OrderDetails = () => {
                                                     </span>
                                                 )}
                                             </div>
-                                            
+
                                             <p className="hidden sm:block text-xs text-textSecondary font-medium sm:mt-0.5">Quantity: {item?.quantity}</p>
-                                            
+
                                             <div className="flex flex-col items-end">
                                                 <span className="sm:hidden text-[9px] uppercase tracking-widest font-bold text-textSecondary mb-0.5">Total</span>
                                                 <p className="font-black text-primary text-[15px] sm:text-base sm:mt-2 leading-tight">

@@ -23,6 +23,11 @@ const offerSchema = new mongoose.Schema({
     offer_end_date: {
         type: Date,
         required: true
+    },
+    sellerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
     }
 }, { timestamps: true });
 

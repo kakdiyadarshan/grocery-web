@@ -1,30 +1,15 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import DataTable from '../component/DataTable';
-import { FiPlus, FiX, FiShoppingCart } from 'react-icons/fi';
-import { createOffer, getAllOffers, deleteOffer, updateOffer } from '../../redux/slice/offer.slice';
+import { FiShoppingCart } from 'react-icons/fi';
+import { getAllOffers, deleteOffer } from '../../redux/slice/offer.slice';
 import AdminLoader from '../component/AdminLoader';
-import CustomSelect from '../component/CustomSelect';
-import CustomMultiSelect from '../component/CustomMultiSelect';
-import { getAllProducts } from '../../redux/slice/product.slice';
 import { IMAGE_URL } from '../../utils/baseUrl';
 import Breadcrumb from '../component/Breadcrumb';
 
 const Offers = () => {
     const dispatch = useDispatch();
     const { offers, loading } = useSelector((state) => state.offer);
-    const { products } = useSelector((state) => state.product);
-
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [currentOffer, setCurrentOffer] = useState(null);
-
-    const [formData, setFormData] = useState({
-        product_id: [],
-        offer_type: 'Discount',
-        offer_value: '',
-        offer_start_date: '',
-        offer_end_date: ''
-    });
 
     const getImageUrl = useCallback((path) => {
         if (!path) return '';
@@ -41,63 +26,11 @@ const Offers = () => {
 
     useEffect(() => {
         dispatch(getAllOffers());
-        dispatch(getAllProducts());
     }, [dispatch]);
-
-    const handleInputChange = useCallback((e) => {
-        setFormData(prev => ({
-            ...prev,
-            [e.target.name]: e.target.value
-        }));
-    }, []);
-
-    const handleProductSelect = useCallback((selectedIds) => {
-        setFormData(prev => ({
-            ...prev,
-            product_id: selectedIds
-        }));
-    }, []);
-
-    const handleEdit = useCallback((offer) => {
-        setCurrentOffer(offer);
-        setFormData({
-            product_id: offer.product_id?.map(p => p._id || p) || [],
-            offer_type: offer.offer_type,
-            offer_value: offer.offer_value,
-            offer_start_date: offer.offer_start_date?.split('T')[0] || '',
-            offer_end_date: offer.offer_end_date?.split('T')[0] || ''
-        });
-        setIsModalOpen(true);
-    }, []);
 
     const handleDelete = useCallback(async (offer) => {
         await dispatch(deleteOffer(offer._id));
     }, [dispatch]);
-
-    const closeModal = useCallback(() => {
-        setIsModalOpen(false);
-        setCurrentOffer(null);
-        setFormData({
-            product_id: [],
-            offer_type: 'Discount',
-            offer_value: '',
-            offer_start_date: '',
-            offer_end_date: ''
-        });
-    }, []);
-
-    const handleSubmit = useCallback(async (e) => {
-        e.preventDefault();
-
-        if (currentOffer) {
-            await dispatch(updateOffer({ id: currentOffer._id, data: formData }));
-        } else {
-            await dispatch(createOffer(formData));
-        }
-
-        closeModal();
-        dispatch(getAllOffers());
-    }, [dispatch, currentOffer, formData, closeModal]);
 
     const columns = useMemo(() => [
         {
@@ -222,13 +155,6 @@ const Offers = () => {
         }
     ], [getImageUrl]);
 
-    const productOptions = useMemo(() => {
-        return products.map(prod => ({
-            value: prod._id,
-            label: prod.name
-        }));
-    }, [products]);
-
     if (loading) {
         return <AdminLoader message="Loading offers..." icon={FiShoppingCart} />;
     }
@@ -240,108 +166,16 @@ const Offers = () => {
                     <h2 className="text-2xl font-bold text-gray-800 text-textprimary tracking-tight">Offers</h2>
                     <Breadcrumb />
                 </div>
-                <div className='flex items-center justify-end gap-2 ms-auto'>
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-[4px] hover:bg-primaryHover transition-colors font-medium text-sm"
-                    >
-                        <FiPlus size={18} />
-                        <span>Create Offer</span>
-                    </button>
-                </div>
             </div>
 
             <DataTable
                 columns={columns}
                 data={offers || []}
-                onEdit={handleEdit}
                 onDelete={handleDelete}
                 itemsPerPage={10}
                 exportFileName="Offers"
                 allowExport={true}
             />
-
-            {isModalOpen && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-[4px] shadow-2xl w-full max-w-[650px] overflow-hidden transform transition-all">
-                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white">
-                            <h3 className="text-[20px] font-[800] text-[#1a1a1a]">
-                                {currentOffer ? 'Edit Offer' : 'Create New Offer'}
-                            </h3>
-                            <button onClick={closeModal} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
-                                <FiX size={20} />
-                            </button>
-                        </div>
-                        <form onSubmit={handleSubmit} className="p-8 pb-6">
-                            <div className="space-y-6">
-                                <div>
-                                    <CustomMultiSelect
-                                        label={<span>Target Products <span className="text-primary">*</span></span>}
-                                        options={productOptions}
-                                        value={formData.product_id}
-                                        onChange={handleProductSelect}
-                                        placeholder="Select products for this offer"
-                                        className="w-full"
-                                    />
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                    <CustomSelect
-                                        label={<span>Offer Type <span className="text-primary">*</span></span>}
-                                        options={[
-                                            { value: 'Discount', label: 'Discount (%)' },
-                                            { value: 'Fixed', label: 'Fixed ($)' },
-                                        ]}
-                                        value={formData.offer_type}
-                                        onChange={(val) => setFormData({ ...formData, offer_type: val })}
-                                        placeholder="Select..."
-                                    />
-                                    <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-2">Offer Value</label>
-                                        <input
-                                            type="number"
-                                            name="offer_value"
-                                            value={formData.offer_value}
-                                            onChange={handleInputChange}
-                                            className="w-full px-4 py-2 bg-white border border-gray-200 rounded-[4px] text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all text-gray-700"
-                                            placeholder="10%"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                    <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-2">Start Date</label>
-                                        <input
-                                            type="date"
-                                            name="offer_start_date"
-                                            value={formData.offer_start_date}
-                                            onChange={handleInputChange}
-                                            className="w-full px-4 py-2 bg-white border border-gray-200 rounded-[4px] text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all text-gray-700"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-2">End Date</label>
-                                        <input
-                                            type="date"
-                                            name="offer_end_date"
-                                            value={formData.offer_end_date}
-                                            onChange={handleInputChange}
-                                            className="w-full px-4 py-2 bg-white border border-gray-200 rounded-[4px] text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all text-gray-700"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex justify-end items-center gap-4 mt-12 mb-2">
-                                <button type="button" onClick={closeModal} className="text-[#596985] font-bold text-sm px-4 py-2.5 transition-colors hover:text-[#1a1a1a]">
-                                    Cancel
-                                </button>
-                                <button type="submit" className="bg-primary text-white px-8 py-2.5 rounded-[4px] text-sm font-bold shadow-sm hover:bg-primaryHover transition-all active:scale-95">
-                                    {currentOffer ? 'Update Campaign' : 'Launch Campaign'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
         </>
     );
 };

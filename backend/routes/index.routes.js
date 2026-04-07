@@ -110,11 +110,11 @@ indexRoutes.get('/getallshipping', getAllShippingPolicies);
 indexRoutes.get('/getshipping/:id', getShippingPolicyById);
 
 // Offer routes
-indexRoutes.post('/addoffer', auth, authorizeRoles('admin'), createOffer);
-indexRoutes.get('/getoffers', auth, authorizeRoles('admin'), getAllOffers);
-indexRoutes.get('/getoffer/:id', auth, authorizeRoles('admin'), getOfferById);
-indexRoutes.put('/updateoffer/:id', auth, authorizeRoles('admin'), updateOffer);
-indexRoutes.delete('/deleteoffer/:id', auth, authorizeRoles('admin'), deleteOffer);
+indexRoutes.post('/addoffer', auth, authorizeRoles('admin', 'seller'), createOffer);
+indexRoutes.get('/getoffers', auth, authorizeRoles('admin', 'seller'), getAllOffers);
+indexRoutes.get('/getoffer/:id', auth, authorizeRoles('admin', 'seller'), getOfferById);
+indexRoutes.put('/updateoffer/:id', auth, authorizeRoles('admin', 'seller'), updateOffer);
+indexRoutes.delete('/deleteoffer/:id', auth, authorizeRoles('admin', 'seller'), deleteOffer);
 
 // FAQ routes
 indexRoutes.post('/createFaq', auth, authorizeRoles("admin"), createFAQ);
@@ -226,9 +226,9 @@ indexRoutes.delete('/address/:addressId', auth, deleteAddress);
 indexRoutes.put('/address-default/:addressId', auth, setDefaultAddress);
 
 // Notifications routes
-indexRoutes.get('/notifications', auth, authorizeRoles('admin'), getMyNotifications);
-indexRoutes.put('/notifications/:id/seen', auth, authorizeRoles('admin'), markSeen);
-indexRoutes.put('/notifications', auth, authorizeRoles('admin'), clearAll);
+indexRoutes.get('/notifications', auth, authorizeRoles('admin','seller'), getMyNotifications);
+indexRoutes.put('/notifications/:id/seen', auth, authorizeRoles('admin','seller'), markSeen);
+indexRoutes.put('/notifications', auth, authorizeRoles('admin','seller'), clearAll);
 
 // Stripe Webhook
 indexRoutes.post('/stripe-webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);

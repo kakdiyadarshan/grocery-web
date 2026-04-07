@@ -61,10 +61,10 @@ const groupItemsBySeller = async (items) => {
 
         const sellerId = product.sellerId.toString();
         item.sellerId = sellerId;
-        
+
         const itemTotal = (item.discountPrice || item.price) * item.quantity;
         subtotal += itemTotal;
-        
+
         enrichedItems.push(item);
 
         if (!sellerGroups[sellerId]) {
@@ -86,7 +86,7 @@ const transferToSellers = async (sellerGroups, paymentIntentId) => {
     for (const sellerId in sellerGroups) {
         const group = sellerGroups[sellerId];
         const seller = await User.findById(sellerId);
-        
+
         if (seller && seller.stripeAccountId) {
             // Calculate seller's share (Total - Admin Commission)
             const adminCommPercent = 10; // Default 10%, should ideally come from seller settings
@@ -172,6 +172,51 @@ const getOrderWithOffers = async (orderId) => {
             }
         },
         { $unwind: { path: '$items.productId', preserveNullAndEmptyArrays: true } },
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'items.productId.sellerId',
+                foreignField: '_id',
+                as: 'items.productId.sellerId'
+            }
+        },
+        {
+            $unwind: {
+                path: '$items.productId.sellerId',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $addFields: {
+                'items.productId.sellerId': {
+                    _id: '$items.productId.sellerId._id',
+                    firstname: '$items.productId.sellerId.firstname',
+                    lastname: '$items.productId.sellerId.lastname',
+                    email: '$items.productId.sellerId.email',
+                    brandDetails: '$items.productId.sellerId.brandDetails'
+                }
+            }
+        },
+        {
+            $project: {
+                'items.productId.sellerId.password': 0,
+                'items.productId.sellerId.gstDetails': 0,
+                'items.productId.sellerId.bankDetails': 0,
+                'items.productId.sellerId.pickupAddress': 0,
+                'items.productId.sellerId.otpVerification': 0,
+                'items.productId.sellerId.agreement': 0,
+                'items.productId.sellerId.status': 0,
+                'items.productId.sellerId.onboardingStep': 0,
+                'items.productId.sellerId.isOnboardingCompleted': 0,
+                'items.productId.sellerId.stripeAccountId': 0,
+                'items.productId.sellerId.addresses': 0,
+                'items.productId.sellerId.role': 0,
+                'items.productId.sellerId.isVerified': 0,
+                'items.productId.sellerId.__v': 0,
+                'items.productId.sellerId.createdAt': 0,
+                'items.productId.sellerId.updatedAt': 0
+            }
+        },
         {
             $lookup: {
                 from: 'offers',
@@ -278,6 +323,7 @@ const getOrderWithOffers = async (orderId) => {
 
     order.items = order.items.map(item => {
         const product = item.productId;
+        delete item.sellerId;
         // If order stores its own prices (new system), use them!
         if (item.price !== undefined && item.price !== null) {
             item.selectedVariant = {
@@ -368,7 +414,7 @@ exports.createOrder = async (req, res) => {
                 status: 'pending',
                 pendingOrderData: {
                     userId, items: enrichedItems, totalAmount: finalTotal, couponId, paymentMethod, addressId, addressDetails,
-                    isSplitOrder 
+                    isSplitOrder
                 }
             });
 
@@ -457,12 +503,35 @@ exports.createOrder = async (req, res) => {
             event: 'notify',
             data: {
                 type: 'new_order',
+<<<<<<< HEAD
                 message: `New COD Order Received for User ${userId}`,
                 payload: { orderIds: createdOrders.map(o => o._id) }
             }
         });
 
         res.status(201).json({ success: true, data: createdOrders[0] });
+=======
+                message: `New Order #${order._id.toString().slice(-6).toUpperCase()} Received for User ${userId}`,
+                payload: { orderId: order._id }
+            }
+        });
+
+        // Notify Sellers
+        const sellerIds = [...new Set(enrichedItems.map(item => item.sellerId).filter(Boolean))];
+        for (const sId of sellerIds) {
+            await emitUserNotification({
+                userId: sId,
+                event: 'notify',
+                data: {
+                    type: 'new_seller_order',
+                    message: `New Order #${order._id.toString().slice(-6).toUpperCase()} Received for your product(s)`,
+                    payload: { orderId: order._id }
+                }
+            });
+        }
+
+        res.status(201).json({ success: true, data: order });
+>>>>>>> cf1f05e0e35f3833fb9fc8a73ae9bfb4d3b92256
     } catch (error) {
         console.error("Create Order Error:", error);
         res.status(500).json({ success: false, message: error.message });
@@ -902,6 +971,25 @@ exports.updateOrderStatus = async (req, res) => {
                         payload: { orderId: order._id }
                     }
                 });
+                
+                // Notify sellers involved in the order
+                if (order.items && order.items.length > 0) {
+                    const sellerIds = [...new Set(order.items.map(item => 
+                        item.productId?.sellerId?._id || item.productId?.sellerId || item.sellerId
+                    ).filter(Boolean))];
+
+                    for (const sId of sellerIds) {
+                        await emitUserNotification({
+                            userId: sId,
+                            event: 'notify',
+                            data: {
+                                type: 'order_delivered',
+                                message: `Order #${order._id.toString().slice(-6).toUpperCase()} containing your product(s) has been delivered.`,
+                                payload: { orderId: order._id }
+                            }
+                        });
+                    }
+                }
             }
         }
 

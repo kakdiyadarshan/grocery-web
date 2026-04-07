@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Review = require('../models/review.model');
 const Product = require('../models/product.model');
 const { uploadToS3, deleteManyFromS3 } = require('../utils/s3Service');
-const { emitRoleNotification } = require('../socketManager/socketManager');
+const { emitRoleNotification, emitUserNotification } = require('../socketManager/socketManager');
 
 // Create Review
 exports.createReview = async (req, res) => {
@@ -55,6 +55,19 @@ exports.createReview = async (req, res) => {
                 payload: { reviewId: review._id, productId }
             }
         });
+
+        // Notify seller about new review
+        if (productExists.sellerId) {
+            await emitUserNotification({
+                userId: productExists.sellerId,
+                event: 'notify',
+                data: {
+                    type: 'new_review',
+                    message: `New Review for your product ${productExists.name}: ${rating} Stars`,
+                    payload: { reviewId: review._id, productId }
+                }
+            });
+        }
 
         res.status(201).json({
             success: true,

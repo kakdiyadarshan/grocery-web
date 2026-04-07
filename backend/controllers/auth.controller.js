@@ -54,18 +54,8 @@ exports.createUser = async (req, res) => {
             otpExpiresAt: role === "admin" ? undefined : otpExpiresAt,
             isVerified: role === "admin" ? true : false,
             stripeAccountId: currentStripeAccountId
-        });
-
-        // Notify admins about new user registration
-        await emitRoleNotification({
-            designations: ['admin'],
-            event: 'notify',
-            data: {
-                type: 'user_register',
-                message: `New user registered: ${firstname} ${lastname}`,
-                payload: { userId: user._id }
-            }
-        });
+        })
+        
 
         // Send OTP via email only if not verified (not admin)
         if (user.role !== "admin") {

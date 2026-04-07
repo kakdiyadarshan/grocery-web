@@ -49,6 +49,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         { name: 'Products', icon: <FiPackage />, path: '/seller/products' },
         { name: 'Transactions', icon: <LuReceiptIndianRupee />, path: '/seller/transactions' },
         { name: 'Reviews', icon: <MdOutlineReviews />, path: '/seller/reviews' },
+        { name: 'Offers', icon: <MdOutlineReviews />, path: '/seller/offers' },
     ];
 
     return (

@@ -14,7 +14,8 @@ exports.createOffer = async (req, res) => {
             offer_type,
             offer_value,
             offer_start_date,
-            offer_end_date
+            offer_end_date,
+            sellerId: req.user._id
         });
 
         await newOffer.save();
@@ -37,7 +38,12 @@ exports.createOffer = async (req, res) => {
 // Get all offers
 exports.getAllOffers = async (req, res) => {
     try {
-        const offers = await Offer.find().populate('product_id', 'name sku price images').sort({ createdAt: -1 });
+        let filter = {};
+        if (req.user.role === 'seller') {
+            filter.sellerId = req.user._id;
+        }
+
+        const offers = await Offer.find(filter).populate('product_id', 'name sku price images').sort({ createdAt: -1 });
 
         return res.status(200).json({
             status: 200,
@@ -87,6 +93,16 @@ exports.updateOffer = async (req, res) => {
     try {
         const { product_id, offer_type, offer_value, offer_start_date, offer_end_date } = req.body;
 
+        const offer = await Offer.findById(req.params.id);
+        if (!offer) {
+            return res.status(404).json({ success: false, message: 'Offer not found' });
+        }
+
+        // Check ownership if seller
+        if (req.user.role === 'seller' && offer.sellerId.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ success: false, message: 'Unauthorized' });
+        }
+
         const updatedOffer = await Offer.findByIdAndUpdate(
             req.params.id,
             {
@@ -125,15 +141,17 @@ exports.updateOffer = async (req, res) => {
 // Delete an offer
 exports.deleteOffer = async (req, res) => {
     try {
-        const deletedOffer = await Offer.findByIdAndDelete(req.params.id);
-
-        if (!deletedOffer) {
-            return res.status(404).json({
-                status: 404,
-                success: false,
-                message: 'Offer not found'
-            });
+        const offer = await Offer.findById(req.params.id);
+        if (!offer) {
+            return res.status(404).json({ success: false, message: 'Offer not found' });
         }
+
+        // Check ownership if seller
+        if (req.user.role === 'seller' && offer.sellerId.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ success: false, message: 'Unauthorized' });
+        }
+
+        await Offer.findByIdAndDelete(req.params.id);
 
         return res.status(200).json({
             status: 200,

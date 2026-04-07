@@ -10,7 +10,11 @@ import Profile from './pages/Profile';
 import Reviews from './pages/Reviews';
 import Orders from './pages/Orders';
 import OrderDetails from './pages/OrderDetails';
+<<<<<<< HEAD
 import Transactions from './pages/Transactions';
+=======
+import Offers from './pages/Offer';
+>>>>>>> cf1f05e0e35f3833fb9fc8a73ae9bfb4d3b92256
 
 const Sellerroutes = () => {
     return (
@@ -26,6 +30,7 @@ const Sellerroutes = () => {
                     <Route path="products/view/:id" element={<ProductDetailsSeller />} />
                     <Route path="transactions" element={<Transactions />} />
                     <Route path="reviews" element={<Reviews />} />
+                    <Route path="offers" element={<Offers />} />
                 </Route>
             </Route>
         </Routes>
