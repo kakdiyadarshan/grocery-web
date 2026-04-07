@@ -394,14 +394,13 @@ exports.createOrder = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Required fields missing' });
         }
 
-        // Use the FULL total amount from the frontend (User pays 100%)
         const { enrichedItems, sellerGroups } = await groupItemsBySeller(items);
         const finalTotal = parseFloat(Number(totalAmount).toFixed(2));
 
-        // IF STRIPE: Don't create order yet, just create payment and redirect
         const adminCommAmount = parseFloat((finalTotal * 0.10).toFixed(2));
         const finalSellerAmount = parseFloat((finalTotal - adminCommAmount).toFixed(2));
 
+        // ================= STRIPE =================
         if (paymentMethod.toLowerCase() === 'stripe') {
             const isSplitOrder = Object.keys(sellerGroups).length > 1;
 
@@ -413,7 +412,13 @@ exports.createOrder = async (req, res) => {
                 adminCommission: adminCommAmount,
                 status: 'pending',
                 pendingOrderData: {
-                    userId, items: enrichedItems, totalAmount: finalTotal, couponId, paymentMethod, addressId, addressDetails,
+                    userId,
+                    items: enrichedItems,
+                    totalAmount: finalTotal,
+                    couponId,
+                    paymentMethod,
+                    addressId,
+                    addressDetails,
                     isSplitOrder
                 }
             });
@@ -434,15 +439,18 @@ exports.createOrder = async (req, res) => {
                 metadata: { paymentId: payment._id.toString() }
             });
 
-            return res.status(200).json({ success: true, data: { paymentUrl: session.url } });
+            return res.status(200).json({
+                success: true,
+                data: { paymentUrl: session.url }
+            });
         }
 
-
-        // IF COD: Create orders split by seller
+        // ================= COD =================
         const createdOrders = [];
 
         for (const sellerId in sellerGroups) {
             const group = sellerGroups[sellerId];
+
             const sellerGroupAmount = group.totalAmount;
             const sellerGroupAdminComm = parseFloat((sellerGroupAmount * 0.10).toFixed(2));
             const sellerGroupFinalAmount = parseFloat((sellerGroupAmount - sellerGroupAdminComm).toFixed(2));
@@ -457,35 +465,39 @@ exports.createOrder = async (req, res) => {
                 couponId,
                 paymentMethod,
                 addressId,
-                trackingHistory: [{ status: 'pending', description: 'Order successfully placed via COD' }]
+                trackingHistory: [{
+                    status: 'pending',
+                    description: 'Order successfully placed via COD'
+                }]
             });
+
             createdOrders.push(order);
 
-            // Notify each seller
+            // Notify seller
             await emitUserNotification({
                 userId: sellerId,
                 event: 'notify',
                 data: {
                     type: 'new_order',
-                    message: `New Order Received: #${order._id.toString().slice(-6).toUpperCase()}`,
+                    message: `New Order #${order._id.toString().slice(-6).toUpperCase()}`,
                     payload: { orderId: order._id }
                 }
             });
         }
 
-        // Create a single payment record for the COD cluster
+        // Payment record
         await Payment.create({
             userId,
-            orderId: createdOrders[0]._id, // First order reference
+            orderId: createdOrders[0]._id,
             orderIds: createdOrders.map(o => o._id),
             paymentMethod,
             amount: finalTotal,
             sellerAmount: finalSellerAmount,
             adminCommission: adminCommAmount,
-            status: 'pending' // For COD, we can leave status as pending until delivered
+            status: 'pending'
         });
 
-        // stock minus variant wise
+        // Stock update
         for (const item of enrichedItems) {
             await adjustProductStock(item, -item.quantity);
         }
@@ -493,51 +505,37 @@ exports.createOrder = async (req, res) => {
         // Clear cart
         await Cart.findOneAndUpdate({ userId }, { items: [] });
 
+        // Coupon update
         if (couponId) {
-            await Coupon.findByIdAndUpdate(couponId, { $addToSet: { usedBy: userId } });
+            await Coupon.findByIdAndUpdate(couponId, {
+                $addToSet: { usedBy: userId }
+            });
         }
 
-        // Notify Admins
+        // Admin notification
         await emitRoleNotification({
             designations: ['admin'],
             event: 'notify',
             data: {
                 type: 'new_order',
-<<<<<<< HEAD
                 message: `New COD Order Received for User ${userId}`,
                 payload: { orderIds: createdOrders.map(o => o._id) }
             }
         });
 
-        res.status(201).json({ success: true, data: createdOrders[0] });
-=======
-                message: `New Order #${order._id.toString().slice(-6).toUpperCase()} Received for User ${userId}`,
-                payload: { orderId: order._id }
-            }
+        return res.status(201).json({
+            success: true,
+            data: createdOrders[0]
         });
 
-        // Notify Sellers
-        const sellerIds = [...new Set(enrichedItems.map(item => item.sellerId).filter(Boolean))];
-        for (const sId of sellerIds) {
-            await emitUserNotification({
-                userId: sId,
-                event: 'notify',
-                data: {
-                    type: 'new_seller_order',
-                    message: `New Order #${order._id.toString().slice(-6).toUpperCase()} Received for your product(s)`,
-                    payload: { orderId: order._id }
-                }
-            });
-        }
-
-        res.status(201).json({ success: true, data: order });
->>>>>>> cf1f05e0e35f3833fb9fc8a73ae9bfb4d3b92256
     } catch (error) {
         console.error("Create Order Error:", error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
     }
 };
-
 exports.getAllOrders = async (req, res) => {
     try {
         const today = new Date();
