@@ -93,6 +93,24 @@ export const updateUserProfile = createAsyncThunk(
     }
 );
 
+export const updateBusinessProfile = createAsyncThunk(
+    'user/updateBusinessProfile',
+    async (formData, { dispatch, rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.put(`${BASE_URL}/seller/update-business-profile`, formData, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            dispatch(setAlert({ text: response.data.message, type: 'success' }));
+            return response.data.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
 export const registerUser = createAsyncThunk(
     'auth/registerUser',
     async (userData, { dispatch, rejectWithValue }) => {
@@ -270,6 +288,18 @@ const authSlice = createSlice({
             .addCase(updateUserProfile.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload?.message || "Profile update failed";
+            })
+            .addCase(updateBusinessProfile.pending, (state) => {
+                state.error = null;
+            })
+            .addCase(updateBusinessProfile.fulfilled, (state, action) => {
+                state.loading = false;
+                state.user = action.payload;
+                state.message = "Business profile updated successfully";
+            })
+            .addCase(updateBusinessProfile.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message || "Business profile update failed";
             })
             .addCase(registerUser.pending, (state) => {
                 state.loading = true;

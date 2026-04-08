@@ -578,6 +578,40 @@ exports.getAllOrders = async (req, res) => {
             { $unwind: { path: '$items.productId', preserveNullAndEmptyArrays: true } },
             {
                 $lookup: {
+                    from: 'users',
+                    localField: 'items.productId.sellerId',
+                    foreignField: '_id',
+                    as: 'items.productId.sellerId'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$items.productId.sellerId',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $project: {
+                    'items.productId.sellerId.password': 0,
+                    'items.productId.sellerId.gstDetails': 0,
+                    'items.productId.sellerId.bankDetails': 0,
+                    'items.productId.sellerId.pickupAddress': 0,
+                    'items.productId.sellerId.otpVerification': 0,
+                    'items.productId.sellerId.agreement': 0,
+                    'items.productId.sellerId.status': 0,
+                    'items.productId.sellerId.onboardingStep': 0,
+                    'items.productId.sellerId.isOnboardingCompleted': 0,
+                    'items.productId.sellerId.stripeAccountId': 0,
+                    'items.productId.sellerId.addresses': 0,
+                    'items.productId.sellerId.role': 0,
+                    'items.productId.sellerId.isVerified': 0,
+                    'items.productId.sellerId.__v': 0,
+                    'items.productId.sellerId.createdAt': 0,
+                    'items.productId.sellerId.updatedAt': 0
+                }
+            },
+            {
+                $lookup: {
                     from: 'offers',
                     let: { productId: '$items.productId._id' },
                     pipeline: [
@@ -969,10 +1003,10 @@ exports.updateOrderStatus = async (req, res) => {
                         payload: { orderId: order._id }
                     }
                 });
-                
+
                 // Notify sellers involved in the order
                 if (order.items && order.items.length > 0) {
-                    const sellerIds = [...new Set(order.items.map(item => 
+                    const sellerIds = [...new Set(order.items.map(item =>
                         item.productId?.sellerId?._id || item.productId?.sellerId || item.sellerId
                     ).filter(Boolean))];
 
@@ -1171,7 +1205,7 @@ exports.handleStripeWebhook = async (req, res) => {
                 }
 
                 payment.orderId = createdOrders[0]._id; // Link to first order as primary reference
-                payment.orderIds = createdOrders.map(o => o._id); 
+                payment.orderIds = createdOrders.map(o => o._id);
             } else {
                 // Create the order finally (Legacy/Simple)
                 const sellerId = orderData.items[0].sellerId;

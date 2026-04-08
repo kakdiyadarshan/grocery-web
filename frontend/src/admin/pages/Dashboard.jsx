@@ -125,6 +125,8 @@ const Dashboard = () => {
 
     const productCounts = {};
 
+    console.log("allorders", allorders);
+
     allorders.forEach(order => {
       if (order.status === 'cancelled') return;
       order.items?.forEach(item => {
@@ -142,6 +144,7 @@ const Dashboard = () => {
           const price = item.price || item.selectedVariant?.price || item.selectedVariant?.discountPrice || product.weighstWise?.[0]?.price || 0;
           productCounts[product._id].quantity += qty;
           productCounts[product._id].revenue += qty * price;
+          productCounts[product._id].brandName = product.sellerId?.brandDetails?.storeName || 'Store';
         }
       });
     });
@@ -157,7 +160,8 @@ const Dashboard = () => {
   const analyticsData = revenueAnalytics || {
     Weekly: {
       categories: ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'],
-      series: [0, 0, 0, 0, 0, 0, 0],
+      totalAmountSeries: [0, 0, 0, 0, 0, 0, 0],
+      earningSeries: [0, 0, 0, 0, 0, 0, 0],
       codSeries: [0, 0, 0, 0, 0, 0, 0],
       stripeSeries: [0, 0, 0, 0, 0, 0, 0],
       total: 0,
@@ -165,7 +169,8 @@ const Dashboard = () => {
     },
     Monthly: {
       categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-      series: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      totalAmountSeries: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      earningSeries: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       codSeries: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       stripeSeries: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       total: 0,
@@ -173,11 +178,16 @@ const Dashboard = () => {
     },
     Yearly: {
       categories: ['2021', '2022', '2023', '2024', '2025'],
-      series: [0, 0, 0, 0, 0],
+      totalAmountSeries: [0, 0, 0, 0, 0],
+      earningSeries: [0, 0, 0, 0, 0],
       codSeries: [0, 0, 0, 0, 0],
       stripeSeries: [0, 0, 0, 0, 0],
       total: 0,
       growth: 0
+    },
+    SellerDistribution: {
+      names: [],
+      counts: []
     }
   };
 
@@ -371,7 +381,7 @@ const Dashboard = () => {
         {/* Payment Revenue Trend (Line Chart) */}
         <div className="bg-white rounded-md p-4 border border-slate-100 flex flex-col">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-            <h3 className="text-xl font-bold">Payment Methods Trend</h3>
+            <h3 className="text-xl font-bold">Sales & Earnings Trend</h3>
             <CustomSelect
               options={['Weekly', 'Monthly', 'Yearly']}
               defaultValue={activePaymentTimeframe}
@@ -422,8 +432,8 @@ const Dashboard = () => {
                 }
               }}
               series={[
-                { name: 'COD Revenue', data: analyticsData[activePaymentTimeframe]?.codSeries || [] },
-                { name: 'Stripe Revenue', data: analyticsData[activePaymentTimeframe]?.stripeSeries || [] }
+                { name: 'COD Earnings', data: analyticsData[activePaymentTimeframe]?.codSeries || [] },
+                { name: 'Stripe Earnings', data: analyticsData[activePaymentTimeframe]?.stripeSeries || [] }
               ]}
               type="bar"
               height={300}
@@ -438,96 +448,81 @@ const Dashboard = () => {
 
         <div className="bg-white rounded-md p-4 border border-slate-100 lg:col-span-1">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-bold">Category Distribution</h3>
+            <h3 className="text-xl font-bold">Seller Revenue Distribution</h3>
           </div>
           <div className="w-full">
-            <ReactApexChart
-              options={{
-                chart: {
-                  type: 'bar',
-                  height: 350,
-                  dropShadow: {
-                    enabled: false,
+            {analyticsData.SellerDistribution?.names?.length > 0 ? (
+              <ReactApexChart
+                options={{
+                  chart: {
+                    type: 'bar',
+                    height: 350,
+                    toolbar: { show: false },
+                    fontFamily: 'Jost, sans-serif'
                   },
-                  toolbar: {
-                    show: false
-                  }
-                },
-                plotOptions: {
-                  bar: {
-                    borderRadius: 4,
-                    horizontal: false,
-                    distributed: true,
-                    barHeight: '60%',
-                    isFunnel: false,
+                  plotOptions: {
+                    bar: {
+                      borderRadius: 4,
+                      horizontal: true,
+                      distributed: true,
+                      barHeight: '65%',
+                      dataLabels: {
+                        position: 'top',
+                      },
+                    },
                   },
-                },
-                colors: [
-                  primaryColor,
-                ],
-                dataLabels: {
-                  enabled: false,
-                },
-                xaxis: {
-                  categories: categoryDistribution.names,
-                  axisBorder: { show: false },
-                  axisTicks: { show: false },
-                  labels: { show: false }
-                },
-                tooltip: {
-                  custom: function ({ series, seriesIndex, dataPointIndex, w }) {
-                    return '<div class="px-3 py-2 bg-white border border-slate-100 rounded-lg shadow-lg font-bold text-xs text-slate-700">' +
-                      w.globals.labels[dataPointIndex] + ': <span style="color: ' + primaryColor + '">' + series[seriesIndex][dataPointIndex] + ' Products</span>' +
-                      '</div>';
-                  }
-                },
-                yaxis: {
-                  labels: {
+                  colors: [primaryColor || '#726bff'],
+                  dataLabels: {
+                    enabled: true,
+                    formatter: (val) => `$${val.toLocaleString()}`,
+                    offsetX: 40,
                     style: {
                       fontSize: '11px',
-                      fontWeight: 600,
-                      fontFamily: 'Jost, sans-serif',
-                      colors: ['#64748b']
+                      colors: ['#64748b'],
+                      fontWeight: 700
                     }
-                  }
-                },
-                legend: {
-                  show: false,
-                },
-                grid: {
-                  show: false,
-                  padding: {
-                    left: 5,
-                    right: 0
-                  }
-                },
-                responsive: [
-                  {
-                    breakpoint: 480,
-                    options: {
-                      chart: {
-                        height: 480
-                      },
-                      yaxis: {
-                        labels: {
-                          style: {
-                            fontSize: '11px',
-                          }
-                        }
+                  },
+                  xaxis: {
+                    categories: analyticsData.SellerDistribution.names,
+                    axisBorder: { show: false },
+                    axisTicks: { show: false },
+                    labels: { show: false }
+                  },
+                  tooltip: {
+                    custom: function ({ series, seriesIndex, dataPointIndex, w }) {
+                      return '<div class="px-3 py-2 bg-white border border-slate-100 rounded-lg shadow-lg font-bold text-xs text-slate-700">' +
+                        w.globals.labels[dataPointIndex] + ': <span style="color: ' + (primaryColor || '#726bff') + '">$' + series[seriesIndex][dataPointIndex].toLocaleString() + '</span>' +
+                        '</div>';
+                    }
+                  },
+                  yaxis: {
+                    labels: {
+                      offsetY: 2,
+                      style: {
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        colors: ['#64748b']
                       }
                     }
-                  }
-                ]
-              }}
-              series={[
-                {
-                  name: "Total Products",
-                  data: categoryDistribution.counts,
-                },
-              ]}
-              type="bar"
-              height={350}
-            />
+                  },
+                  legend: { show: false },
+                  grid: { show: false }
+                }}
+                series={[
+                  {
+                    name: "Seller Revenue",
+                    data: analyticsData.SellerDistribution.counts,
+                  },
+                ]}
+                type="bar"
+                height={350}
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center h-[350px] text-slate-400 gap-2">
+                <FiPackage size={40} className="opacity-20" />
+                <p className="text-sm font-medium">No revenue data available yet</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -543,16 +538,32 @@ const Dashboard = () => {
           </div>
 
           {/* Metric Header */}
-          <div className="flex items-center gap-4 mb-6">
-            <h2 className="sm:text-3xl text-xl font-bold">
-              ${analyticsData[activeTimeframe]?.total?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
-            </h2>
-            <div className={`flex items-center px-2 py-1 rounded-full text-xs font-bold gap-1 border ${analyticsData[activeTimeframe]?.growth >= 0
-              ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-              : 'bg-red-50 text-red-600 border-red-100'
-              }`}>
-              {analyticsData[activeTimeframe]?.growth >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-              {Math.abs(analyticsData[activeTimeframe]?.growth || 0).toFixed(2)}%
+          <div className="flex flex-col sm:flex-row gap-8 mb-6">
+            {/* Total Amount Metric */}
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-semibold text-textPrimary">Total Amount</span>
+              <div className="flex items-center gap-3">
+                <h2 className="sm:text-3xl text-xl font-bold" style={{ color: '#726bff' }}>
+                  ${(analyticsData[activeTimeframe]?.totalAmountSeries?.reduce((a, b) => a + b, 0) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </h2>
+              </div>
+            </div>
+
+            {/* Earnings Metric */}
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-semibold text-textPrimary">Earnings Amount</span>
+              <div className="flex items-center gap-3">
+                <h2 className="sm:text-3xl text-xl font-bold" style={{ color: primaryColor }}>
+                  ${analyticsData[activeTimeframe]?.total?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
+                </h2>
+                <div className={`flex items-center px-2 py-1 rounded-full text-xs font-bold gap-1 border ${analyticsData[activeTimeframe]?.growth >= 0
+                  ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                  : 'bg-red-50 text-red-600 border-red-100'
+                  }`}>
+                  {analyticsData[activeTimeframe]?.growth >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                  {Math.abs(analyticsData[activeTimeframe]?.growth || 0).toFixed(2)}%
+                </div>
+              </div>
             </div>
           </div>
 
@@ -567,28 +578,17 @@ const Dashboard = () => {
                 },
                 stroke: {
                   curve: 'smooth',
-                  width: 4,
-                  colors: [primaryColor]
+                  width: 3,
+                  colors: ['#726bff', primaryColor]
                 },
                 fill: {
                   type: 'gradient',
+                  colors: ['#726bff', primaryColor],
                   gradient: {
                     shadeIntensity: 1,
                     opacityFrom: 0.45,
                     opacityTo: 0.05,
-                    stops: [20, 100],
-                    colorStops: [
-                      {
-                        offset: 0,
-                        color: primaryColor,
-                        opacity: 0.4
-                      },
-                      {
-                        offset: 100,
-                        color: primaryColor,
-                        opacity: 0.01
-                      }
-                    ]
+                    stops: [20, 100]
                   }
                 },
                 dataLabels: {
@@ -596,7 +596,7 @@ const Dashboard = () => {
                 },
                 markers: {
                   size: 0,
-                  colors: [primaryColor],
+                  colors: ['#726bff', primaryColor],
                   strokeColors: '#fff',
                   strokeWidth: 3,
                   hover: { size: 7 }
@@ -636,21 +636,48 @@ const Dashboard = () => {
                   }
                 },
                 tooltip: {
+                  shared: true,
+                  intersect: false,
                   custom: function ({ series, seriesIndex, dataPointIndex, w }) {
-                    return '<div class="px-3 py-2 bg-emerald-600 text-white rounded-lg shadow-lg font-bold text-xs">' +
-                      '$' + series[seriesIndex][dataPointIndex].toLocaleString() +
-                      '</div>';
-                  },
-                  fixed: {
-                    enabled: false,
-                    position: 'topRight',
+                    const totalAmount = series[0][dataPointIndex];
+                    const earnings = series[1][dataPointIndex];
+
+                    return `
+                      <div class="p-3 bg-white border border-slate-100 rounded-xl shadow-xl font-sans min-w-[150px]">
+                        <div class="flex items-center justify-between gap-4 mb-2 pb-2 border-b border-slate-50">
+                          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">${w.globals.labels[dataPointIndex]}</span>
+                        </div>
+                        <div class="space-y-2">
+                          <div class="flex items-center justify-between gap-4 text-xs font-semibold">
+                             <div class="flex items-center gap-2">
+                               <div class="w-2 h-2 rounded-full" style="background-color: #726bff"></div>
+                               <span class="text-slate-600">Total Amount</span>
+                             </div>
+                             <span class="text-slate-900">$${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                          </div>
+                          <div class="flex items-center justify-between gap-4 text-xs font-semibold">
+                             <div class="flex items-center gap-2">
+                               <div class="w-2 h-2 rounded-full" style="background-color: ${primaryColor}"></div>
+                               <span class="text-slate-600">Earnings Amount</span>
+                             </div>
+                             <span class="text-slate-900">$${earnings.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                          </div>
+                        </div>
+                      </div>
+                    `;
                   }
                 }
               }}
-              series={[{
-                name: 'Orders',
-                data: analyticsData[activeTimeframe].series
-              }]}
+              series={[
+                {
+                  name: 'Total Amount',
+                  data: analyticsData[activeTimeframe]?.totalAmountSeries || []
+                },
+                {
+                  name: 'Earnings Amount',
+                  data: analyticsData[activeTimeframe]?.earningSeries || []
+                }
+              ]}
               type="area"
               height="100%"
             />
@@ -687,6 +714,7 @@ const Dashboard = () => {
               <RecentOrderRow
                 key={i}
                 name={p.name}
+                storeName={p.brandName}
                 price={`$${p.revenue.toFixed(2)}`}
                 img={
                   p.img !== '🛒'
@@ -761,11 +789,14 @@ const MetricCard = ({ title, value, percentage = 0, color }) => {
   );
 };
 
-const RecentOrderRow = ({ name, price, img }) => (
+const RecentOrderRow = ({ name, storeName, price, img }) => (
   <div className="flex items-center justify-between group ">
     <div className="flex items-center gap-3">
       <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-2xl group-hover:bg-white group-hover:shadow-sm transition-all overflow-hidden">{img}</div>
-      <span className="font-bold text-sm line-clamp-1 max-w-[120px]">{name}</span>
+      <div className="flex flex-col">
+        <span className="font-bold text-sm line-clamp-1 max-w-[120px]">{name}</span>
+        <span className="text-[10px] text-slate-400 font-medium">{storeName}</span>
+      </div>
     </div>
     <span className="text-sm font-bold text-primary">{price}</span>
   </div>
