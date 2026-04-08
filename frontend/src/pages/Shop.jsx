@@ -16,6 +16,7 @@ import { LuArrowUpNarrowWide, LuArrowDownNarrowWide } from "react-icons/lu";
 const Shop = () => {
     const dispatch = useDispatch();
     const location = useLocation();
+    const navigate = useNavigate();
     const { products = [], allProducts = [], totalProducts = 0, loading = false } = useSelector((state) => state.product || {});
     const { wishlist } = useSelector((state) => state.wishlist || {});
     const { isAuthenticated } = useSelector((state) => state.auth || {});
@@ -593,9 +594,9 @@ const Shop = () => {
                                                             onClick={(e) => {
                                                                 e.preventDefault();
                                                                 e.stopPropagation();
-                                                                // if (!isAuthenticated) {
-                                                                //     return navigate('/login');
-                                                                // }
+                                                                if (!isAuthenticated) {
+                                                                    return navigate('/login');
+                                                                }
                                                                 if (isInWishlist) {
                                                                     dispatch(removeFromWishlist(product._id));
                                                                 } else {
@@ -616,9 +617,9 @@ const Shop = () => {
                                                     onClick={(e) => {
                                                         e.preventDefault();
                                                         e.stopPropagation();
-                                                        // if (!isAuthenticated) {
-                                                        //     return navigate('/login');
-                                                        // }
+                                                        if (!isAuthenticated) {
+                                                            return navigate('/login');
+                                                        }
                                                         if (!outOfStock) dispatch(addToCart({
                                                             productId: product._id,
                                                             variantId: variant?._id,
@@ -701,9 +702,9 @@ const Shop = () => {
                                                             onClick={(e) => {
                                                                 e.preventDefault();
                                                                 e.stopPropagation();
-                                                                // if (!isAuthenticated) {
-                                                                //     return navigate('/login');
-                                                                // }
+                                                                if (!isAuthenticated) {
+                                                                    return navigate('/login');
+                                                                }
                                                                 if (!outOfStock) dispatch(addToCart({
                                                                     productId: product._id,
                                                                     variantId: variant?._id,
