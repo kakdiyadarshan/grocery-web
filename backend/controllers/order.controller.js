@@ -390,29 +390,206 @@ const transformAndAutoUpdate = async (order) => {
     return orderObj;
 };
 
+// exports.createOrder = async (req, res) => {
+//     try {
+//         let { userId, items, totalAmount, couponId, paymentMethod, addressId, addressDetails } = req.body;
+
+//         if (!userId || !items || !totalAmount || !paymentMethod) {
+//             return res.status(400).json({ success: false, message: 'Required fields missing' });
+//         }
+
+//         const { enrichedItems, sellerGroups } = await groupItemsBySeller(items);
+//         const finalTotal = parseFloat(Number(totalAmount).toFixed(2));
+
+//         let adminCommPercent = 10;
+//         const admin = await User.findOne({ role: 'admin' });
+//         if (admin && admin.adminSettings && admin.adminSettings.globalCommission) {
+//             adminCommPercent = parseFloat(admin.adminSettings.globalCommission);
+//         }
+
+//         const adminCommAmount = parseFloat((finalTotal * (adminCommPercent / 100)).toFixed(2));
+//         const finalSellerAmount = parseFloat((finalTotal - adminCommAmount).toFixed(2));
+
+//         // ================= STRIPE =================
+//         if (paymentMethod.toLowerCase() === 'stripe') {
+//             const isSplitOrder = Object.keys(sellerGroups).length > 1;
+
+//             const payment = await Payment.create({
+//                 userId,
+//                 paymentMethod,
+//                 amount: finalTotal,
+//                 sellerAmount: finalSellerAmount,
+//                 adminCommission: adminCommAmount,
+//                 status: 'pending',
+//                 pendingOrderData: {
+//                     userId,
+//                     items: enrichedItems,
+//                     totalAmount: finalTotal,
+//                     couponId,
+//                     paymentMethod,
+//                     addressId,
+//                     addressDetails,
+//                     isSplitOrder
+//                 }
+//             });
+
+//             const session = await stripe.checkout.sessions.create({
+//                 payment_method_types: ['card'],
+//                 line_items: [{
+//                     price_data: {
+//                         currency: 'usd',
+//                         product_data: { name: `Order Payment (${userId})` },
+//                         unit_amount: Math.round(finalTotal * 100),
+//                     },
+//                     quantity: 1,
+//                 }],
+//                 mode: 'payment',
+//                 success_url: `${process.env.CLIENT_URL}/order-completed?session_id={CHECKOUT_SESSION_ID}`,
+//                 cancel_url: `${process.env.CLIENT_URL}/checkout`,
+//                 metadata: { paymentId: payment._id.toString() }
+//             });
+
+//             return res.status(200).json({
+//                 success: true,
+//                 data: { paymentUrl: session.url }
+//             });
+//         }
+
+//         // ================= COD =================
+//         const createdOrders = [];
+
+//         for (const sellerId in sellerGroups) {
+//             const group = sellerGroups[sellerId];
+
+//             const sellerGroupAmount = group.totalAmount;
+//             const sellerGroupAdminComm = parseFloat((sellerGroupAmount * (adminCommPercent / 100)).toFixed(2));
+//             const sellerGroupFinalAmount = parseFloat((sellerGroupAmount - sellerGroupAdminComm).toFixed(2));
+
+//             const order = await Order.create({
+//                 userId,
+//                 sellerId,
+//                 items: group.items,
+//                 totalAmount: parseFloat(sellerGroupAmount.toFixed(2)),
+//                 adminCommissionAmount: sellerGroupAdminComm,
+//                 sellerAmount: sellerGroupFinalAmount,
+//                 couponId,
+//                 paymentMethod,
+//                 addressId,
+//                 trackingHistory: [{
+//                     status: 'pending',
+//                     description: 'Order successfully placed via COD'
+//                 }]
+//             });
+
+//             createdOrders.push(order);
+
+//             // Notify seller
+//             await emitUserNotification({
+//                 userId: sellerId,
+//                 event: 'notify',
+//                 data: {
+//                     type: 'new_order',
+//                     message: `New Order #${order._id.toString().slice(-6).toUpperCase()}`,
+//                     payload: { orderId: order._id }
+//                 }
+//             });
+//         }
+
+//         // Payment record
+//         await Payment.create({
+//             userId,
+//             orderId: createdOrders[0]._id,
+//             orderIds: createdOrders.map(o => o._id),
+//             paymentMethod,
+//             amount: finalTotal,
+//             sellerAmount: finalSellerAmount,
+//             adminCommission: adminCommAmount,
+//             status: 'pending'
+//         });
+
+//         // Stock update
+//         for (const item of enrichedItems) {
+//             await adjustProductStock(item, -item.quantity);
+//         }
+
+//         // Clear cart
+//         await Cart.findOneAndUpdate({ userId }, { items: [] });
+
+//         // Coupon update
+//         if (couponId) {
+//             await Coupon.findByIdAndUpdate(couponId, {
+//                 $addToSet: { usedBy: userId }
+//             });
+//         }
+
+//         // Admin notification
+//         await emitRoleNotification({
+//             designations: ['admin'],
+//             event: 'notify',
+//             data: {
+//                 type: 'new_order',
+//                 message: `New COD Order Received for User ${userId}`,
+//                 payload: { orderIds: createdOrders.map(o => o._id) }
+//             }
+//         });
+
+//         return res.status(201).json({
+//             success: true,
+//             data: createdOrders[0]
+//         });
+
+//     } catch (error) {
+//         console.error("Create Order Error:", error);
+//         res.status(500).json({
+//             success: false,
+//             message: error.message
+//         });
+//     }
+// };
+
 exports.createOrder = async (req, res) => {
     try {
-        let { userId, items, totalAmount, couponId, paymentMethod, addressId, addressDetails } = req.body;
+        let {
+            userId,
+            items,
+            totalAmount,
+            couponId,
+            paymentMethod,
+            addressId,
+            addressDetails
+        } = req.body;
 
-        if (!userId || !items || !totalAmount || !paymentMethod) {
-            return res.status(400).json({ success: false, message: 'Required fields missing' });
+        // ✅ Validation
+        if (!userId || !items || !items.length || !totalAmount || !paymentMethod) {
+            return res.status(400).json({
+                success: false,
+                message: "Required fields missing"
+            });
         }
 
-        const { enrichedItems, sellerGroups } = await groupItemsBySeller(items);
+        // ✅ Enrich items (keep your existing function)
+        const { enrichedItems } = await groupItemsBySeller(items);
+
         const finalTotal = parseFloat(Number(totalAmount).toFixed(2));
 
+        // ✅ Admin Commission
         let adminCommPercent = 10;
-        const admin = await User.findOne({ role: 'admin' });
-        if (admin && admin.adminSettings && admin.adminSettings.globalCommission) {
+        const admin = await User.findOne({ role: "admin" });
+
+        if (admin?.adminSettings?.globalCommission) {
             adminCommPercent = parseFloat(admin.adminSettings.globalCommission);
         }
 
-        const adminCommAmount = parseFloat((finalTotal * (adminCommPercent / 100)).toFixed(2));
-        const finalSellerAmount = parseFloat((finalTotal - adminCommAmount).toFixed(2));
+        const adminCommAmount = parseFloat(
+            (finalTotal * (adminCommPercent / 100)).toFixed(2)
+        );
+
+        const finalSellerAmount = parseFloat(
+            (finalTotal - adminCommAmount).toFixed(2)
+        );
 
         // ================= STRIPE =================
-        if (paymentMethod.toLowerCase() === 'stripe') {
-            const isSplitOrder = Object.keys(sellerGroups).length > 1;
+        if (paymentMethod.toLowerCase() === "stripe") {
 
             const payment = await Payment.create({
                 userId,
@@ -420,7 +597,7 @@ exports.createOrder = async (req, res) => {
                 amount: finalTotal,
                 sellerAmount: finalSellerAmount,
                 adminCommission: adminCommAmount,
-                status: 'pending',
+                status: "pending",
                 pendingOrderData: {
                     userId,
                     items: enrichedItems,
@@ -428,25 +605,30 @@ exports.createOrder = async (req, res) => {
                     couponId,
                     paymentMethod,
                     addressId,
-                    addressDetails,
-                    isSplitOrder
+                    addressDetails
                 }
             });
 
             const session = await stripe.checkout.sessions.create({
-                payment_method_types: ['card'],
-                line_items: [{
-                    price_data: {
-                        currency: 'usd',
-                        product_data: { name: `Order Payment (${userId})` },
-                        unit_amount: Math.round(finalTotal * 100),
-                    },
-                    quantity: 1,
-                }],
-                mode: 'payment',
+                payment_method_types: ["card"],
+                line_items: [
+                    {
+                        price_data: {
+                            currency: "usd",
+                            product_data: {
+                                name: `Order Payment (${userId})`
+                            },
+                            unit_amount: Math.round(finalTotal * 100)
+                        },
+                        quantity: 1
+                    }
+                ],
+                mode: "payment",
                 success_url: `${process.env.CLIENT_URL}/order-completed?session_id={CHECKOUT_SESSION_ID}`,
                 cancel_url: `${process.env.CLIENT_URL}/checkout`,
-                metadata: { paymentId: payment._id.toString() }
+                metadata: {
+                    paymentId: payment._id.toString()
+                }
             });
 
             return res.status(200).json({
@@ -456,91 +638,88 @@ exports.createOrder = async (req, res) => {
         }
 
         // ================= COD =================
-        const createdOrders = [];
 
-        for (const sellerId in sellerGroups) {
-            const group = sellerGroups[sellerId];
+        // ✅ Create SINGLE ORDER
+        const order = await Order.create({
+            userId,
+            items: enrichedItems,
+            totalAmount: finalTotal,
+            adminCommissionAmount: adminCommAmount,
+            sellerAmount: finalSellerAmount,
+            couponId,
+            paymentMethod,
+            addressId,
+            trackingHistory: [
+                {
+                    status: "pending",
+                    description: "Order successfully placed via COD"
+                }
+            ]
+        });
 
-            const sellerGroupAmount = group.totalAmount;
-            const sellerGroupAdminComm = parseFloat((sellerGroupAmount * (adminCommPercent / 100)).toFixed(2));
-            const sellerGroupFinalAmount = parseFloat((sellerGroupAmount - sellerGroupAdminComm).toFixed(2));
+        // ✅ Notify all sellers (loop through items)
+        const sellerIds = [...new Set(enrichedItems.map(i => i.sellerId.toString()))];
 
-            const order = await Order.create({
-                userId,
-                sellerId,
-                items: group.items,
-                totalAmount: parseFloat(sellerGroupAmount.toFixed(2)),
-                adminCommissionAmount: sellerGroupAdminComm,
-                sellerAmount: sellerGroupFinalAmount,
-                couponId,
-                paymentMethod,
-                addressId,
-                trackingHistory: [{
-                    status: 'pending',
-                    description: 'Order successfully placed via COD'
-                }]
-            });
-
-            createdOrders.push(order);
-
-            // Notify seller
+        for (const sellerId of sellerIds) {
             await emitUserNotification({
                 userId: sellerId,
-                event: 'notify',
+                event: "notify",
                 data: {
-                    type: 'new_order',
+                    type: "new_order",
                     message: `New Order #${order._id.toString().slice(-6).toUpperCase()}`,
                     payload: { orderId: order._id }
                 }
             });
         }
 
-        // Payment record
+        // ✅ Payment record
         await Payment.create({
             userId,
-            orderId: createdOrders[0]._id,
-            orderIds: createdOrders.map(o => o._id),
+            orderId: order._id,
             paymentMethod,
             amount: finalTotal,
             sellerAmount: finalSellerAmount,
             adminCommission: adminCommAmount,
-            status: 'pending'
+            status: "pending"
         });
 
-        // Stock update
+        // ✅ Update stock
         for (const item of enrichedItems) {
             await adjustProductStock(item, -item.quantity);
         }
 
-        // Clear cart
-        await Cart.findOneAndUpdate({ userId }, { items: [] });
+        // ✅ Clear cart
+        await Cart.findOneAndUpdate(
+            { userId },
+            { items: [] }
+        );
 
-        // Coupon update
+        // ✅ Coupon update
         if (couponId) {
             await Coupon.findByIdAndUpdate(couponId, {
                 $addToSet: { usedBy: userId }
             });
         }
 
-        // Admin notification
+        // ✅ Admin notification
         await emitRoleNotification({
-            designations: ['admin'],
-            event: 'notify',
+            designations: ["admin"],
+            event: "notify",
             data: {
-                type: 'new_order',
+                type: "new_order",
                 message: `New COD Order Received for User ${userId}`,
-                payload: { orderIds: createdOrders.map(o => o._id) }
+                payload: { orderId: order._id }
             }
         });
 
         return res.status(201).json({
             success: true,
-            data: createdOrders[0]
+            data: order
         });
 
     } catch (error) {
         console.error("Create Order Error:", error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             message: error.message
         });
