@@ -70,7 +70,7 @@ indexRoutes.delete('/deleteCategory/:id', auth, authorizeRoles('admin'), deleteC
 
 // Product routes
 indexRoutes.post('/createProduct', auth, authorizeRoles('admin', 'seller'), upload.array('images', 10), createProduct);
-indexRoutes.get('/getAllProducts', auth, getAllProducts);
+indexRoutes.get('/getAllProducts',  getAllProducts);
 indexRoutes.get('/getFeaturedProducts', getFeaturedProducts);
 indexRoutes.get('/getBestSellingProducts', getBestSellingProducts);
 indexRoutes.get('/getProductById/:id', getProductById);

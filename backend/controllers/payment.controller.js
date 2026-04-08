@@ -83,19 +83,42 @@ exports.getPaymentByOrderId = async (req, res) => {
 
 exports.getSellerPayments = async (req, res) => {
     try {
-        const sellerId = req.user._id;
+        const sellerId = new mongoose.Types.ObjectId(req.user._id);
 
         const payments = await Order.aggregate([
-            { $match: { sellerId: new mongoose.Types.ObjectId(sellerId) } },
+
+            // Match seller inside items array
+            {
+                $match: {
+                    "items.sellerId": sellerId
+                }
+            },
+
+            {
+                $addFields: {
+                    sellerItems: {
+                        $filter: {
+                            input: "$items",
+                            as: "item",
+                            cond: { $eq: ["$$item.sellerId", sellerId] }
+                        }
+                    }
+                }
+            },
+
+            // Lookup payment
             {
                 $lookup: {
                     from: "payments",
                     localField: "_id",
-                    foreignField: "orderIds",
+                    foreignField: "orderId", //  IMPORTANT CHANGE
                     as: "paymentInfo"
                 }
             },
+
             { $unwind: { path: "$paymentInfo", preserveNullAndEmptyArrays: true } },
+
+            //  User info
             {
                 $lookup: {
                     from: "users",
@@ -104,25 +127,46 @@ exports.getSellerPayments = async (req, res) => {
                     as: "userInfo"
                 }
             },
+
             { $unwind: { path: "$userInfo", preserveNullAndEmptyArrays: true } },
+
+            // Final output
             {
                 $project: {
-                    _id: { $ifNull: ["$paymentInfo._id", "$_id"] }, // Fallback to order ID if payment record is missing
+                    _id: { $ifNull: ["$paymentInfo._id", "$_id"] },
                     orderId: "$_id",
-                    paymentMethod: { $ifNull: ["$paymentInfo.paymentMethod", "$paymentMethod"] }, // Try payment model then order model
-                    amount: "$sellerAmount",
+                    paymentMethod: {
+                        $ifNull: ["$paymentInfo.paymentMethod", "$paymentMethod"]
+                    },
+                    amount: "$sellerAmount", 
                     status: { $ifNull: ["$paymentInfo.status", "pending"] },
-                    createdAt: { $ifNull: ["$paymentInfo.createdAt", "$createdAt"] },
-                    userName: { $concat: ["$userInfo.firstname", " ", "$userInfo.lastname"] },
-                    email: "$userInfo.email"
+                    createdAt: {
+                        $ifNull: ["$paymentInfo.createdAt", "$createdAt"]
+                    },
+                    userName: {
+                        $concat: ["$userInfo.firstname", " ", "$userInfo.lastname"]
+                    },
+                    email: "$userInfo.email",
+
+                    items: "$sellerItems"
                 }
             },
+
             { $sort: { createdAt: -1 } }
+
         ]);
 
-        res.status(200).json({ success: true, count: payments.length, data: payments });
+        res.status(200).json({
+            success: true,
+            count: payments.length,
+            data: payments
+        });
+
     } catch (error) {
         console.error("getSellerPayments error:", error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
     }
 };
