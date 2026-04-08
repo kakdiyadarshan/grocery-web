@@ -1,13 +1,15 @@
 import  { useEffect, useState } from 'react';
 import { Trash2,  HeartCrack, ChevronRight,  Eye, Check, X, Minus, Plus, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getWishlist, removeFromWishlist } from '../redux/slice/wishlist.slice';
 import { addToCart } from '../redux/slice/cart.slice';
 
 const Wishlist = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { wishlist, loading: wishlistLoading } = useSelector((state) => state.wishlist);
+    const { user } = useSelector((state) => state.auth);
     const { loading: cartLoading } = useSelector((state) => state.cart);
     const [quantities, setQuantities] = useState({});
 
@@ -28,6 +30,10 @@ const Wishlist = () => {
     };
 
     const handleAddToCart = (productId) => {
+        if (!user) {
+            navigate('/login');
+            return;
+        }
         const qty = quantities[productId] || 1;
         dispatch(addToCart({ productId, quantity: qty }));
     };

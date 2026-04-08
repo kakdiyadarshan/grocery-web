@@ -19,6 +19,7 @@ function ProductDetail() {
     const { product, products, loading } = useSelector(state => state.product);
     const { wishlist } = useSelector((state) => state.wishlist);
     const { cart } = useSelector((state) => state.cart);
+    const { user } = useSelector((state) => state.auth);
     const wishlistItems = wishlist?.items || [];
 
     const isInWishlist = wishlistItems.some(wish => {
@@ -106,6 +107,10 @@ function ProductDetail() {
     const decrementQuantity = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
 
     const handleAddToCart = () => {
+        if (!user) {
+            navigate('/login');
+            return;
+        }
         if (product && !isOutOfStock) {
             dispatch(addToCart({
                 productId: product._id,
@@ -116,6 +121,10 @@ function ProductDetail() {
     };
 
     const handleBuyNow = () => {
+        if (!user) {
+            navigate('/login');
+            return;
+        }
         if (product && !isOutOfStock) {
             const isInCart = cart?.items?.some(item =>
                 (item.productId?._id || item.productId).toString() === product._id &&
@@ -139,6 +148,10 @@ function ProductDetail() {
             if (isInWishlist) {
                 dispatch(removeFromWishlist(product._id));
             } else {
+                if (!user) {
+                    navigate('/login');
+                    return;
+                }
                 dispatch(addToWishlist(product._id));
             }
         }

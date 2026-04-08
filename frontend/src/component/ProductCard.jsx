@@ -8,6 +8,7 @@ const ProductCard = ({ product }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { wishlist } = useSelector((state) => state.wishlist);
+    const { user } = useSelector((state) => state.auth);
     const wishlistItems = wishlist?.items || [];
 
     const isInWishlist = wishlistItems.some(wish => {
@@ -20,6 +21,10 @@ const ProductCard = ({ product }) => {
         if (isInWishlist) {
             dispatch(removeFromWishlist(product._id));
         } else {
+            if (!user) {
+                navigate('/login');
+                return;
+            }
             dispatch(addToWishlist(product._id));
         }
     };
@@ -27,6 +32,10 @@ const ProductCard = ({ product }) => {
     const handleAddToCart = (e) => {
         e.stopPropagation();
         if (isOutOfStock) return;
+        if (!user) {
+            navigate('/login');
+            return;
+        }
         dispatch(addToCart({
             productId: product._id,
             variantId: variant?._id,
