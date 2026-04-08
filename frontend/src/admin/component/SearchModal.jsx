@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import {
-  Search, X, ShoppingBag, Folder, User, List,
-  ArrowRight, Clock, Hash, ChevronRight
-} from 'lucide-react';
+import {Search, X, ShoppingBag, Folder, User, List, Hash, ChevronRight} from 'lucide-react';
 import { getAllCategories } from '../../redux/slice/category.slice';
 import { fetchAllUsers } from '../../redux/slice/auth.slice';
 import { fetchOrders } from '../../redux/slice/order.slice';
@@ -25,7 +22,6 @@ const SearchModal = ({ isOpen, onClose }) => {
 
   const { categories } = useSelector((state) => state.category);
 
-  console.log("categories", categories);
   const { products } = useSelector((state) => state.product);
   const { allorders: orders } = useSelector((state) => state.order);
   const { users } = useSelector((state) => state.auth);

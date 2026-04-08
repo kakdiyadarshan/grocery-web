@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAllSellers, fetchSellerCommission, updateSellerCommission } from '../../redux/slice/seller.slice';
-import { setAlert } from '../../redux/slice/alert.slice';
-import { CheckCircle, AlertCircle, Package, Settings, X } from 'lucide-react';
+import { CheckCircle, AlertCircle, Settings, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Breadcrumb from '../component/Breadcrumb';
 import DataTable from '../component/DataTable';
@@ -10,7 +9,7 @@ import DataTable from '../component/DataTable';
 const Seller = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { sellers, globalCommission, loading } = useSelector((state) => state.seller);
+    const { sellers, loading } = useSelector((state) => state.seller);
     
     // Commission settings modal state
     const [isCommissionModalOpen, setIsCommissionModalOpen] = useState(false);

@@ -38,8 +38,6 @@ const Dashboard = () => {
 
   const { allorders, loading } = useSelector((state) => state.order);
   const { monthlyAnalytics, revenueAnalytics } = useSelector((state) => state.dashboard);
-  const { categories } = useSelector((state) => state.category);
-  const { products } = useSelector((state) => state.product);
 
   const currentYearStr = new Date().getFullYear().toString();
   const [selectedYear, setSelectedYear] = useState(currentYearStr);
@@ -81,7 +79,7 @@ const Dashboard = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const isMobileSize = windowWidth < 768;
+  // const isMobileSize = windowWidth < 768;
   const isSmallSize = windowWidth < 640;
 
   const groupedBarData = [
@@ -92,33 +90,6 @@ const Dashboard = () => {
   ];
 
   const displayedBarData = isSmallSize ? groupedBarData : barData;
-
-
-  const categoryDistribution = useMemo(() => {
-    if (!products || !categories) return { names: [], counts: [] };
-
-    const countsMap = {};
-    categories.forEach(c => { countsMap[c._id] = 0; });
-
-    products.forEach(product => {
-      if (product.category) {
-        const catId = product.category._id || product.category;
-        if (countsMap[catId] !== undefined) {
-          countsMap[catId] += 1;
-        }
-      }
-    });
-
-    const sorted = categories
-      .map(c => ({ name: c.categoryName, count: countsMap[c._id] || 0 }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
-
-    return {
-      names: sorted.map(c => c.name),
-      counts: sorted.map(c => c.count)
-    };
-  }, [products, categories]);
 
   const topSellingProducts = useMemo(() => {
     if (!allorders) return [];
@@ -463,9 +434,9 @@ const Dashboard = () => {
                   plotOptions: {
                     bar: {
                       borderRadius: 4,
-                      horizontal: true,
+                      horizontal: false,
                       distributed: true,
-                      barHeight: '65%',
+                      columnWidth: '35%',
                       dataLabels: {
                         position: 'top',
                       },
@@ -474,10 +445,10 @@ const Dashboard = () => {
                   colors: [primaryColor || '#726bff'],
                   dataLabels: {
                     enabled: true,
-                    formatter: (val) => `$${val.toLocaleString()}`,
-                    offsetX: 40,
+                    formatter: (val) => `$${val >= 1000 ? (val / 1000).toFixed(1) + 'k' : val.toLocaleString()}`,
+                    offsetY: -25,
                     style: {
-                      fontSize: '11px',
+                      fontSize: '10px',
                       colors: ['#64748b'],
                       fontWeight: 700
                     }
@@ -486,27 +457,41 @@ const Dashboard = () => {
                     categories: analyticsData.SellerDistribution.names,
                     axisBorder: { show: false },
                     axisTicks: { show: false },
-                    labels: { show: false }
+                    labels: {
+                      show: true,
+                      rotate: -45,
+                      style: {
+                        fontSize: '10px',
+                        fontWeight: 600,
+                        colors: '#94a3b8'
+                      }
+                    }
                   },
                   tooltip: {
                     custom: function ({ series, seriesIndex, dataPointIndex, w }) {
-                      return '<div class="px-3 py-2 bg-white border border-slate-100 rounded-lg shadow-lg font-bold text-xs text-slate-700">' +
-                        w.globals.labels[dataPointIndex] + ': <span style="color: ' + (primaryColor || '#726bff') + '">$' + series[seriesIndex][dataPointIndex].toLocaleString() + '</span>' +
-                        '</div>';
+                      const amount = series[seriesIndex][dataPointIndex];
+                      return `<div class="p-3 bg-white border border-slate-100 rounded-xl shadow-xl font-bold text-xs text-slate-700">
+                        ${w.globals.labels[dataPointIndex]}: <span style="color: ${primaryColor || '#726bff'}">$${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        </div>`;
                     }
                   },
                   yaxis: {
                     labels: {
-                      offsetY: 2,
+                      formatter: (val) => `$${val >= 1000 ? (val / 1000).toFixed(0) + 'k' : val}`,
                       style: {
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        colors: ['#64748b']
+                        fontSize: '11px',
+                        fontWeight: 500,
+                        colors: '#94a3b8'
                       }
                     }
                   },
                   legend: { show: false },
-                  grid: { show: false }
+                  grid: {
+                    borderColor: '#f1f5f9',
+                    strokeDashArray: 4,
+                    yaxis: { lines: { show: true } },
+                    xaxis: { lines: { show: false } }
+                  }
                 }}
                 series={[
                   {
