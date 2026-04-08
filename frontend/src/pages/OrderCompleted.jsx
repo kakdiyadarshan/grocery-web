@@ -5,7 +5,6 @@ import jsPDF from "jspdf";
 import { useDispatch, useSelector } from "react-redux";
 import { getOrderById, getOrdersByIds, verifyStripeSession } from "../redux/slice/order.slice";
 import { getCart, clearCart, removeCoupon } from "../redux/slice/cart.slice";
-import { BASE_URL } from "../utils/baseUrl";
 import logo from "../Image/logo.png";
 
 const OrderCompleted = () => {
@@ -144,23 +143,45 @@ const OrderCompleted = () => {
       { align: "right" }
     );
 
-    // ===== COMPANY INFO =====
+    // ===== SELLER INFO =====
+    const firstItem = currentOrder.items?.[0] || {};
+    const seller = firstItem.productId?.sellerId || {};
+    const sellerName = seller.brandDetails?.storeName || `${seller.firstname || ""} ${seller.lastname || ""}`.trim() || "FreshMart";
+    const pAddr = seller.pickupAddress || {};
+    const sellerAddressParts = [pAddr.flatHouse, pAddr.street, pAddr.landmark, pAddr.city, pAddr.state, pAddr.pincode].filter(Boolean);
+    const sellerAddressStr = sellerAddressParts.length > 0 ? sellerAddressParts.join(", ") : "123 Market Street, Ahmedabad";
+    const sellerEmail = seller.email || "support@freshmart.com";
+
+    let currentY = 35;
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text(sellerName, 20, currentY);
+    
+    currentY += 6;
     doc.setFontSize(9);
-    doc.text("123 Market Street, Ahmedabad", 20, 35);
-    doc.text("support@freshmart.com", 20, 40);
+    doc.setFont("helvetica", "normal");
+    const wrappedSellerAddress = doc.splitTextToSize(sellerAddressStr, 60);
+    doc.text(wrappedSellerAddress, 20, currentY);
+    
+    currentY += (wrappedSellerAddress.length * 5);
+    doc.text(sellerEmail, 20, currentY);
+
+    // Increase gap for next section
+    currentY += 15;
+    const sectionTopY = currentY;
 
     // ===== BILL TO =====
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...green);
-    doc.text("Bill To:", 20, 55);
+    doc.text("Bill To:", 20, sectionTopY);
 
     const addr = currentOrder.address || {};
 
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "normal");
-    doc.text(`${addr.firstname || ""} ${addr.lastname || ""}`, 20, 61);
-    doc.text(addr.email || "-", 20, 66);
-    doc.text(addr.phone || "-", 20, 71);
+    doc.text(`${addr.firstname || ""} ${addr.lastname || ""}`, 20, sectionTopY + 6);
+    doc.text(addr.email || "-", 20, sectionTopY + 11);
+    doc.text(addr.phone || "-", 20, sectionTopY + 16);
 
     // ===== DELIVERY =====
     const deliveryAddress = addr.address
@@ -169,14 +190,14 @@ const OrderCompleted = () => {
 
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...green);
-    doc.text("Delivery:", 120, 55);
+    doc.text("Delivery:", 120, sectionTopY);
 
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "normal");
-    doc.text(deliveryAddress, 120, 61, { maxWidth: 70 });
+    doc.text(deliveryAddress, 120, sectionTopY + 6, { maxWidth: 70 });
 
     // ===== TABLE HEADER =====
-    let y = 85;
+    let y = Math.max(sectionTopY + 30, 90);
 
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...green);
@@ -369,24 +390,50 @@ const OrderCompleted = () => {
           </div>
         </div>
 
-        {/* Delivery Address */}
-        <div className="px-5 sm:px-8 py-5 sm:py-6 border-b border-gray-100">
-          <p className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider font-semibold mb-1">
-            Delivery Address
-          </p>
-          <p className="font-bold text-gray-900 text-sm leading-snug">{deliveryAddress}</p>
-          <div className="mt-2 space-y-0.5">
-            {addr.phone && (
-              <p className="text-gray-500 text-xs">Phone: {addr.phone}</p>
-            )}
-            {addr.firstname && (
-              <p className="text-gray-500 text-xs">
-                Name: {addr.firstname} {addr.lastname}
-              </p>
-            )}
-            {addr.email && (
-              <p className="text-gray-500 text-xs">Email: {addr.email}</p>
-            )}
+        <div className="px-5 sm:px-8 py-5 sm:py-6 border-b border-gray-100 flex flex-col md:flex-row gap-6">
+          <div className="flex-1">
+            <p className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider font-semibold mb-1">
+              Delivery Address
+            </p>
+            <p className="font-bold text-gray-900 text-sm leading-snug">{deliveryAddress}</p>
+            <div className="mt-2 space-y-0.5">
+              {addr.phone && (
+                <p className="text-gray-500 text-xs">Phone: {addr.phone}</p>
+              )}
+              {addr.firstname && (
+                <p className="text-gray-500 text-xs">
+                  Name: {addr.firstname} {addr.lastname}
+                </p>
+              )}
+              {addr.email && (
+                <p className="text-gray-500 text-xs">Email: {addr.email}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex-1 border-t md:border-t-0 md:border-l border-gray-100 pt-5 md:pt-0 md:pl-6">
+            <p className="text-gray-400 text-[10px] sm:text-xs uppercase tracking-wider font-semibold mb-1">
+              Seller Details
+            </p>
+            {(() => {
+              const seller = firstOrder.items?.[0]?.productId?.sellerId || {};
+              const pAddr = seller.pickupAddress || {};
+              const sellerAddressParts = [pAddr.flatHouse, pAddr.street, pAddr.landmark, pAddr.city, pAddr.state, pAddr.pincode].filter(Boolean);
+              const sellerAddressStr = sellerAddressParts.length > 0 ? sellerAddressParts.join(", ") : "Not Available";
+              const storeName = seller.brandDetails?.storeName || `${seller.firstname || ""} ${seller.lastname || ""}`.trim() || "N/A";
+
+              return (
+                <>
+                  <p className="font-bold text-gray-900 text-sm leading-snug">{storeName}</p>
+                  <p className="text-gray-500 text-xs mt-1 leading-relaxed">{sellerAddressStr}</p>
+                  <div className="mt-2 space-y-0.5">
+                    {seller.email && (
+                      <p className="text-gray-500 text-[11px]">Email: {seller.email}</p>
+                    )}
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
 
