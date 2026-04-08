@@ -199,7 +199,7 @@ indexRoutes.post('/createOrder', auth, createOrder);
 indexRoutes.get('/getAllOrders', auth, authorizeRoles('admin'), getAllOrders);
 indexRoutes.get('/getOrder/:id', auth, authorizeRoles('admin', 'user'), getOrderById);
 indexRoutes.get('/getOrdersByIds', auth, authorizeRoles('admin', 'user'), getOrdersByIds);
-indexRoutes.put('/updateOrderStatus/:id', auth, authorizeRoles('admin'), updateOrderStatus);
+indexRoutes.put('/updateOrderStatus/:id', auth, authorizeRoles('admin', 'seller'), updateOrderStatus);
 indexRoutes.delete('/deleteOrder/:id', auth, authorizeRoles('admin'), deleteOrder);
 indexRoutes.get('/getUserOrders', auth, getUserOrders);
 indexRoutes.get('/getSellerOrders', auth, authorizeRoles('seller'), getSellerOrders);
