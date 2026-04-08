@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAllSellers } from '../../redux/slice/seller.slice';
-import { CheckCircle, AlertCircle, Package } from 'lucide-react';
+import { fetchAllSellers, fetchSellerCommission, updateSellerCommission } from '../../redux/slice/seller.slice';
+import { setAlert } from '../../redux/slice/alert.slice';
+import { CheckCircle, AlertCircle, Package, Settings, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Breadcrumb from '../component/Breadcrumb';
 import DataTable from '../component/DataTable';
@@ -9,11 +10,32 @@ import DataTable from '../component/DataTable';
 const Seller = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { sellers } = useSelector((state) => state.seller);
+    const { sellers, globalCommission, loading } = useSelector((state) => state.seller);
+    
+    // Commission settings modal state
+    const [isCommissionModalOpen, setIsCommissionModalOpen] = useState(false);
+    const [commissionValue, setCommissionValue] = useState(10);
 
     useEffect(() => {
         dispatch(fetchAllSellers());
     }, [dispatch]);
+
+    const handleOpenCommissionModal = async () => {
+        setIsCommissionModalOpen(true);
+        const actionResult = await dispatch(fetchSellerCommission());
+        if (fetchSellerCommission.fulfilled.match(actionResult)) {
+            if (actionResult.payload && actionResult.payload.data) {
+                setCommissionValue(parseFloat(actionResult.payload.data));
+            }
+        }
+    };
+
+    const handleUpdateCommission = async () => {
+        const actionResult = await dispatch(updateSellerCommission(commissionValue));
+        if (updateSellerCommission.fulfilled.match(actionResult)) {
+            setIsCommissionModalOpen(false);
+        }
+    };
 
     const handleView = (seller) => {
         navigate(`/admin/sellers/view/${seller._id}`);
@@ -118,6 +140,13 @@ const Seller = () => {
                     <h2 className="text-2xl font-bold text-textPrimary tracking-tight">Sellers</h2>
                     <Breadcrumb />
                 </div>
+                <button
+                    onClick={handleOpenCommissionModal}
+                    className="flex items-center gap-2 px-4 py-2 bg-primary text-btnText rounded hover:bg-primaryHover transition-colors text-sm font-medium"
+                >
+                    <Settings className="w-4 h-4" />
+                    <span>Global Commission</span>
+                </button>
             </div>
 
 
@@ -128,6 +157,55 @@ const Seller = () => {
                 allowExport={true}
                 exportFileName="Sellers"
             />
+
+            {/* Commission Settings Modal */}
+            {isCommissionModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded shadow-xl w-full max-w-md overflow-hidden relative">
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                            <h3 className="text-lg font-semibold text-gray-800">Global Seller Commission</h3>
+                            <button
+                                onClick={() => setIsCommissionModalOpen(false)}
+                                className="p-2 hover:bg-gray-100 rounded transition-colors text-gray-500"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-6">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Commission Percentage (%)
+                            </label>
+                            <input
+                                type="number"
+                                min="0"
+                                max="100"
+                                value={commissionValue}
+                                onChange={(e) => setCommissionValue(e.target.value)}
+                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-textPrimary focus:border-transparent outline-none"
+                                placeholder="E.g., 10"
+                            />
+                            <p className="text-xs text-gray-500 mt-2">
+                                When you update this, an email will be automatically sent to all approved sellers to notify them of the change. This new percentage will be applied to all newly created orders.
+                            </p>
+                        </div>
+                        <div className="p-6 bg-gray-50 flex justify-end gap-3 rounded-b-xl border-t border-gray-100">
+                            <button
+                                onClick={() => setIsCommissionModalOpen(false)}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded font-medium transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleUpdateCommission}
+                                disabled={loading}
+                                className="px-4 py-2 bg-primary text-btnText rounded font-medium hover:bg-primaryHover transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                                {loading ? 'Updating & Notifying...' : 'Update Commission'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

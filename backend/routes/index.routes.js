@@ -3,7 +3,7 @@ const indexRoutes = express.Router();
 const upload = require('../helper/imageUpload');
 const s3Service = require('../utils/s3Service');
 const { createUser, verifyOtp, resendOtp, userLogin, forgotPassword, forgotVerifyOtp, resetPassword, logout } = require('../controllers/auth.controller');
-const { getAllUsers, getUserById, updateUser, changePassword, verifyGst, sendOnboardingOtp, verifyOnboardingOtp, updateBrandDetails, updateBankDetails, updatePickupAddress, submitOnboarding, approveOrRejectSeller, getAllSellers, createStripeOnboardingLink } = require('../controllers/user.controller');
+const { getAllUsers, getUserById, updateUser, changePassword, verifyGst, sendOnboardingOtp, verifyOnboardingOtp, updateBrandDetails, updateBankDetails, updatePickupAddress, submitOnboarding, approveOrRejectSeller, getAllSellers, createStripeOnboardingLink, getGlobalCommission, updateGlobalCommission } = require('../controllers/user.controller');
 const { createCategory, getAllCategories, getCategoryById, updateCategory, deleteCategory } = require('../controllers/category.controller');
 const { getCart, addToCart, updateCartQuantity, removeFromCart, clearCart } = require('../controllers/cart.controller');
 
@@ -70,9 +70,9 @@ indexRoutes.delete('/deleteCategory/:id', auth, authorizeRoles('admin'), deleteC
 // Product routes
 indexRoutes.post('/createProduct', auth, authorizeRoles('admin', 'seller'), upload.array('images', 10), createProduct);
 indexRoutes.get('/getAllProducts', auth, getAllProducts);
-indexRoutes.get('/getFeaturedProducts',  getFeaturedProducts);
-indexRoutes.get('/getBestSellingProducts',getBestSellingProducts);
-indexRoutes.get('/getProductById/:id',  getProductById);
+indexRoutes.get('/getFeaturedProducts', getFeaturedProducts);
+indexRoutes.get('/getBestSellingProducts', getBestSellingProducts);
+indexRoutes.get('/getProductById/:id', getProductById);
 indexRoutes.put('/updateProduct/:id', auth, authorizeRoles('admin', 'seller'), upload.array('images', 10), updateProduct);
 indexRoutes.delete('/deleteProduct/:id', auth, authorizeRoles('admin', 'seller'), deleteProduct);
 indexRoutes.post('/importProducts', auth, authorizeRoles('admin', 'seller'), upload.any(), importProducts);
@@ -226,9 +226,13 @@ indexRoutes.delete('/address/:addressId', auth, deleteAddress);
 indexRoutes.put('/address-default/:addressId', auth, setDefaultAddress);
 
 // Notifications routes
-indexRoutes.get('/notifications', auth, authorizeRoles('admin','seller'), getMyNotifications);
-indexRoutes.put('/notifications/:id/seen', auth, authorizeRoles('admin','seller'), markSeen);
-indexRoutes.put('/notifications', auth, authorizeRoles('admin','seller'), clearAll);
+indexRoutes.get('/notifications', auth, authorizeRoles('admin', 'seller'), getMyNotifications);
+indexRoutes.put('/notifications/:id/seen', auth, authorizeRoles('admin', 'seller'), markSeen);
+indexRoutes.put('/notifications', auth, authorizeRoles('admin', 'seller'), clearAll);
+
+// Settings routes mappings to User controller
+indexRoutes.get('/settings/sellerCommission', auth, getGlobalCommission);
+indexRoutes.post('/settings/update', auth, authorizeRoles('admin'), updateGlobalCommission);
 
 // Stripe Webhook
 indexRoutes.post('/stripe-webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);

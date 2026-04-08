@@ -668,3 +668,81 @@ exports.createStripeOnboardingLink = async (req, res) => {
     }
 };
 
+exports.getGlobalCommission = async (req, res) => {
+    try {
+        const admin = await User.findOne({ role: "admin" });
+        if (!admin) {
+            return res.status(404).json({ success: false, message: "Admin not found." });
+        }
+        const commission = admin.adminSettings?.globalCommission || 10;
+        res.status(200).json({ success: true, data: commission });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+exports.updateGlobalCommission = async (req, res) => {
+    try {
+        const { value } = req.body;
+        if (value === undefined) {
+            return res.status(400).json({ success: false, message: "Commission value is required." });
+        }
+
+        const admin = await User.findOne({ role: "admin" });
+        if (!admin) {
+            return res.status(404).json({ success: false, message: "Admin not found." });
+        }
+
+        admin.adminSettings = {
+            ...admin.adminSettings,
+            globalCommission: Number(value)
+        };
+        await admin.save();
+
+        // Notify all sellers dynamically
+        const sellers = await User.find({ role: 'seller' });
+        const emailPromises = sellers.map(async (seller) => {
+            if (seller.email) {
+                try {
+                    const emailTemplate = `
+                    <div style="font-family: Arial, sans-serif; padding: 20px;">
+                        <h2>Commission Update Notification</h2>
+                        <p>Dear ${seller.firstname || 'Seller'},</p>
+                        <p>We want to inform you that our platform's administrative commission has been updated.</p>
+                        <p><strong>New Commission Rate: ${value}%</strong></p>
+                        <p>This rate will be applied to all future orders.</p>
+                        <br/>
+                        <p>Thank you,</p>
+                        <p><strong>Grocery Web Admin Team</strong></p>
+                    </div>
+                    `;
+                    
+                    const transporter = nodemailer.createTransport({
+                        service: "Gmail",
+                        auth: {
+                            user: process.env.EMAIL_USER,
+                            pass: process.env.EMAIL_PASS,
+                        },
+                    });
+                    
+                    await transporter.sendMail({
+                        from: `Groceryweb <${process.env.EMAIL_USER}>`,
+                        to: seller.email,
+                        subject: 'Important: Admin Commission Rate Update',
+                        html: emailTemplate
+                    });
+                } catch (emailErr) {
+                    console.error(`Failed to send commission update email to ${seller.email}:`, emailErr);
+                }
+            }
+        });
+
+        await Promise.allSettled(emailPromises);
+
+        res.status(200).json({ success: true, data: admin.adminSettings, message: "Commission updated successfully" });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+
