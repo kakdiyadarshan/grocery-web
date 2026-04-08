@@ -5,7 +5,7 @@ import { logout } from '../../redux/slice/auth.slice';
 import LogoutModal from './LogoutModal';
 import { FiHome, FiUsers, FiPackage, FiLogOut, FiX, FiChevronDown, FiShoppingCart, FiGrid, } from 'react-icons/fi';
 import { LuLayers3, LuReceiptIndianRupee, LuFileText, LuScroll } from "react-icons/lu";
-import { FaRegBell } from "react-icons/fa";
+import { FaRegBell, FaUserGraduate } from "react-icons/fa";
 import { RiContactsBook3Line } from "react-icons/ri";
 import { MdOutlineReviews } from "react-icons/md";
 import { FaRegImages } from "react-icons/fa";
@@ -49,7 +49,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         { name: 'Transactions', icon: <LuReceiptIndianRupee />, path: '/admin/transactions' },
         { name: 'Products', icon: <FiPackage />, path: '/admin/products' },
         { name: 'Category', icon: <LuLayers3 />, path: '/admin/categories' },
-        { name: 'Sellers', icon: <LuLayers3 />, path: '/admin/sellers' },
+        { name: 'Sellers', icon: <FaUserGraduate />, path: '/admin/sellers' },
         { name: 'Coupons', icon: <RiCoupon2Line />, path: '/admin/coupons' },
         { name: 'Offers', icon: <PiSealPercentLight />, path: '/admin/offers' },
         {
