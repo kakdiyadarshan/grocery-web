@@ -176,12 +176,25 @@ const OrderCompleted = () => {
     doc.text("Bill To:", 20, sectionTopY);
 
     const addr = currentOrder.address || {};
-
+    let billY = sectionTopY + 5;
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "normal");
-    doc.text(`${addr.firstname || ""} ${addr.lastname || ""}`, 20, sectionTopY + 6);
-    doc.text(addr.email || "-", 20, sectionTopY + 11);
-    doc.text(addr.phone || "-", 20, sectionTopY + 16);
+
+    const fullName = `${addr.firstname || ""} ${addr.lastname || ""}`.trim();
+    if (fullName) {
+      doc.text(fullName, 20, billY);
+      billY += 5;
+    }
+    
+    if (addr.email) {
+      doc.text(addr.email, 20, billY);
+      billY += 5;
+    }
+    
+    if (addr.phone) {
+      doc.text(addr.phone, 20, billY);
+      billY += 5;
+    }
 
     // ===== DELIVERY =====
     const deliveryAddress = addr.address
@@ -194,7 +207,7 @@ const OrderCompleted = () => {
 
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "normal");
-    doc.text(deliveryAddress, 120, sectionTopY + 6, { maxWidth: 70 });
+    doc.text(deliveryAddress, 120, sectionTopY + 5, { maxWidth: 70 });
 
     // ===== TABLE HEADER =====
     let y = Math.max(sectionTopY + 30, 90);
