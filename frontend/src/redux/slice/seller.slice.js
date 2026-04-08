@@ -20,6 +20,7 @@ const initialState = {
     isOnboardingCompleted: false,
     status: null,
     sellers: [],
+    globalCommission: 10,
 };
 
 export const verifyGst = createAsyncThunk(
@@ -149,6 +150,41 @@ export const approveRejectSeller = createAsyncThunk(
     }
 );
 
+export const fetchSellerCommission = createAsyncThunk(
+    'seller/fetchSellerCommission',
+    async (_, { dispatch, rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`${BASE_URL}/settings/sellerCommission`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data || error.message);
+        }
+    }
+);
+
+export const updateSellerCommission = createAsyncThunk(
+    'seller/updateSellerCommission',
+    async (commissionValue, { dispatch, rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.post(`${BASE_URL}/settings/update`, {
+                key: 'sellerCommission',
+                value: commissionValue,
+                description: 'Default seller commission percentage'
+            }, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            dispatch(setAlert({ text: 'Commission updated and sellers notified successfully!', type: 'success' }));
+            return response.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
 const sellerSlice = createSlice({
     name: 'seller',
     initialState,
@@ -229,7 +265,20 @@ const sellerSlice = createSlice({
                     state.sellers[index] = action.payload.user;
                 }
             })
-            .addCase(approveRejectSeller.rejected, (state) => { state.loading = false; });
+            .addCase(approveRejectSeller.rejected, (state) => { state.loading = false; })
+            .addCase(fetchSellerCommission.fulfilled, (state, action) => {
+                if (action.payload && action.payload.data) {
+                    state.globalCommission = parseFloat(action.payload.data);
+                }
+            })
+            .addCase(updateSellerCommission.pending, (state) => { state.loading = true; })
+            .addCase(updateSellerCommission.fulfilled, (state, action) => {
+                state.loading = false;
+                if (action.payload && action.payload.data) {
+                    state.globalCommission = parseFloat(action.payload.data.value);
+                }
+            })
+            .addCase(updateSellerCommission.rejected, (state) => { state.loading = false; });
     },
 });
 

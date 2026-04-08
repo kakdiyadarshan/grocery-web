@@ -89,7 +89,11 @@ const transferToSellers = async (sellerGroups, paymentIntentId) => {
 
         if (seller && seller.stripeAccountId) {
             // Calculate seller's share (Total - Admin Commission)
-            const adminCommPercent = 10; // Default 10%, should ideally come from seller settings
+            let adminCommPercent = 10;
+            const admin = await User.findOne({ role: 'admin' });
+            if (admin && admin.adminSettings && admin.adminSettings.globalCommission) {
+                adminCommPercent = parseFloat(admin.adminSettings.globalCommission);
+            }
             const sellerAmount = group.totalAmount * (1 - (adminCommPercent / 100));
             const amountInCents = Math.round(sellerAmount * 100);
 
@@ -397,7 +401,13 @@ exports.createOrder = async (req, res) => {
         const { enrichedItems, sellerGroups } = await groupItemsBySeller(items);
         const finalTotal = parseFloat(Number(totalAmount).toFixed(2));
 
-        const adminCommAmount = parseFloat((finalTotal * 0.10).toFixed(2));
+        let adminCommPercent = 10;
+        const admin = await User.findOne({ role: 'admin' });
+        if (admin && admin.adminSettings && admin.adminSettings.globalCommission) {
+            adminCommPercent = parseFloat(admin.adminSettings.globalCommission);
+        }
+
+        const adminCommAmount = parseFloat((finalTotal * (adminCommPercent / 100)).toFixed(2));
         const finalSellerAmount = parseFloat((finalTotal - adminCommAmount).toFixed(2));
 
         // ================= STRIPE =================
@@ -452,7 +462,7 @@ exports.createOrder = async (req, res) => {
             const group = sellerGroups[sellerId];
 
             const sellerGroupAmount = group.totalAmount;
-            const sellerGroupAdminComm = parseFloat((sellerGroupAmount * 0.10).toFixed(2));
+            const sellerGroupAdminComm = parseFloat((sellerGroupAmount * (adminCommPercent / 100)).toFixed(2));
             const sellerGroupFinalAmount = parseFloat((sellerGroupAmount - sellerGroupAdminComm).toFixed(2));
 
             const order = await Order.create({

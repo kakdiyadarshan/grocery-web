@@ -125,6 +125,12 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: null,
     },
+    adminSettings: {
+        globalCommission: {
+            type: Number,
+            default: 10
+        }
+    }
 }, {
     timestamps: true,
     toJSON: {

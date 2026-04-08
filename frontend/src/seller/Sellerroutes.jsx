@@ -10,11 +10,8 @@ import Profile from './pages/Profile';
 import Reviews from './pages/Reviews';
 import Orders from './pages/Orders';
 import OrderDetails from './pages/OrderDetails';
-<<<<<<< HEAD
 import Transactions from './pages/Transactions';
-=======
 import Offers from './pages/Offer';
->>>>>>> cf1f05e0e35f3833fb9fc8a73ae9bfb4d3b92256
 
 const Sellerroutes = () => {
     return (
