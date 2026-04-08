@@ -69,7 +69,7 @@ const Dashboard = () => {
     }, []);
 
     const barData = monthlyAnalytics?.length > 0
-        ? monthlyAnalytics.map(item => ({ name: item.month, orders: item.totalOrders }))
+        ? monthlyAnalytics.map(item => ({ name: item.name, orders: item.orders }))
         : [
             { name: 'Jan', orders: 0 }, { name: 'Feb', orders: 0 }, { name: 'Mar', orders: 0 },
             { name: 'Apr', orders: 0 }, { name: 'May', orders: 0 }, { name: 'Jun', orders: 0 },
@@ -85,7 +85,7 @@ const Dashboard = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const isMobileSize = windowWidth < 768;
+    // const isMobileSize = windowWidth < 768;
     const isSmallSize = windowWidth < 640;
 
     const groupedBarData = [
@@ -258,9 +258,32 @@ const Dashboard = () => {
         {
             header: 'Total',
             accessor: 'totalAmount',
+            render: (data) => {
+                const subtotal = data.items?.reduce((acc, item) => {
+                    const price =
+                        item.selectedVariant?.discountPrice ??
+                        item.selectedVariant?.price ??
+                        0;
+
+                    return acc + (price * item.quantity);
+                }, 0);
+
+                const tax = subtotal * 0.08;
+                const total = subtotal + tax;
+
+                return (
+                    <div className="text-sm font-medium text-textPrimary">
+                        ${total.toFixed(2)}
+                    </div>
+                );
+            }
+        },
+        {
+            header: 'Earning',
+            accessor: 'sellerAmount',
             render: (data) => (
-                <div className="text-sm font-medium text-textPrimary">
-                    ${data.totalAmount.toFixed(2)}
+                <div className="text-sm font-bold text-emerald-600">
+                    ${(data.sellerAmount || 0).toFixed(2)}
                 </div>
             )
         },

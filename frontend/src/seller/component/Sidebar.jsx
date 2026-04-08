@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { logout } from '../../redux/slice/auth.slice';
 import LogoutModal from '../../admin/component/LogoutModal';
 import { FiHome, FiPackage, FiLogOut, FiX, FiChevronDown, FiShoppingCart } from 'react-icons/fi';
 import { LuReceiptIndianRupee } from "react-icons/lu";
 import { MdOutlineReviews } from "react-icons/md";
 import { PiSealPercentLight } from "react-icons/pi";
-
-
 
 const Sidebar = ({ isOpen, onClose }) => {
     const dispatch = useDispatch();

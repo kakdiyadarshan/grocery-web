@@ -5,7 +5,6 @@ import { useFormik, FieldArray, FormikProvider } from 'formik';
 import * as Yup from 'yup';
 import { getAllProducts, createProduct, updateProduct, deleteProduct, importProducts } from '../../redux/slice/product.slice';
 import { getAllCategories } from '../../redux/slice/category.slice';
-import { fetchAllSellers } from '../../redux/slice/seller.slice';
 import Table from '../../admin/component/DataTable';
 import Breadcrumb from '../../admin/component/Breadcrumb';
 import AdminLoader from '../../admin/component/AdminLoader';

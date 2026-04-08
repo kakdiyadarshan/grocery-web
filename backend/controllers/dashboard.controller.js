@@ -169,17 +169,35 @@ exports.getRevenueAnalytics = async (req, res) => {
 
         // Seller wise revenue distribution
         const sellerRevenueData = await Order.aggregate([
-            { $match: { status: { $ne: 'cancelled' }, sellerId: { $ne: null } } },
+            { $match: { status: { $ne: 'cancelled' } } },
+            {
+                $lookup: {
+                    from: 'payments',
+                    localField: '_id',
+                    foreignField: 'orderId',
+                    as: 'paymentInfo'
+                }
+            },
+            { $unwind: { path: "$paymentInfo", preserveNullAndEmptyArrays: true } },
+            {
+                $match: {
+                    $or: [
+                        { paymentMethod: 'Stripe' }, 
+                        { $and: [{ paymentMethod: 'COD' }, { "paymentInfo.status": 'paid' }] }
+                    ]
+                }
+            },
+            { $unwind: "$items" },
+            { $match: { "items.sellerId": { $ne: null } } },
             { 
                 $group: { 
-                    _id: "$sellerId", 
+                    _id: "$items.sellerId", 
                     totalAmount: { 
                         $sum: { 
-                            $cond: {
-                                if: { $gt: ["$sellerAmount", 0] },
-                                then: "$sellerAmount",
-                                else: { $multiply: ["$totalAmount", 0.9] } // Fallback: 90% of total
-                            }
+                            $multiply: [
+                                { $multiply: ["$items.price", "$items.quantity"] },
+                                0.9 // Assuming 10% commission
+                            ]
                         } 
                     } 
                 } 
