@@ -746,3 +746,35 @@ exports.updateGlobalCommission = async (req, res) => {
 };
 
 
+exports.updateBusinessProfile = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const { brandDetails, pickupAddress } = req.body;
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (brandDetails) {
+            user.brandDetails = { ...user.brandDetails, ...brandDetails };
+        }
+
+        if (pickupAddress) {
+            user.pickupAddress = { ...user.pickupAddress, ...pickupAddress };
+        }
+
+        await user.save();
+
+        res.status(200).json({
+            status: 200,
+            message: "Business profile updated successfully..!",
+            data: user
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+

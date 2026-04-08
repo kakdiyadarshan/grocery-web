@@ -3,26 +3,16 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../redux/slice/auth.slice';
 import LogoutModal from '../../admin/component/LogoutModal';
-import { FiHome, FiUsers, FiPackage, FiLogOut, FiX, FiChevronDown, FiShoppingCart, FiGrid, } from 'react-icons/fi';
-import { LuLayers3, LuReceiptIndianRupee, LuFileText, LuScroll } from "react-icons/lu";
-import { FaRegBell } from "react-icons/fa";
-import { RiContactsBook3Line } from "react-icons/ri";
+import { FiHome, FiPackage, FiLogOut, FiX, FiChevronDown, FiShoppingCart } from 'react-icons/fi';
+import { LuReceiptIndianRupee } from "react-icons/lu";
 import { MdOutlineReviews } from "react-icons/md";
-import { FaRegImages } from "react-icons/fa";
-import { BsCardImage } from "react-icons/bs";
-import { RiFileEditLine, RiCoupon2Line } from "react-icons/ri";
-import { PiSealPercentLight, PiNewspaperClipping } from "react-icons/pi";
-import { FaHeadset } from "react-icons/fa6";
-import { TbMessageQuestion } from "react-icons/tb";
-import { BsShieldCheck } from "react-icons/bs";
-import { IoNewspaperOutline } from "react-icons/io5";
-import { TbTruckDelivery } from "react-icons/tb";
+import { PiSealPercentLight } from "react-icons/pi";
+
 
 
 const Sidebar = ({ isOpen, onClose }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { user } = useSelector(state => state.auth);
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [openDropdown, setOpenDropdown] = useState('');
@@ -46,10 +36,10 @@ const Sidebar = ({ isOpen, onClose }) => {
     const sellerMenuItems = [
         { name: 'Dashboard', icon: <FiHome />, path: '/seller/sellerdashboard' },
         { name: 'Orders', icon: <FiShoppingCart />, path: '/seller/orders' },
-        { name: 'Products', icon: <FiPackage />, path: '/seller/products' },
         { name: 'Transactions', icon: <LuReceiptIndianRupee />, path: '/seller/transactions' },
+        { name: 'Products', icon: <FiPackage />, path: '/seller/products' },
+        { name: 'Offers', icon: <PiSealPercentLight />, path: '/seller/offers' },
         { name: 'Reviews', icon: <MdOutlineReviews />, path: '/seller/reviews' },
-        { name: 'Offers', icon: <MdOutlineReviews />, path: '/seller/offers' },
     ];
 
     return (

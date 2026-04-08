@@ -3,7 +3,7 @@ const indexRoutes = express.Router();
 const upload = require('../helper/imageUpload');
 const s3Service = require('../utils/s3Service');
 const { createUser, verifyOtp, resendOtp, userLogin, forgotPassword, forgotVerifyOtp, resetPassword, logout } = require('../controllers/auth.controller');
-const { getAllUsers, getUserById, updateUser, changePassword, verifyGst, sendOnboardingOtp, verifyOnboardingOtp, updateBrandDetails, updateBankDetails, updatePickupAddress, submitOnboarding, approveOrRejectSeller, getAllSellers, createStripeOnboardingLink, getGlobalCommission, updateGlobalCommission } = require('../controllers/user.controller');
+const { getAllUsers, getUserById, updateUser, changePassword, verifyGst, sendOnboardingOtp, verifyOnboardingOtp, updateBrandDetails, updateBankDetails, updatePickupAddress, submitOnboarding, approveOrRejectSeller, getAllSellers, createStripeOnboardingLink, getGlobalCommission, updateGlobalCommission,updateBusinessProfile } = require('../controllers/user.controller');
 const { createCategory, getAllCategories, getCategoryById, updateCategory, deleteCategory } = require('../controllers/category.controller');
 const { getCart, addToCart, updateCartQuantity, removeFromCart, clearCart } = require('../controllers/cart.controller');
 
@@ -24,6 +24,7 @@ const { createReview, getReviewById, getAllReviews, deleteReview, getSellerRevie
 const { createCoupon, getAllCoupons, deleteCoupon, getCouponById, updateCoupon, applyCoupon } = require('../controllers/coupon.controller');
 const { createOrder, getAllOrders, getOrderById, getOrdersByIds, updateOrderStatus, deleteOrder, getUserOrders, cancelOrder, trackOrder, handleStripeWebhook, verifyStripeSession, getSellerOrders, getSellerOrderById } = require('../controllers/order.controller');
 const { getOrderMonthlyAnalytics, getRevenueAnalytics } = require('../controllers/dashboard.controller');
+const { getSellerOrderMonthlyAnalytics, getSellerRevenueAnalytics } = require('../controllers/sellerDashboard.controller');
 const { createPayment, getPaymentById, getAllPayments, updatePaymentStatus, deletePayment, getPaymentByUserId, getPaymentByOrderId, getSellerPayments } = require('../controllers/payment.controller');
 const { addAddress, getAddresses, updateAddress, deleteAddress, setDefaultAddress } = require('../controllers/address.controller');
 const { createOfferBanner, getAllOfferBanners, updateOfferBanner, deleteOfferBanner } = require('../controllers/offerbanner.controller');
@@ -59,7 +60,7 @@ indexRoutes.post('/seller/submit-agreement', submitOnboarding);
 indexRoutes.post('/seller/approve-reject', auth, authorizeRoles('admin'), approveOrRejectSeller);
 indexRoutes.get('/seller/all', auth, authorizeRoles('admin'), getAllSellers);
 indexRoutes.get('/seller/stripe-onboarding-link', auth, authorizeRoles('seller'), createStripeOnboardingLink);
-
+indexRoutes.put('/seller/update-business-profile', auth, authorizeRoles('seller'), updateBusinessProfile);
 // Category routes
 indexRoutes.post('/createCategory', auth, authorizeRoles('admin'), upload.single('categoryImage'), createCategory);
 indexRoutes.get('/getAllCategories', getAllCategories);
@@ -207,6 +208,8 @@ indexRoutes.put('/cancelOrder/:id', auth, cancelOrder);
 indexRoutes.get('/trackOrder/:id', auth, trackOrder);
 indexRoutes.get('/order-monthly-analytics', auth, authorizeRoles('admin'), getOrderMonthlyAnalytics);
 indexRoutes.get('/revenue-analytics', auth, authorizeRoles('admin'), getRevenueAnalytics);
+indexRoutes.get('/seller/order-monthly-analytics', auth, authorizeRoles('seller'), getSellerOrderMonthlyAnalytics);
+indexRoutes.get('/seller/revenue-analytics', auth, authorizeRoles('seller'), getSellerRevenueAnalytics);
 
 // Payment Routes
 indexRoutes.post('/createPayment', auth, createPayment);

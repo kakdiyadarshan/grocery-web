@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FiUser, FiLock, FiEye, FiEyeOff, FiCheckCircle, FiCamera } from 'react-icons/fi';
+import { FiUser, FiLock, FiEye, FiEyeOff, FiCheckCircle, FiCamera, FiBriefcase } from 'react-icons/fi';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchUserProfile, updateUserProfile, changePassword } from '../../redux/slice/auth.slice';
+import { fetchUserProfile, updateUserProfile, changePassword, updateBusinessProfile } from '../../redux/slice/auth.slice';
 import { setAlert } from '../../redux/slice/alert.slice';
 import { IMAGE_URL } from '../../utils/baseUrl';
 import CustomSelect from '../../admin/component/CustomSelect';
@@ -28,6 +28,22 @@ const Profile = () => {
         confirmPassword: ''
     });
 
+    const [businessData, setBusinessData] = useState({
+        brandDetails: {
+            storeName: '',
+            ownerName: '',
+            storeDescription: ''
+        },
+        pickupAddress: {
+            flatHouse: '',
+            street: '',
+            landmark: '',
+            pincode: '',
+            city: '',
+            state: ''
+        }
+    });
+
     const [profileImage, setProfileImage] = useState(null);
     const [previewImage, setPreviewImage] = useState(null);
 
@@ -46,6 +62,23 @@ const Profile = () => {
             });
             if (user.photo && user.photo.url) {
                 setPreviewImage(user.photo.url);
+            }
+            if (user.role === 'seller') {
+                setBusinessData({
+                    brandDetails: {
+                        storeName: user.brandDetails?.storeName || '',
+                        ownerName: user.brandDetails?.ownerName || '',
+                        storeDescription: user.brandDetails?.storeDescription || ''
+                    },
+                    pickupAddress: {
+                        flatHouse: user.pickupAddress?.flatHouse || '',
+                        street: user.pickupAddress?.street || '',
+                        landmark: user.pickupAddress?.landmark || '',
+                        pincode: user.pickupAddress?.pincode || '',
+                        city: user.pickupAddress?.city || '',
+                        state: user.pickupAddress?.state || ''
+                    }
+                });
             }
         }
     }, [user]);
@@ -125,9 +158,30 @@ const Profile = () => {
         }
     };
 
+    const handleBusinessChange = (section, e) => {
+        const { name, value } = e.target;
+        setBusinessData(prev => ({
+            ...prev,
+            [section]: {
+                ...prev[section],
+                [name]: value
+            }
+        }));
+    };
+
+    const handleBusinessSubmit = async (e) => {
+        e.preventDefault();
+        await dispatch(updateBusinessProfile({
+            brandDetails: businessData.brandDetails,
+            pickupAddress: businessData.pickupAddress
+        }));
+        await dispatch(fetchUserProfile());
+    };
+
     const tabs = [
         { id: 'overview', label: 'Overview', icon: FiUser },
         { id: 'edit-profile', label: 'Edit Profile', icon: FiUser },
+        ...(user?.role === 'seller' ? [{ id: 'business-details', label: 'Business Profile', icon: FiBriefcase }] : []),
         { id: 'change-password', label: 'Change Password', icon: FiLock }
     ];
 
@@ -376,6 +430,139 @@ const Profile = () => {
                                         className="px-8 py-3.5 bg-primary text-white rounded-[4px] font-medium hover:bg-primaryHover transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40"
                                     >
                                         {loading ? 'Updating...' : 'Update Profile'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    )}
+
+                    {/* Business Details Tab */}
+                    {activeTab === 'business-details' && user?.role === 'seller' && (
+                        <div className="bg-white rounded-lg shadow-custom p-5 sm:p-6 md:p-8">
+                            <h2 className="text-xl sm:text-2xl font-bold text-textPrimary mb-6">Business Profile</h2>
+
+                            <form onSubmit={handleBusinessSubmit} className="space-y-8">
+                                
+                                {/* Brand Details Section */}
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Brand Details</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-gray-700">Store Name</label>
+                                            <input
+                                                type="text"
+                                                name="storeName"
+                                                value={businessData.brandDetails.storeName}
+                                                onChange={(e) => handleBusinessChange('brandDetails', e)}
+                                                className="w-full px-4 py-3 border border-gray-200 rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                                                placeholder="Enter store name"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-gray-700">Owner Name</label>
+                                            <input
+                                                type="text"
+                                                name="ownerName"
+                                                value={businessData.brandDetails.ownerName}
+                                                onChange={(e) => handleBusinessChange('brandDetails', e)}
+                                                className="w-full px-4 py-3 border border-gray-200 rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                                                placeholder="Enter owner name"
+                                            />
+                                        </div>
+                                        <div className="space-y-2 md:col-span-2">
+                                            <label className="text-sm font-medium text-gray-700">Store Description</label>
+                                            <textarea
+                                                name="storeDescription"
+                                                value={businessData.brandDetails.storeDescription}
+                                                onChange={(e) => handleBusinessChange('brandDetails', e)}
+                                                rows="3"
+                                                className="w-full px-4 py-3 border border-gray-200 rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all resize-none"
+                                                placeholder="Enter store description"
+                                            ></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Pickup Address Section */}
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Pickup Address</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2 md:col-span-2">
+                                            <label className="text-sm font-medium text-gray-700">Flat / House / Building</label>
+                                            <input
+                                                type="text"
+                                                name="flatHouse"
+                                                value={businessData.pickupAddress.flatHouse}
+                                                onChange={(e) => handleBusinessChange('pickupAddress', e)}
+                                                className="w-full px-4 py-3 border border-gray-200 rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                                                placeholder="Enter flat / house / building"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-gray-700">Street / Area</label>
+                                            <input
+                                                type="text"
+                                                name="street"
+                                                value={businessData.pickupAddress.street}
+                                                onChange={(e) => handleBusinessChange('pickupAddress', e)}
+                                                className="w-full px-4 py-3 border border-gray-200 rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                                                placeholder="Enter street / area"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-gray-700">Landmark</label>
+                                            <input
+                                                type="text"
+                                                name="landmark"
+                                                value={businessData.pickupAddress.landmark}
+                                                onChange={(e) => handleBusinessChange('pickupAddress', e)}
+                                                className="w-full px-4 py-3 border border-gray-200 rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                                                placeholder="Enter landmark"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-gray-700">Pincode</label>
+                                            <input
+                                                type="text"
+                                                name="pincode"
+                                                value={businessData.pickupAddress.pincode}
+                                                onChange={(e) => handleBusinessChange('pickupAddress', e)}
+                                                className="w-full px-4 py-3 border border-gray-200 rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                                                placeholder="Enter pincode"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-gray-700">City</label>
+                                            <input
+                                                type="text"
+                                                name="city"
+                                                value={businessData.pickupAddress.city}
+                                                onChange={(e) => handleBusinessChange('pickupAddress', e)}
+                                                className="w-full px-4 py-3 border border-gray-200 rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                                                placeholder="Enter city"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-gray-700">State</label>
+                                            <input
+                                                type="text"
+                                                name="state"
+                                                value={businessData.pickupAddress.state}
+                                                onChange={(e) => handleBusinessChange('pickupAddress', e)}
+                                                className="w-full px-4 py-3 border border-gray-200 rounded-[4px] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                                                placeholder="Enter state"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-end pt-6">
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className="px-8 py-3.5 bg-primary text-white rounded-[4px] font-medium hover:bg-primaryHover transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40"
+                                    >
+                                        {loading ? 'Updating...' : 'Update Business Profile'}
                                     </button>
                                 </div>
                             </form>

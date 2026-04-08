@@ -24,6 +24,7 @@ import shippingSlice from "./slice/shipping.slice";
 import notificationsSlice from "./slice/notifications.slice";
 import dashboardSlice from "./slice/dashboard.slice";
 import sellerSlice from "./slice/seller.slice";
+import sellerDashboardSlice from "./slice/sellerDashboard.slice";
 
 export const rootReducer = combineReducers({
     alert: alertSlice,
@@ -50,5 +51,6 @@ export const rootReducer = combineReducers({
     shipping: shippingSlice,
     notifications: notificationsSlice,
     dashboard: dashboardSlice,
+    sellerDashboard: sellerDashboardSlice,
     seller: sellerSlice,
 });
