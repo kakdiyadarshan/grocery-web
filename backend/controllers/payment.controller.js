@@ -130,6 +130,37 @@ exports.getSellerPayments = async (req, res) => {
 
             { $unwind: { path: "$userInfo", preserveNullAndEmptyArrays: true } },
 
+            // Calculate Seller Specific Total & Commission
+            {
+                $addFields: {
+                    sellerTotal: { 
+                        $sum: { 
+                            $map: { 
+                                input: "$sellerItems", 
+                                as: "item", 
+                                in: { $multiply: ["$$item.price", "$$item.quantity"] } 
+                            } 
+                        } 
+                    },
+                    // Use admin commission percentage from order (default 10)
+                    activeCommission: { $ifNull: ["$adminCommission", 10] }
+                }
+            },
+            {
+                $addFields: {
+                    commissionAmount: { 
+                        $divide: [{ $multiply: ["$sellerTotal", "$activeCommission"] }, 100] 
+                    }
+                }
+            },
+            {
+                $addFields: {
+                    finalSellerShare: { 
+                        $subtract: ["$sellerTotal", "$commissionAmount"] 
+                    }
+                }
+            },
+
             // Final output
             {
                 $project: {
@@ -138,7 +169,9 @@ exports.getSellerPayments = async (req, res) => {
                     paymentMethod: {
                         $ifNull: ["$paymentInfo.paymentMethod", "$paymentMethod"]
                     },
-                    amount: "$sellerAmount", 
+                    amount: { $round: ["$finalSellerShare", 2] }, 
+                    adminCommission: "$activeCommission",
+                    adminCommissionAmount: { $round: ["$commissionAmount", 2] },
                     status: { $ifNull: ["$paymentInfo.status", "pending"] },
                     createdAt: {
                         $ifNull: ["$paymentInfo.createdAt", "$createdAt"]
@@ -147,7 +180,6 @@ exports.getSellerPayments = async (req, res) => {
                         $concat: ["$userInfo.firstname", " ", "$userInfo.lastname"]
                     },
                     email: "$userInfo.email",
-
                     items: "$sellerItems"
                 }
             },

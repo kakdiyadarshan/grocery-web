@@ -1634,6 +1634,7 @@ exports.getSellerOrderById = async (req, res) => {
                     },
                     items: { $push: "$items" },
                     totalAmount: { $sum: { $multiply: ["$items.price", "$items.quantity"] } },
+                    adminCommission: { $first: "$adminCommission" },
                     status: { $first: "$status" },
                     paymentMethod: { $first: "$paymentMethod" },
                     addressId: { $first: "$addressId" },
@@ -1641,6 +1642,13 @@ exports.getSellerOrderById = async (req, res) => {
                     updatedAt: { $first: "$updatedAt" },
                     payment: { $first: "$payment" },
                     trackingHistory: { $first: "$trackingHistory" }
+                }
+            },
+            {
+                $addFields: {
+                    activeCommission: { $ifNull: ["$adminCommission", 10] },
+                    adminCommissionAmount: { $round: [{ $divide: [{ $multiply: ["$totalAmount", { $ifNull: ["$adminCommission", 10] }] }, 100] }, 2] },
+                    sellerAmount: { $round: [{ $subtract: ["$totalAmount", { $divide: [{ $multiply: ["$totalAmount", { $ifNull: ["$adminCommission", 10] }] }, 100] }] }, 2] }
                 }
             },
             {
@@ -1772,6 +1780,7 @@ exports.getSellerOrders = async (req, res) => {
                     },
                     items: { $push: "$items" },
                     totalAmount: { $sum: { $multiply: ["$items.price", "$items.quantity"] } },
+                    adminCommission: { $first: "$adminCommission" },
                     status: { $first: "$status" },
                     paymentMethod: { $first: "$paymentMethod" },
                     addressId: { $first: "$addressId" },
@@ -1779,6 +1788,13 @@ exports.getSellerOrders = async (req, res) => {
                     updatedAt: { $first: "$updatedAt" },
                     payment: { $first: "$payment" },
                     trackingHistory: { $first: "$trackingHistory" }
+                }
+            },
+            {
+                $addFields: {
+                    activeCommission: { $ifNull: ["$adminCommission", 10] },
+                    adminCommissionAmount: { $round: [{ $divide: [{ $multiply: ["$totalAmount", { $ifNull: ["$adminCommission", 10] }] }, 100] }, 2] },
+                    sellerAmount: { $round: [{ $subtract: ["$totalAmount", { $divide: [{ $multiply: ["$totalAmount", { $ifNull: ["$adminCommission", 10] }] }, 100] }] }, 2] }
                 }
             },
             {
