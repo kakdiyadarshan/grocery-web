@@ -198,6 +198,7 @@ const CheckOut = () => {
         couponDiscount: couponDiscount,
         paymentMethod: paymentMethod === 'cod' ? 'COD' : 'Stripe',
         addressId: selectedAddress?._id || null,
+        isBuyNow: !!buyNowItem,
         addressDetails: {
           firstName: formData.firstName,
           lastName: formData.lastName,
@@ -216,24 +217,28 @@ const CheckOut = () => {
         const data = resultAction.payload.data;
         const newOrderId = data?.orderId || data?.order?._id || data?._id;
 
-        dispatch(removeCoupon());
-        localStorage.removeItem('appliedCoupon');
+        // Only remove coupon and clear cart for regular checkout, NOT buy now
+        const isBuyNow = !!buyNowItem;
+
+        if (!isBuyNow) {
+          dispatch(removeCoupon());
+          localStorage.removeItem('appliedCoupon');
+        }
 
         if (data?.paymentUrl) {
           // Stripe Redirect
           window.location.href = data.paymentUrl;
         } else {
           // data is an array of orders for COD
-          const isBuyNow = !!buyNowItem;
           const buyNowQuery = isBuyNow ? "&buy_now=true" : "";
-
+          
           if (Array.isArray(data) && data.length > 0) {
             const allOrderIds = data.map(o => o._id).join(',');
             navigate(`/order-completed?order_ids=${allOrderIds}${buyNowQuery}`);
           } else if (newOrderId) {
             navigate(`/order-completed?order_id=${newOrderId}${buyNowQuery}`);
           } else {
-            navigate(`/order-completed?${buyNowQuery}`);
+            navigate(`/order-completed${buyNowQuery}`);
           }
         }
       }

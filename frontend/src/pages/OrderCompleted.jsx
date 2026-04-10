@@ -22,6 +22,7 @@ const OrderCompleted = () => {
     const verifyAndLoadOrder = async () => {
       let currentId = orderId;
       const isBuyNow = queryParams.get("buy_now") === "true";
+      const hasClearedCart = sessionStorage.getItem('cartClearedForOrder');
 
       if (sessionId && !orderId && !orderIds) {
         try {
@@ -40,13 +41,13 @@ const OrderCompleted = () => {
         dispatch(getOrderById(currentId));
       }
 
-      if (currentId || orderIds || sessionId) {
-        if (!isBuyNow) {
-          dispatch(clearCart());
-          dispatch(getCart());
-          dispatch(removeCoupon());
-          localStorage.removeItem('appliedCoupon');
-        }
+      // Only clear cart once per order session, and NOT for buy now orders
+      if ((currentId || orderIds || sessionId) && !hasClearedCart && !isBuyNow) {
+        sessionStorage.setItem('cartClearedForOrder', 'true');
+        await dispatch(clearCart());
+        dispatch(getCart());
+        dispatch(removeCoupon());
+        localStorage.removeItem('appliedCoupon');
       }
     };
 

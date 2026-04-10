@@ -555,7 +555,8 @@ exports.createOrder = async (req, res) => {
             couponId,
             paymentMethod,
             addressId,
-            addressDetails
+            addressDetails,
+            isBuyNow = false 
         } = req.body;
 
         // ✅ Validation
@@ -687,11 +688,13 @@ exports.createOrder = async (req, res) => {
             await adjustProductStock(item, -item.quantity);
         }
 
-        // ✅ Clear cart
-        await Cart.findOneAndUpdate(
-            { userId },
-            { items: [] }
-        );
+        // ✅ Clear cart ONLY if this is NOT a buy now order
+        if (!isBuyNow) {
+            await Cart.findOneAndUpdate(
+                { userId },
+                { items: [] }
+            );
+        }
 
         // ✅ Coupon update
         if (couponId) {
@@ -1416,7 +1419,11 @@ exports.handleStripeWebhook = async (req, res) => {
             for (const item of orderData.items) {
                 await adjustProductStock(item, -item.quantity);
             }
-            await Cart.findOneAndUpdate({ userId: orderData.userId }, { items: [] });
+            
+            // Clear cart ONLY if this is NOT a buy now order
+            if (!orderData.isBuyNow) {
+                await Cart.findOneAndUpdate({ userId: orderData.userId }, { items: [] });
+            }
             if (orderData.couponId) {
                 await Coupon.findByIdAndUpdate(orderData.couponId, { $addToSet: { usedBy: orderData.userId } });
             }
@@ -1533,8 +1540,10 @@ exports.verifyStripeSession = async (req, res) => {
                     await adjustProductStock(item, -item.quantity);
                 }
 
-                // Clear cart
-                await Cart.findOneAndUpdate({ userId: orderData.userId }, { items: [] });
+                // Clear cart ONLY if this is NOT a buy now order
+                if (!orderData.isBuyNow) {
+                    await Cart.findOneAndUpdate({ userId: orderData.userId }, { items: [] });
+                }
                 if (orderData.couponId) {
                     await Coupon.findByIdAndUpdate(orderData.couponId, { $addToSet: { usedBy: orderData.userId } });
                 }
