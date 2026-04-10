@@ -34,7 +34,7 @@ function ProductDetail() {
         if (products.length === 0) {
             dispatch(getAllProducts());
         }
-    }, [id, dispatch,products.length]);
+    }, [id, dispatch, products.length]);
 
     const images = product?.images?.map(img => img.url) || [];
     const [selectedImage, setSelectedImage] = useState(null);
@@ -492,8 +492,8 @@ function ProductDetail() {
                                                         {review.images && review.images.length > 0 && (
                                                             <div className="flex gap-2 mt-3 overflow-x-auto pb-1 no-scrollbar">
                                                                 {review.images.map((img, idx) => (
-                                                                    <div 
-                                                                        key={idx} 
+                                                                    <div
+                                                                        key={idx}
                                                                         className="w-16 h-16 rounded-md overflow-hidden border border-gray-100 flex-shrink-0 cursor-pointer hover:border-[var(--primary)] transition-all"
                                                                         onClick={() => setModalImage(img.url || img)}
                                                                     >
@@ -551,20 +551,20 @@ function ProductDetail() {
             {/* Image Modal */}
             {modalImage && (
                 <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
-                    <div 
+                    <div
                         className="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-zoom-out"
                         onClick={() => setModalImage(null)}
                     ></div>
                     <div className="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center animate-zoomIn">
-                        <button 
+                        <button
                             className="absolute -top-12 right-0 sm:-right-12 text-white hover:text-gray-300 transition-colors p-2"
                             onClick={() => setModalImage(null)}
                         >
                             <FiX className="text-3xl " />
                         </button>
-                        <img 
-                            src={modalImage} 
-                            alt="Full Screen" 
+                        <img
+                            src={modalImage}
+                            alt="Full Screen"
                             className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
                         />
                     </div>

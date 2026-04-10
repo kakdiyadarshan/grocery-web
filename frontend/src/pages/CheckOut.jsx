@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { ChevronRight, Banknote } from 'lucide-react';
-import {  FaStripe } from 'react-icons/fa';
+import { FaStripe } from 'react-icons/fa';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'sonner';
 import { createOrder as triggerCreateOrder } from '../redux/slice/order.slice';
-import {  removeCoupon } from '../redux/slice/cart.slice';
+import { removeCoupon } from '../redux/slice/cart.slice';
 import { fetchAddresses, addAddress, updateAddress, deleteAddress } from '../redux/slice/address.slice';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
@@ -23,7 +23,7 @@ const CheckOut = () => {
   const { user } = useSelector(state => state.auth);
   const { cart, appliedCoupon } = useSelector(state => state.cart);
   const { addresses, submitLoading } = useSelector(state => state.address);
-  
+
   const buyNowItem = location.state?.buyNowItem;
   const items = buyNowItem ? [buyNowItem] : (cart?.items || []);
 
@@ -71,7 +71,7 @@ const CheckOut = () => {
     upiId: '',
     selectedBank: ''
   });
-  
+
   const [useSavedAddress, setUseSavedAddress] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -155,7 +155,7 @@ const CheckOut = () => {
   };
 
   const handlePlaceOrder = async () => {
-    
+
     if (!selectedAddress) {
       toast.error("Please select a shipping address");
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -224,18 +224,18 @@ const CheckOut = () => {
           window.location.href = data.paymentUrl;
         } else {
           // data is an array of orders for COD
+          const isBuyNow = !!buyNowItem;
+          const buyNowQuery = isBuyNow ? "&buy_now=true" : "";
+
           if (Array.isArray(data) && data.length > 0) {
             const allOrderIds = data.map(o => o._id).join(',');
-            navigate(`/order-completed?order_ids=${allOrderIds}`);
+            navigate(`/order-completed?order_ids=${allOrderIds}${buyNowQuery}`);
           } else if (newOrderId) {
-            navigate(`/order-completed?order_id=${newOrderId}`);
+            navigate(`/order-completed?order_id=${newOrderId}${buyNowQuery}`);
           } else {
-            navigate('/order-completed');
+            navigate(`/order-completed?${buyNowQuery}`);
           }
         }
-
-
-
       }
     } catch (error) {
       console.error("Order Error:", error);
@@ -624,7 +624,7 @@ const CheckOut = () => {
                         <label className="text-sm font-medium text-gray-700 block mb-2 ml-1">Phone Number <span className="text-red-500">*</span></label>
                         <Field
                           name="phone"
-                          placeholder="Phone Number" 
+                          placeholder="Phone Number"
                           className={`block w-full px-3 py-3 border rounded-[4px] outline-none transition-all text-sm font-medium bg-gray-50 focus:bg-white text-gray-800 placeholder-gray-400 ${errors.phone && touched.phone
                             ? 'border-red-500 focus:ring-red-100'
                             : 'border-gray-200 focus:ring-2 focus:ring-[var(--primary)]/10 focus:border-[var(--primary)]'

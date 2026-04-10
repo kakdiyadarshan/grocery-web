@@ -21,6 +21,7 @@ const OrderCompleted = () => {
   useEffect(() => {
     const verifyAndLoadOrder = async () => {
       let currentId = orderId;
+      const isBuyNow = queryParams.get("buy_now") === "true";
 
       if (sessionId && !orderId && !orderIds) {
         try {
@@ -40,10 +41,12 @@ const OrderCompleted = () => {
       }
 
       if (currentId || orderIds || sessionId) {
-        dispatch(clearCart());
-        dispatch(getCart());
-        dispatch(removeCoupon());
-        localStorage.removeItem('appliedCoupon');
+        if (!isBuyNow) {
+          dispatch(clearCart());
+          dispatch(getCart());
+          dispatch(removeCoupon());
+          localStorage.removeItem('appliedCoupon');
+        }
       }
     };
 
@@ -58,7 +61,7 @@ const OrderCompleted = () => {
   }, [orders, currentOrder, orderIds]);
 
   if (loading) {
-// ... loading spinner remains the same ...
+    // ... loading spinner remains the same ...
   }
 
   if (displayOrders.length === 0) {
@@ -87,7 +90,7 @@ const OrderCompleted = () => {
 
   const tax = subtotal * 0.08;
   const shipping = 0;
-  
+
   // Aggregate coupon discount from all orders
   const couponDiscount = displayOrders.reduce((acc, o) => {
     const sub = (o.items || []).reduce((sAcc, item) => {
@@ -156,13 +159,13 @@ const OrderCompleted = () => {
     doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
     doc.text(sellerName, 20, currentY);
-    
+
     currentY += 6;
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
     const wrappedSellerAddress = doc.splitTextToSize(sellerAddressStr, 60);
     doc.text(wrappedSellerAddress, 20, currentY);
-    
+
     currentY += (wrappedSellerAddress.length * 5);
     doc.text(sellerEmail, 20, currentY);
 
@@ -185,12 +188,12 @@ const OrderCompleted = () => {
       doc.text(fullName, 20, billY);
       billY += 5;
     }
-    
+
     if (addr.email) {
       doc.text(addr.email, 20, billY);
       billY += 5;
     }
-    
+
     if (addr.phone) {
       doc.text(addr.phone, 20, billY);
       billY += 5;
@@ -492,7 +495,7 @@ const OrderCompleted = () => {
                         ${(price * item.quantity).toFixed(2)}
                       </span>
                     </div>
-                    
+
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
                       {variant && (
                         <span className="text-[10px] sm:text-xs font-bold text-[var(--primary)] uppercase tracking-tight">
