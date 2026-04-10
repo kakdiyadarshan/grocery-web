@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MdKeyboardArrowUp, MdKeyboardArrowDown } from "react-icons/md";
 import { AiFillStar } from "react-icons/ai";
-import { FiArrowRight, FiShoppingCart } from "react-icons/fi";
+import { FiArrowRight, FiShoppingCart, FiX } from "react-icons/fi";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getProductById, getAllProducts } from '../../redux/slice/product.slice';
@@ -31,6 +31,7 @@ function ProductDetailsAdmin() {
     const [startIndex, setStartIndex] = useState(0);
     const [activeTab, setActiveTab] = useState('description');
     const [isReviewDrawerOpen, setIsReviewDrawerOpen] = useState(false);
+    const [modalImage, setModalImage] = useState(null);
     const tabsRef = useRef(null);
 
     useEffect(() => {
@@ -41,7 +42,7 @@ function ProductDetailsAdmin() {
     }, []);
 
     useEffect(() => {
-        if (isReviewDrawerOpen) {
+        if (isReviewDrawerOpen || modalImage) {
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = 'auto';
@@ -49,7 +50,7 @@ function ProductDetailsAdmin() {
         return () => {
             document.body.style.overflow = 'auto';
         };
-    }, [isReviewDrawerOpen]);
+    }, [isReviewDrawerOpen, modalImage]);
 
     const scrollToDescription = () => {
         setActiveTab('description');
@@ -89,13 +90,14 @@ function ProductDetailsAdmin() {
                     <div className="flex flex-col-reverse md:flex-row gap-6 lg:w-3/5">
                         {/* Vertical Thumbnails */}
                         <div className="flex md:flex-col items-center gap-3 py-2">
-                            <button
-                                onClick={() => setStartIndex(prev => Math.max(0, prev - 1))}
-                                disabled={startIndex === 0}
-                                className={`hidden md:flex items-center justify-center w-full px-1 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 transition ${startIndex === 0 ? 'opacity-30 cursor-not-allowed' : ''}`}
-                            >
-                                <MdKeyboardArrowUp className="text-2xl" />
-                            </button>
+                            {startIndex > 0 && (
+                                <button
+                                    onClick={() => setStartIndex(prev => Math.max(0, prev - 1))}
+                                    className="hidden md:flex items-center justify-center w-full px-1 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 transition"
+                                >
+                                    <MdKeyboardArrowUp className="text-2xl" />
+                                </button>
+                            )}
 
                             <div className="hidden md:block overflow-hidden h-[420px]">
                                 <div
@@ -127,13 +129,14 @@ function ProductDetailsAdmin() {
                                 ))}
                             </div>
 
-                            <button
-                                onClick={() => setStartIndex(prev => Math.min(images.length - 4, prev + 1))}
-                                disabled={startIndex >= images.length - 4}
-                                className={`hidden md:flex items-center justify-center w-full px-1 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 transition ${startIndex >= images.length - 4 ? 'opacity-30 cursor-not-allowed' : ''}`}
-                            >
-                                <MdKeyboardArrowDown className="text-2xl" />
-                            </button>
+                            {images.length > 4 && startIndex < images.length - 4 && (
+                                <button
+                                    onClick={() => setStartIndex(prev => Math.min(images.length - 4, prev + 1))}
+                                    className="hidden md:flex items-center justify-center w-full px-1 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 transition"
+                                >
+                                    <MdKeyboardArrowDown className="text-2xl" />
+                                </button>
+                            )}
                         </div>
 
                         {/* Main Product Image */}
@@ -205,7 +208,7 @@ function ProductDetailsAdmin() {
                         <div className="mt-8 space-y-3 pt-4 border-t border-gray-100">
                             <p className="text-base font-semibold text-[#333333]">SKU: <span className="font-normal text-gray-500 ml-2">AF-001-{product._id?.slice(-4)}</span></p>
                             <p className="text-base font-semibold text-[#333333]">Category: <span className="font-normal text-gray-500 ml-2">{product.category?.categoryName}</span></p>
-                            
+
                             {/* Seller Details */}
                             {product.sellerId && (
                                 <div className="pt-2 border-t border-gray-50 mt-4 space-y-2">
@@ -300,8 +303,16 @@ function ProductDetailsAdmin() {
                                         <>
                                             {product.reviews.slice(0, 2).map((review, i) => (
                                                 <div key={i} className="flex gap-4 pb-3 border-b border-gray-100 last:border-0">
-                                                    <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-gray-100">
-                                                        <img src={`https://ui-avatars.com/api/?name=${review.user?.name}&background=random`} alt={review.user?.name} className="w-full h-full object-cover" />
+                                                    <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border border-emerald-100 bg-emerald-50 flex items-center justify-center text-[#2E7D32] font-bold text-lg shadow-sm">
+                                                        {review.user?.photo?.url ? (
+                                                            <img src={review.user.photo.url} alt={review.user.name} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            review.user?.name ? (
+                                                                review.user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+                                                            ) : (
+                                                                'U'
+                                                            )
+                                                        )}
                                                     </div>
                                                     <div className="space-y-1">
                                                         <h4 className="font-semibold text-[#1F2937] text-base">{review.user?.name}</h4>
@@ -319,7 +330,11 @@ function ProductDetailsAdmin() {
                                                         {review.images && review.images.length > 0 && (
                                                             <div className="flex gap-2 mt-3 overflow-x-auto pb-1 no-scrollbar">
                                                                 {review.images.map((img, idx) => (
-                                                                    <div key={idx} className="w-16 h-16 rounded-md overflow-hidden border border-gray-100 flex-shrink-0">
+                                                                    <div
+                                                                        key={idx}
+                                                                        className="w-16 h-16 rounded-md overflow-hidden border border-gray-100 flex-shrink-0 cursor-pointer hover:border-[var(--primary)] transition-all"
+                                                                        onClick={() => setModalImage(img.url || img)}
+                                                                    >
                                                                         <img src={img.url || img} alt="Review" className="w-full h-full object-cover shadow-sm" />
                                                                     </div>
                                                                 ))}
@@ -364,7 +379,31 @@ function ProductDetailsAdmin() {
                 onClose={() => setIsReviewDrawerOpen(false)}
                 reviews={product.reviews}
                 productName={product.name}
+                onImageClick={(img) => setModalImage(img)}
             />
+
+            {/* Image Modal */}
+            {modalImage && (
+                <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-zoom-out"
+                        onClick={() => setModalImage(null)}
+                    ></div>
+                    <div className="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center animate-zoomIn">
+                        <button
+                            className="absolute -top-12 right-0 sm:-right-12 text-white hover:text-gray-300 transition-colors p-2"
+                            onClick={() => setModalImage(null)}
+                        >
+                            <FiX className="text-3xl" />
+                        </button>
+                        <img
+                            src={modalImage}
+                            alt="Full Screen"
+                            className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

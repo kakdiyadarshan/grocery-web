@@ -726,13 +726,25 @@ const UserProfile = () => {
                                                     isDefault: editingAddress?.isDefault || addresses.length === 0,
                                                 }}
                                                 validationSchema={Yup.object().shape({
-                                                    firstname: Yup.string().required('First name is required'),
-                                                    lastname: Yup.string().required('Last name is required'),
+                                                    firstname: Yup.string()
+                                                        .matches(/^[a-zA-Z\s]+$/, 'Only alphabets are allowed')
+                                                        .required('First name is required'),
+                                                    lastname: Yup.string()
+                                                        .matches(/^[a-zA-Z\s]+$/, 'Only alphabets are allowed')
+                                                        .required('Last name is required'),
                                                     address: Yup.string().required('Address is required'),
-                                                    city: Yup.string().required('City is required'),
-                                                    state: Yup.string().required('State is required'),
-                                                    zip: Yup.string().required('Zip is required'),
-                                                    phone: Yup.string().required('Phone is required'),
+                                                    city: Yup.string()
+                                                        .matches(/^[a-zA-Z\s]+$/, 'Only alphabets are allowed')
+                                                        .required('City is required'),
+                                                    state: Yup.string()
+                                                        .matches(/^[a-zA-Z\s]+$/, 'Only alphabets are allowed')
+                                                        .required('State is required'),
+                                                    zip: Yup.string()
+                                                        .matches(/^\d{6}$/, 'Zip code must be 6 digits')
+                                                        .required('Zip is required'),
+                                                    phone: Yup.string()
+                                                        .matches(/^\d{10}$/, 'Phone number must be 10 digits')
+                                                        .required('Phone is required'),
                                                     email: Yup.string().email('Invalid email').required('Email is required'),
                                                 })}
                                                 onSubmit={handleAddressSubmit}

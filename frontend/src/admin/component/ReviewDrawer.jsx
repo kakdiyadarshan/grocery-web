@@ -2,7 +2,7 @@ import React from 'react';
 import { FiX, FiMessageSquare } from 'react-icons/fi';
 import { AiFillStar } from 'react-icons/ai';
 
-const ReviewDrawer = ({ isOpen, onClose, reviews, productName }) => {
+const ReviewDrawer = ({ isOpen, onClose, reviews, productName, onImageClick }) => {
     return (
         <>
             {/* Backdrop */}
@@ -32,7 +32,7 @@ const ReviewDrawer = ({ isOpen, onClose, reviews, productName }) => {
                 {/* Reviews List */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar no-scrollbar">
                     {reviews?.map((review, i) => (
-                        <div key={i} className="flex flex-wrap gap-2 sm:gap-4 pb-3 border-b border-gray-100 last:border-0">
+                        <div key={i} className="flex gap-2 sm:gap-4 pb-3 border-b border-gray-100 last:border-0">
                             <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border border-emerald-100 bg-emerald-50 flex items-center justify-center text-[#2E7D32] font-bold text-lg shadow-sm">
                                 {review.user?.photo?.url ? (
                                     <img src={review.user.photo.url} alt={review.user.name} className="w-full h-full object-cover" />
@@ -60,7 +60,11 @@ const ReviewDrawer = ({ isOpen, onClose, reviews, productName }) => {
                                 {review.images && review.images.length > 0 && (
                                     <div className="flex gap-2 mt-3 overflow-x-auto pb-1 no-scrollbar">
                                         {review.images.map((img, idx) => (
-                                            <div key={idx} className="w-10 h-10 sm:w-16 sm:h-16 rounded-md overflow-hidden border border-gray-100 flex-shrink-0">
+                                            <div 
+                                                key={idx} 
+                                                className="w-10 h-10 sm:w-16 sm:h-16 rounded-md overflow-hidden border border-gray-100 flex-shrink-0 cursor-pointer hover:border-[var(--primary)] transition-all"
+                                                onClick={() => onImageClick(img.url || img)}
+                                            >
                                                 <img src={img.url || img} alt="Review" className="w-full h-full object-cover shadow-sm" />
                                             </div>
                                         ))}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronRight, Banknote } from 'lucide-react';
 import {  FaStripe } from 'react-icons/fa';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'sonner';
 import { createOrder as triggerCreateOrder } from '../redux/slice/order.slice';
@@ -19,10 +19,13 @@ const CheckOut = () => {
   const dispatch = useDispatch();
 
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useSelector(state => state.auth);
   const { cart, appliedCoupon } = useSelector(state => state.cart);
   const { addresses, submitLoading } = useSelector(state => state.address);
-  const items = cart?.items || [];
+  
+  const buyNowItem = location.state?.buyNowItem;
+  const items = buyNowItem ? [buyNowItem] : (cart?.items || []);
 
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null);
@@ -504,13 +507,25 @@ const CheckOut = () => {
                   isDefault: editingAddress?.isDefault || addresses.length === 0,
                 }}
                 validationSchema={Yup.object().shape({
-                  firstname: Yup.string().required('First name is required'),
-                  lastname: Yup.string().required('Last name is required'),
+                  firstname: Yup.string()
+                    .matches(/^[a-zA-Z\s]+$/, 'Only alphabets are allowed')
+                    .required('First name is required'),
+                  lastname: Yup.string()
+                    .matches(/^[a-zA-Z\s]+$/, 'Only alphabets are allowed')
+                    .required('Last name is required'),
                   address: Yup.string().required('Address is required'),
-                  city: Yup.string().required('City is required'),
-                  state: Yup.string().required('State is required'),
-                  zip: Yup.string().required('Zip is required'),
-                  phone: Yup.string().required('Phone is required'),
+                  city: Yup.string()
+                    .matches(/^[a-zA-Z\s]+$/, 'Only alphabets are allowed')
+                    .required('City is required'),
+                  state: Yup.string()
+                    .matches(/^[a-zA-Z\s]+$/, 'Only alphabets are allowed')
+                    .required('State is required'),
+                  zip: Yup.string()
+                    .matches(/^\d{6}$/, 'Zip code must be 6 digits')
+                    .required('Zip is required'),
+                  phone: Yup.string()
+                    .matches(/^\d{10}$/, 'Phone number must be 10 digits')
+                    .required('Phone is required'),
                   email: Yup.string().email('Invalid email').required('Email is required'),
                 })}
                 onSubmit={handleAddressSubmit}
@@ -609,7 +624,7 @@ const CheckOut = () => {
                         <label className="text-sm font-medium text-gray-700 block mb-2 ml-1">Phone Number <span className="text-red-500">*</span></label>
                         <Field
                           name="phone"
-                          placeholder="Phone Number"
+                          placeholder="Phone Number" 
                           className={`block w-full px-3 py-3 border rounded-[4px] outline-none transition-all text-sm font-medium bg-gray-50 focus:bg-white text-gray-800 placeholder-gray-400 ${errors.phone && touched.phone
                             ? 'border-red-500 focus:ring-red-100'
                             : 'border-gray-200 focus:ring-2 focus:ring-[var(--primary)]/10 focus:border-[var(--primary)]'

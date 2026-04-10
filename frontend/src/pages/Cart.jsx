@@ -184,7 +184,7 @@ const Cart = () => {
                                                     />
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <Link to={`/product/${prodId}`} className="font-bold text-[#228b22] text-sm md:text-[15px] hover:opacity-80 transition-opacity leading-snug">
+                                                    <Link to={`/product-details/${prodId}`} className="font-bold text-[#228b22] text-sm md:text-[15px] hover:opacity-80 transition-opacity leading-snug">
                                                         {item.name || item.productName}
                                                     </Link>
                                                     {variant && variant.weight && (

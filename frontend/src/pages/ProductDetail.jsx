@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { MdKeyboardArrowRight, MdKeyboardArrowUp, MdKeyboardArrowDown } from "react-icons/md";
 import { AiOutlineHeart, AiFillStar, AiFillHeart } from "react-icons/ai";
-import { FiArrowRight, FiMinus, FiPlus, FiShoppingCart } from "react-icons/fi";
+import { FiArrowRight, FiMinus, FiPlus, FiShoppingCart, FiX } from "react-icons/fi";
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getProductById, getAllProducts } from '../redux/slice/product.slice';
@@ -43,6 +43,7 @@ function ProductDetail() {
     const [startIndex, setStartIndex] = useState(0);
     const [activeTab, setActiveTab] = useState('description');
     const [isReviewDrawerOpen, setIsReviewDrawerOpen] = useState(false);
+    const [modalImage, setModalImage] = useState(null);
     const tabsRef = useRef(null);
     const imgRefZoom = useRef(null);
 
@@ -70,8 +71,8 @@ function ProductDetail() {
     };
 
     useEffect(() => {
-        // Lock background scroll when drawer is open
-        if (isReviewDrawerOpen) {
+        // Lock background scroll when drawer or modal is open
+        if (isReviewDrawerOpen || modalImage) {
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = 'auto';
@@ -81,7 +82,7 @@ function ProductDetail() {
         return () => {
             document.body.style.overflow = 'auto';
         };
-    }, [isReviewDrawerOpen]);
+    }, [isReviewDrawerOpen, modalImage]);
 
     const scrollToDescription = () => {
         setActiveTab('description');
@@ -126,19 +127,15 @@ function ProductDetail() {
             return;
         }
         if (product && !isOutOfStock) {
-            const isInCart = cart?.items?.some(item =>
-                (item.productId?._id || item.productId).toString() === product._id &&
-                (item.variantId === selectedVariant?._id)
-            );
+            const buyNowItem = {
+                _id: `buynow-${Date.now()}`,
+                productId: product,
+                variantId: selectedVariant?._id,
+                quantity: quantity,
+                selectedVariant: selectedVariant
+            };
 
-            if (!isInCart) {
-                dispatch(addToCart({
-                    productId: product._id,
-                    variantId: selectedVariant?._id,
-                    quantity
-                }));
-            }
-            navigate('/cart');
+            navigate('/checkout', { state: { buyNowItem } });
         }
     };
 
@@ -196,13 +193,14 @@ function ProductDetail() {
                     <div className="flex flex-col-reverse md:flex-row gap-6 lg:w-3/5">
                         {/* Vertical Thumbnails */}
                         <div className="flex md:flex-col items-center gap-3 py-2">
-                            <button
-                                onClick={() => setStartIndex(prev => Math.max(0, prev - 1))}
-                                disabled={startIndex === 0}
-                                className={`hidden md:flex items-center justify-center w-full px-1 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 transition ${startIndex === 0 ? 'opacity-30 cursor-not-allowed' : ''}`}
-                            >
-                                <MdKeyboardArrowUp className="text-2xl hover:text-[var(--primary)]" />
-                            </button>
+                            {startIndex > 0 && (
+                                <button
+                                    onClick={() => setStartIndex(prev => Math.max(0, prev - 1))}
+                                    className="hidden md:flex items-center justify-center w-full px-1 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 transition"
+                                >
+                                    <MdKeyboardArrowUp className="text-2xl hover:text-[var(--primary)]" />
+                                </button>
+                            )}
 
                             <div className="hidden md:block overflow-hidden h-[420px]">
                                 <div
@@ -234,13 +232,14 @@ function ProductDetail() {
                                 ))}
                             </div>
 
-                            <button
-                                onClick={() => setStartIndex(prev => Math.min(images.length - 4, prev + 1))}
-                                disabled={startIndex >= images.length - 4}
-                                className={`hidden md:flex items-center justify-center w-full px-1 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 transition ${startIndex >= images.length - 4 ? 'opacity-30 cursor-not-allowed' : ''}`}
-                            >
-                                <MdKeyboardArrowDown className="text-2xl hover:text-[var(--primary)]" />
-                            </button>
+                            {images.length > 4 && startIndex < images.length - 4 && (
+                                <button
+                                    onClick={() => setStartIndex(prev => Math.min(images.length - 4, prev + 1))}
+                                    className="hidden md:flex items-center justify-center w-full px-1 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 transition"
+                                >
+                                    <MdKeyboardArrowDown className="text-2xl hover:text-[var(--primary)]" />
+                                </button>
+                            )}
                         </div>
 
                         {/* Main Product Image */}
@@ -493,7 +492,11 @@ function ProductDetail() {
                                                         {review.images && review.images.length > 0 && (
                                                             <div className="flex gap-2 mt-3 overflow-x-auto pb-1 no-scrollbar">
                                                                 {review.images.map((img, idx) => (
-                                                                    <div key={idx} className="w-16 h-16 rounded-md overflow-hidden border border-gray-100 flex-shrink-0">
+                                                                    <div 
+                                                                        key={idx} 
+                                                                        className="w-16 h-16 rounded-md overflow-hidden border border-gray-100 flex-shrink-0 cursor-pointer hover:border-[var(--primary)] transition-all"
+                                                                        onClick={() => setModalImage(img.url || img)}
+                                                                    >
                                                                         <img src={img.url || img} alt="Review" className="w-full h-full object-cover shadow-sm" />
                                                                     </div>
                                                                 ))}
@@ -542,7 +545,31 @@ function ProductDetail() {
                 onClose={() => setIsReviewDrawerOpen(false)}
                 reviews={product.reviews}
                 productName={product.name}
+                onImageClick={(img) => setModalImage(img)}
             />
+
+            {/* Image Modal */}
+            {modalImage && (
+                <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+                    <div 
+                        className="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-zoom-out"
+                        onClick={() => setModalImage(null)}
+                    ></div>
+                    <div className="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center animate-zoomIn">
+                        <button 
+                            className="absolute -top-12 right-0 sm:-right-12 text-white hover:text-gray-300 transition-colors p-2"
+                            onClick={() => setModalImage(null)}
+                        >
+                            <FiX className="text-3xl " />
+                        </button>
+                        <img 
+                            src={modalImage} 
+                            alt="Full Screen" 
+                            className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
