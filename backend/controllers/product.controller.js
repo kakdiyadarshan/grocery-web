@@ -123,26 +123,6 @@ exports.getAllProducts = async (req, res) => {
             matchStage.sellerId = new mongoose.Types.ObjectId(seller);
         }
 
-        if (search) {
-            matchStage.$or = [
-                { name: { $regex: search, $options: 'i' } },
-                { sku: { $regex: search, $options: 'i' } }
-            ];
-        }
-
-        if (seller) {
-            matchStage.sellerId = new mongoose.Types.ObjectId(seller);
-        }
-
-        // Multiple categories support (comma separated)
-        if (category) {
-            const categories = category.split(',');
-            if (categories.length > 1) {
-                // If multiple, we handle it after lookup/unwind for convenience or here if we want performance
-                // For now, let's stick to the existing pipeline structure but allow array match
-            }
-        }
-
         let pipeline = [];
         if (Object.keys(matchStage).length > 0) {
             pipeline.push({ $match: matchStage });
@@ -242,6 +222,22 @@ exports.getAllProducts = async (req, res) => {
                 }
             }
         );
+
+        // Comprehensive search filter (name, sku, category, seller)
+        if (search) {
+            pipeline.push({
+                $match: {
+                    $or: [
+                        { name: { $regex: search, $options: 'i' } },
+                        { sku: { $regex: search, $options: 'i' } },
+                        { 'category.categoryName': { $regex: search, $options: 'i' } },
+                        { 'sellerId.firstname': { $regex: search, $options: 'i' } },
+                        { 'sellerId.lastname': { $regex: search, $options: 'i' } },
+                        { 'sellerId.brandDetails.storeName': { $regex: search, $options: 'i' } }
+                    ]
+                }
+            });
+        }
 
         // Add category filter after unwind
         if (category) {

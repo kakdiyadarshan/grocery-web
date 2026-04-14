@@ -61,9 +61,11 @@ const Table = ({ columns = [], data = [], onEdit, onView, onDelete, itemsPerPage
     const [deleteModalData, setDeleteModalData] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    // 1. Search Filter - (If manual, we assume search handled by parent or disabled, or we just filter the current page)
+    const isManual = manualPagination;
+
+    // 1. Search Filter - (If manual, we skip client-side filtering and use data as is)
     const filteredData = useMemo(() => {
-        if (!searchTerm) return data;
+        if (!searchTerm || isManual) return data;
         return data.filter(item =>
             columns.some(col => {
                 if (col.searchKey && typeof col.searchKey === 'function') {
@@ -74,10 +76,10 @@ const Table = ({ columns = [], data = [], onEdit, onView, onDelete, itemsPerPage
                 return itemValue && itemValue.toString().toLowerCase().includes(searchTerm.toLowerCase());
             })
         );
-    }, [data, searchTerm, columns]);
+    }, [data, searchTerm, columns, isManual]);
 
     // Derived State for Pagination
-    const isManual = manualPagination;
+
     const effectivePage = isManual ? manualCurrentPage : currentPage;
     const effectiveRowsPerPage = isManual ? manualRowsPerPage : rowsPerPage;
     const effectiveTotalItems = isManual ? manualTotalItems : filteredData.length;

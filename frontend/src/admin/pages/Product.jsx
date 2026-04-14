@@ -341,9 +341,12 @@ const Product = () => {
                     </div>
                 </div>
             ),
-            searchKey: (sellers) => `${sellers?.firstname || ''} ${sellers?.lastname || ''}`.trim() || sellers?.name
+            searchKey: (row) => `${row?.sellerId?.firstname || ''} ${row?.sellerId?.lastname || ''}`.trim() || row?.sellerId?.name || row?.sellerId?.brandDetails?.storeName || ''
         },
-        { header: 'Category', accessor: 'category.categoryName', exportValue: (row) => `${row.category?.categoryName}` || '-', render: (row) => row.category?.categoryName || '-', searchKey: (row) => `${row.category?.categoryName}`.trim() },
+        {
+            header: 'Category', accessor: 'category.categoryName', exportValue: (row) => `${row.category?.categoryName}` || '-', render: (row) => row.category?.categoryName || '-',
+            searchKey: (row) => `${row.category?.categoryName}`
+        },
         {
             header: 'Price Range',
             accessor: 'weighstWise',
