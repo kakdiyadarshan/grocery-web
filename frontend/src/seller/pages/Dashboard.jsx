@@ -789,8 +789,10 @@ const Dashboard = () => {
 
 // UI Components
 const MetricCard = ({ title, value, percentage = 0, color }) => {
-    const radius = 36;
-    const strokeWidth = 9;
+    // const radius = 36;
+    // const strokeWidth = 9;
+    const radius = 60;
+    const strokeWidth = 11;
     const normalizedRadius = radius - strokeWidth / 2;
     const circumference = normalizedRadius * 2 * Math.PI;
     const strokeDashoffset = circumference - (percentage / 100) * circumference;

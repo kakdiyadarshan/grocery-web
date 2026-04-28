@@ -10,8 +10,8 @@ body {
   --text-primary: #111827;
   --text-secondary: #6b7280;
   --text-gray: #374151;
-  --primary: #228B22;
-  --primary-hover: #1e7a1e;
+  --primary: #4CAF50;
+  --primary-hover: #43A047;
   --primary-light: #dcfce7;
   --border: #e5e7eb;
   --input-bg: #ffffff;
@@ -135,6 +135,7 @@ body {
     transform: scale(0.95);
     opacity: 0;
   }
+
   to {
     transform: scale(1);
     opacity: 1;

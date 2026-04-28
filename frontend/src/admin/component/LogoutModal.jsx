@@ -22,7 +22,7 @@ const LogoutModal = ({ isOpen, onClose, onConfirm, isLoading }) => {
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="p-6 text-center">
-                    <div className="w-12 h-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-4">
+                    <div className="w-12 h-12 rounded-full bg-[var(--primary-light)] text-[var(--primary)] flex items-center justify-center mx-auto mb-4">
                         <FiLogOut size={24} />
                     </div>
                     <h3 className="text-xl font-bold text-gray-800 mb-2">
@@ -44,7 +44,7 @@ const LogoutModal = ({ isOpen, onClose, onConfirm, isLoading }) => {
                     <button
                         onClick={onConfirm}
                         disabled={isLoading}
-                        className="flex-1 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition disabled:opacity-50"
+                        className="flex-1 px-4 py-2 bg-[var(--primary)] text-white rounded hover:bg-[var(--primary-hover)] transition disabled:opacity-50"
                     >
                         Logout
                     </button>

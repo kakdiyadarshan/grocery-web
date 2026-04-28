@@ -693,7 +693,7 @@ const Dashboard = () => {
         <div className="bg-white p-4 rounded-md border border-slate-100">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold">Top Selling Products</h3>
-                  </div>
+          </div>
           <div className="space-y-7">
             {topSellingProducts.length > 0 ? topSellingProducts.map((p, i) => (
               <RecentOrderRow
@@ -719,8 +719,8 @@ const Dashboard = () => {
 
 // UI Components
 const MetricCard = ({ title, value, percentage = 0, color }) => {
-  const radius = 36;
-  const strokeWidth = 9;
+  const radius = 60;
+  const strokeWidth = 11;
   const normalizedRadius = radius - strokeWidth / 2;
   const circumference = normalizedRadius * 2 * Math.PI;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;

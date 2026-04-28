@@ -679,7 +679,7 @@ const Header = () => {
           <div className="relative w-full max-w-md rounded-2xl bg-white/80 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.2)] border border-white/30 p-8 animate-fadeIn">
 
             <div className="flex justify-center mb-5">
-              <div className="w-14 h-14 flex items-center justify-center rounded-full bg-red-100 text-red-500 shadow-inner">
+              <div className="w-14 h-14 flex items-center justify-center rounded-full bg-[var(--primary-light)] text-[var(--primary)] shadow-inner">
                 <LogOut size={26} />
               </div>
             </div>
@@ -696,7 +696,7 @@ const Header = () => {
 
               <button
                 onClick={confirmLogout}
-                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold shadow-lg hover:shadow-red-300/40 hover:scale-[1.02] transition-all duration-200 active:scale-95"
+                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[var(--primary)] to-[var(--primary-hover)] text-white font-semibold shadow-lg hover:shadow-[var(--primary-light)]/40 hover:scale-[1.02] transition-all duration-200 active:scale-95"
               >
                 Sign Out
               </button>
