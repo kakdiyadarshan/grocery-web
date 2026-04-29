@@ -5,6 +5,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { loginUser } from '../redux/slice/auth.slice';
 import { Eye, EyeOff } from 'lucide-react';
+import PuzzleCaptchaModal from './PuzzleCaptchaModal';
+
 
 const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -12,6 +14,8 @@ const Login = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { loading } = useSelector((state) => state.auth);
+    const [isCaptchaOpen, setIsCaptchaOpen] = useState(false);
+
 
     const formik = useFormik({
         initialValues: {
@@ -25,15 +29,21 @@ const Login = () => {
             password: Yup.string().required('Password is required'),
         }),
         onSubmit: async (values) => {
-            try {
-                await dispatch(loginUser(values)).unwrap();
-                const redirectTo = location.state?.redirectTo || '/';
-                navigate(redirectTo);
-            } catch (error) {
-                console.error("Login Error:", error);
-            }
+            setIsCaptchaOpen(true);
         },
     });
+
+    const handleCaptchaSuccess = async () => {
+        setIsCaptchaOpen(false);
+        try {
+            await dispatch(loginUser(formik.values)).unwrap();
+            const redirectTo = location.state?.redirectTo || '/';
+            navigate(redirectTo);
+        } catch (error) {
+            console.error("Login Error:", error);
+        }
+    };
+
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -135,7 +145,13 @@ const Login = () => {
                 </div>
 
             </div>
+            <PuzzleCaptchaModal
+                isOpen={isCaptchaOpen}
+                onClose={() => setIsCaptchaOpen(false)}
+                onSuccess={handleCaptchaSuccess}
+            />
         </div>
+
     );
 };
 
